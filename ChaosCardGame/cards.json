@@ -1,0 +1,16 @@
+[
+{
+ "type":"creature",
+ "name":"Foo - Creature Example: Edit as you change data-format.",
+ "element":"elementless"
+},
+{
+ "type":"element",
+ "name":"Bar - Element Example: Edit as you change data-format.",
+ "element":"elementless"
+},
+{
+ "type":"spell",
+ "name":"Baz - Spell Example: Edit as you change data-format."
+}
+]
