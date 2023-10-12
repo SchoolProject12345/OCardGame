@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass # easier Class declaration
 from enum import IntEnum # for clear, lightweight (Int) elements/state.
-from numpy import random as rng # for shuffle function/rng effects?
+from numpy import random as rng # for shuffle function/rng effects
 def getcards() -> dict:
     io = open("cards.json");
     json = eval(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json.
@@ -12,14 +12,13 @@ def getcards() -> dict:
 CARDS = getcards();
 class Element(IntEnum):
     elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise (except if that's intentional?).
-    rock = 1, # I added it we never know.
+    rock = 1, # I added it we never know. (Technically you could replace it by earth)
     paper = 2,
     scissor = 3,
     water = 4,
     fire = 5,
     air = 6,
-    earth = 7,
-    chaos = 8 # It's already chaotic, it's already too late.
+    earth = 7, # Weak defense against all  (x1,2 damage taken) but powerful attack against all (x1.2 damage output)
     def from_str(name: str):
         match name.lower():
             case "rock": return Element.rock
@@ -31,8 +30,8 @@ class Element(IntEnum):
             case "earth": return Element.earth
             case "chaos": return Element.chaos
             case _: return Element.elementless # not sure this works in Python, not very useful anyway, it's just bug-handling but honestly I shoudld rather throw an error or at least print a warning.
-    def effectiveness(self, other): # `other` is Element I can't annote because Python.
-        "Return True if seld is effective on other, False otherwise."
+    def effectiveness(self, other): # `other` is Element
+        "Return True if selF is effective on other, False otherwise."
         if self == Element.chaos or other == Element.chaos:
             return True
 
