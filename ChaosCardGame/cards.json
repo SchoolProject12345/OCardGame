@@ -2,12 +2,12 @@
 {
  "type":"creature",
  "name":"Feu follet",
- "element":fire
+ "element":"fire"
 },
 {
  "type":"element",
  "name":"océan",
- "element":water 
+ "element":"water "
 },
 {
  "type":"spell",
