@@ -1,5 +1,5 @@
 # OCardGame
-OCG for short is a chaotic card game project we made in OC Informatique.
+OCG for short is a chaotic card game project we make in OC Informatique.
 
 ## Rules
 ???
