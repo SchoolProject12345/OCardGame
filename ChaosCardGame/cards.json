@@ -2,7 +2,7 @@
 {
  "type":"creature",
  "name":"Feu Follet - Creature Example: edit as you change data format.",
- "element":"fire"
+ "element":"fire",
  "example":true
 },
 {
@@ -13,7 +13,7 @@
 },
 {
  "type":"spell",
- "name":"Main de Feu - Spell Example: edit as you change data format."
+ "name":"Main de Feu - Spell Example: edit as you change data format.",
  "example":true
 }
 ]
