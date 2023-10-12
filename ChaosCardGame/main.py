@@ -1,16 +1,5 @@
 # The Card Game
-"""
-Card Type {
-    Modular Elements (Rock Paper Scissor / Water Fire Air Earth)
-    Creature, Terrain, Spell
-}
-Rules {
-Rock<Paper<Scissor<, Water>Fire>Air>Earth>
-Deck of N cards
-Special Effect
-Leader Card => HP
-}
-"""
+
 from dataclasses import dataclass # easier Class declaration
 from enum import IntEnum # for clear, lightweight (Int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects?
