@@ -13,6 +13,7 @@ Leader Card => HP
 """
 from dataclasses import dataclass # easier Class declaration
 from enum import IntEnum # for clear, lightweight (Int) elements/state.
+from numpy import random as rng # for shuffle function/rng effects?
 class Element(IntEnum):
     elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise.
     rock = 1, # I added it we never know.
