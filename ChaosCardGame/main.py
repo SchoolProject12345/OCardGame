@@ -14,8 +14,14 @@ Leader Card => HP
 from dataclasses import dataclass # easier Class declaration
 from enum import IntEnum # for clear, lightweight (Int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects?
+def getcards() -> dict:
+    io = open("cards.json");
+    json = io.read();
+    io.close();
+    return eval(json) # assuming people aren't stupid enough to write invalid JSON in cards.json.
+CARDS = getcards();
 class Element(IntEnum):
-    elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise.
+    elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise (except if that's intentional?).
     rock = 1, # I added it we never know.
     paper = 2,
     scissor = 3,
