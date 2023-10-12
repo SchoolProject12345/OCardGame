@@ -1,0 +1,10 @@
+Card Type {
+    Modular Elements (Rock Paper Scissor / Water Fire Air Earth)
+    Creature, Terrain, Spell
+}
+Rules {
+Rock<Paper<Scissor<, Water>Fire>Air>Earth>
+Deck of N cards
+Special Effect
+Leader Card => HP
+}
