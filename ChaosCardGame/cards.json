@@ -1,16 +1,19 @@
 [
 {
  "type":"creature",
- "name":"Feu follet",
+ "name":"Feu Follet - Creature Example: edit as you change data format.",
  "element":"fire"
+ "example":true
 },
 {
  "type":"element",
- "name":"océan",
- "element":"water "
+ "name":"Océan - Element Example: edit as you change data format.",
+ "element":"water",
+ "example":true
 },
 {
  "type":"spell",
- "name":"main de feu"
+ "name":"Main de Feu - Spell Example: edit as you change data format."
+ "example":true
 }
 ]
