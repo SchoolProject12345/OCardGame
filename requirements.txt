@@ -1,2 +1,5 @@
 pygame
 pygame_widgets
+numpy
+dataclasses
+enum
