@@ -16,9 +16,10 @@ from enum import IntEnum # for clear, lightweight (Int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects?
 def getcards() -> dict:
     io = open("cards.json");
-    json = io.read();
+    json = eval(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json.
     io.close();
-    return eval(json) # assuming people aren't stupid enough to write invalid JSON in cards.json.
+    id = -1 # starts at -1 + 1 = 0
+    return [AbstractCard.from_json(card, (id := id + 1)) for card = json]
 CARDS = getcards();
 class Element(IntEnum):
     elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise (except if that's intentional?).
@@ -55,6 +56,8 @@ class AbstractCard:
                 return CreatureCard.from_json(json, id)
             if type == "element":
                 return ElementCard.from_json(json, id)
+            if type == "spell":
+                return SpellCard.from_json(json, id)
 @dataclass
 class CreatureCard(AbstractCard):
     name: str = "",
@@ -65,7 +68,9 @@ class CreatureCard(AbstractCard):
         CreatureCard(json["name"], id, Element.from_str(json["element"]), State.default)
 @dataclass
 class ElementCard(AbstractCard):
-    pass
+    def from_json(json: dict, id: int):
+        return # Avoid crash, MUST BE MODIFIED
 @dataclass
 class SpellCard(AbstractCard):
-    pass
+    def from_json(json: dict, id: int):
+        return # Avoid crash, MUST BE MODIFIED
