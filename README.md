@@ -10,7 +10,7 @@ OCardGame is a little chaotic card game coded exhaustively in Python. Inspired b
 - All commits must incude at least one **finished** new feature.
 
 *Libraries:*
-- Must be specified in the `requirements.txt`file.
+- Must be specified in the `requirements.txt` file.
 - Must be only used if **truly** necessary.
 
 ## Contributors
