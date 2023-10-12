@@ -1,16 +1,19 @@
 [
 {
  "type":"creature",
- "name":"Foo - Creature Example: Edit as you change data-format.",
- "element":"elementless"
+ "name":"Feu Follet - Creature Example: edit as you change data format.",
+ "element":"fire"
+ "example":true
 },
 {
  "type":"element",
- "name":"Bar - Element Example: Edit as you change data-format.",
- "element":"elementless"
+ "name":"Océan - Element Example: edit as you change data format.",
+ "element":"water",
+ "example":true
 },
 {
  "type":"spell",
- "name":"Baz - Spell Example: Edit as you change data-format."
+ "name":"Main de Feu - Spell Example: edit as you change data format."
+ "example":true
 }
 ]
