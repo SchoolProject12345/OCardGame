@@ -54,6 +54,7 @@ class Element(IntEnum):
         return False
 class State(IntEnum):
     default = 0 # state aren't listed
+
 class AbstractCard:
     def __init__(self, name: str, id):
         pass
@@ -65,6 +66,7 @@ class AbstractCard:
                 return ElementCard.from_json(json, id)
             if type == "spell":
                 return SpellCard.from_json(json, id)
+            
 @dataclass
 class CreatureCard(AbstractCard):
     name: str = "",
@@ -73,11 +75,13 @@ class CreatureCard(AbstractCard):
     state: State = State.default
     def from_json(json: dict, id: int):
         CreatureCard(json["name"], id, Element.from_str(json["element"]), State.default)
+
 @dataclass
 class ElementCard(AbstractCard):
     def from_json(json: dict, id: int):
-        return # Avoid crash, MUST BE MODIFIED
+        return # Avoid crash, MUST BE MODIFIED - What should it return though?
+    
 @dataclass
 class SpellCard(AbstractCard):
     def from_json(json: dict, id: int):
-        return # Avoid crash, MUST BE MODIFIED
+        return # Avoid crash, MUST BE MODIFIED - What should it return though?
