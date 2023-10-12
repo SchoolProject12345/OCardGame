@@ -19,7 +19,7 @@ def getcards() -> dict:
     json = eval(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json.
     io.close();
     id = -1 # starts at -1 + 1 = 0
-    return [AbstractCard.from_json(card, (id := id + 1)) for card = json]
+    return [AbstractCard.from_json(card, (id := id + 1)) for card in json if not "example" in card]
 CARDS = getcards();
 class Element(IntEnum):
     elementless = 0, # used instead of None as a placeholder; shouldn't be used otherwise (except if that's intentional?).
@@ -43,8 +43,27 @@ class Element(IntEnum):
             case "chaos": return Element.chaos
             case _: return Element.elementless # not sure this works in Python, not very useful anyway, it's just bug-handling but honestly I shoudld rather throw an error or at least print a warning.
     def effectiveness(self, other): # `other` is Element I can't annote because Python.
-        match self:
-            case _: return # I don't know what to return
+        "Return True if seld is effective on other, False otherwise."
+        if self == Element.chaos or other == Element.chaos:
+            return True
+
+        if self == Element.rock and other == Element.scissor:
+            return True
+        if self == Element.paper and other == Element.rock:
+            return True
+        if self == Element.scissor and other == Element.paper:
+            return True
+
+        if self == Element.water and other == Element.fire:
+            return True
+        if self == Element.fire and other == Element.air:
+            return True
+        if self == Element.air and other == Element.earth:
+            return True
+        if self == Element.earth and other == Element.water:
+            return True
+
+        return False
 class State(IntEnum):
     default = 0 # state aren't listed
 class AbstractCard:
