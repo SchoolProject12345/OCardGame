@@ -1,15 +1,17 @@
 # OCardGame
-OCardGame is a little chaotic card game coded exhaustively in Python. Inspired by the popular game *Magic The Gathering*, fight powerful monsters through special abilities and level up your card companions!
+OCardGame is a little chaotic card game coded exhaustively in Python (why though TwT). Inspired by the popular game *Magic The Gathering*, fight powerful monsters through special abilities and level up your card companions!
 
 ## Rules
 - To be Added
 
 ## Coding Conventions & Rules
-- All variables must be in camelCase *(ex. aNewVariable)*
+- All variables and function should be in lowercase or snake_case *(e.g. `AbstractCard.from_json`)*
+- All constants (variables that are indented not to change, as constants does not exist in Python) should be in UPPERCASE or UPPER_SNAKE_CASE (e.g. `CARDS`)
+- All type/class should be in UpperCamelCase (e.g. `AbstractCard`)
 - All commit message must be a an exhaustive descirption of the new feature.
 - All commits must incude at least one **finished** new feature.
 
-*Libraries:*
+### Libraries:
 - Must be specified in the `requirements.txt` file.
 - Must be only used if **truly** necessary.
 
