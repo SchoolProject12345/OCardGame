@@ -18,7 +18,8 @@ class Element(IntEnum):
     water = 4,
     fire = 5,
     air = 6,
-    earth = 7, # Weak defense against all  (x1,2 damage taken) but powerful attack against all (x1.2 damage output)
+    earth = 7,
+    chaos = 8, # Weak defense against all  (x1,2 damage taken) but powerful attack against all (x1.2 damage output)
     def from_str(name: str):
         match name.lower():
             case "rock": return Element.rock
