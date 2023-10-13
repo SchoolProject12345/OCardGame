@@ -79,10 +79,16 @@ class CreatureCard(AbstractCard):
 
 @dataclass
 class ElementCard(AbstractCard):
+    name: str
+    id: int
+    element: Element
     def from_json(json: dict, id: int):
-        return # Avoid crash, MUST BE MODIFIED - What should it return though?
+        return ElementCard(json["name"], id, json["element"])
     
 @dataclass
 class SpellCard(AbstractCard):
+    name: str
+    id: int
+    element: Element
     def from_json(json: dict, id: int):
-        return # Avoid crash, MUST BE MODIFIED - What should it return though?
+        return SpellCard(json["name"], id, json["element"])
