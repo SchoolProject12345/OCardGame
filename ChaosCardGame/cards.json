@@ -3,6 +3,7 @@
  "type":"creature",
  "name":"Feu Follet - Creature Example: edit as you change data format.",
  "element":"fire",
+ "hp":60,
  "example":true
 },
 {
