@@ -11,7 +11,7 @@ def getcards() -> dict: # only used to define `global CARDS`
     id = -1 # starts at -1 + 1 = 0
     return [AbstractCard.from_json(card, (id := id + 1)) for card in json if not "example" in card] # please note that whether example is put to true or false it is excluded from the list.
 CARDS = getcards();
-def DEV(): return True; # enable debugging; function to avoid taking from global scope
+def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 
  # convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
@@ -31,7 +31,7 @@ def getordef(d: dict, key, default):
     if key not in dict:
         return default
     return dict.get(key)
-def warn(*args, dev = DEV(), **kwargs):
+def warn(*args, dev = DEV(), **kwargs) -> bool:
     """
     Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
 
@@ -60,6 +60,7 @@ class Element(IntEnum):
     earth = 4
     chaos = 5 # Weak defense against all but chaos (x1,2 damage taken) but powerful attack against all but chaos (x1.2 damage output)
     def from_str(name: str):
+        "Return an Element value from name string."
         match name.strip().lower():
             case "water": return Element.water
             case "fire": return Element.fire
@@ -67,11 +68,19 @@ class Element(IntEnum):
             case "earth": return Element.earth
             case "chaos": return Element.chaos # keeping chaos as it is a more interesting alternative than elementless for cards with no obvious element
             case _: return warn(f"Tried to form an Element from \"{name}\"; returned Element.elementless instead.") and Element.elementless
+    def to_str(self) -> str:
+        "Return self's name as a string such that `assert Element.from_str(self.to_str()) == self`."
+        match self:
+            case Element.water: return "water"
+            case Element.fire: return "fire"
+            case Element.air: return "air"
+            case Element.earth: return "earth"
+            case Element.chaos: return "chaos"
     def from_json(json: dict):
         if "element" not in json:
             return warn(f"Card with name {json['name']} has no element defined (don't do that intentionally please)") and Element.elementless
         return Element.from_str(json["element"])
-    def effective(self, other):
+    def effective(self, other) -> bool:
         """
             Element.effective(self, other: Element)
         
@@ -101,7 +110,7 @@ class Element(IntEnum):
             return True
 
         return False
-    def resist(self, other):
+    def resist(self, other) -> bool:
         """
             Element.resist(self, other: Element)
 
@@ -146,38 +155,45 @@ class AbstractCard:
             return SpellCard.from_json(json, id)
         warn(f"Card with name {json['name']} has type {type} which isn't handled.")
     def copy(self): # Method is inherited to every subclass. Will be needed as otherwise every card with the same id have shared HP.
-        return type(self)(**vars(self)) # a bit spaghettit coded but I can't really do better because Python. TODO: copy recursively to avoid sharing completely
-    def iscommander(self): return False # in case we can't know if the card is a Creature or not, it avoids a crash.
+        "Self explanatory."
+        return type(self)(**vars(self)) # a bit spaghetti coded but I can't really do better because Python. TODO: copy recursively to avoid sharing completely
+    def iscommander(self) -> bool: return False # in case we can't know if the card is a Creature or not, it avoids a crash.
 
 @dataclass
 class CreatureCard(AbstractCard):
     hp: int
-    attack: Attack
+    attack: list # list of Attack objects
     state: State = State.default
     def from_json(json: dict, id: int):
+        "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = (
             json["name"],
             id,
             Element.from_json(json),
             json["hp"],
+            # use default argument for State
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
-        return CreatureCard(*args) # use default argument for State
-    def damage(self, d: int):
-        "Reduce hp by d but never goes into negative; exists so we can add modifier in it if necessary."
+        return CreatureCard(*args)
+    def damage(self, d: int) -> int:
+        "Reduce hp by d but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
         if DEV() and type(d) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             d = int(d)
         if d > self.hp
-            return (self.hp := 0)
-        return (self.hp := self.hp - d)
-    def attack(self, attack: Attack, other) # other is creature card.
+            dealt = self.hp
+            self.hp = 0
+            return dealt
+        self.hp -= d
+        return d
+    def attack(self, attack: Attack, other) -> int: # other is CreatureCard.
+        "Make `self` use `attack` on `other` and return damage dealt."
         return other.damage(attack.power * ifelse(self.element.effective(other.element), 12, 10) // ifelse(other.element.resist(self.element), 12, 10))
 @dataclass
 class CommanderCard(CreatureCard):
     # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
-    def iscommander(self): return True
+    def iscommander(self) -> bool: return True
     
 @dataclass
 class SpellCard(AbstractCard):
