@@ -1,15 +1,16 @@
 [
 {
  "type":"creature",
+ "name":"Foobar - Commander Example: edit as you change data format.",
+ "element":"water",
+ "hp":600,
+ "commander":true
+}
+{
+ "type":"creature",
  "name":"Feu Follet - Creature Example: edit as you change data format.",
  "element":"fire",
  "hp":60,
- "example":true
-},
-{
- "type":"element",
- "name":"Océan - Element Example: edit as you change data format.",
- "element":"water",
  "example":true
 },
 {
