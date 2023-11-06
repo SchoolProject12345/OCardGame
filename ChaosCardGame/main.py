@@ -3,12 +3,13 @@
 from dataclasses import dataclass # easier class declaration
 from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
+from json import loads
 
 def getcards() -> dict: # only used to define `global CARDS`
     io = open("cards.json");
-    json = eval(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
+    json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
     io.close();
-    id = -1 # starts at -1 + 1 = 0
+    id = -1; # starts at -1 + 1 = 0
     return [AbstractCard.from_json(card, (id := id + 1)) for card in json if not "example" in card] # please note that whether example is put to true or false it is excluded from the list.
 CARDS = getcards();
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
@@ -44,7 +45,7 @@ def warn(*args, dev = DEV(), **kwargs) -> bool:
     ```
     """
     if dev: # hard check to avoid mistakes
-        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs) # might not work in every terminal, but should in VS Code
+        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs); # might not work in every terminal, but should in VS Code
     return True # this is definitevely not spaghetti code.
 def ifelse(cond: Bool, a, b):
     "Return `a` if `cond` is `True`, return `b` otherwise. Used to replace the lack of expression in Python."
@@ -131,9 +132,23 @@ class Element(IntEnum):
 class State(IntEnum):
     default = 0 # placeholder
 
+class AbstractEffect:
+    def __init__(self):
+        warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
+    def execute(self, *args):
+        warn(f"AbstractEffect of type {type(self)} has no execute method defined.")
+@dataclass
+class EffectUnion(AbstractEffect):
+    effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
+    effect2: AbstractEffect # I might change that later though, but for now use `Union(Union(effect1, effect2), effect3)` or similar for more than 2 effects.`
+    def execute(self, *args):
+        self.execute1.execute(*args)
+        self.execute2.execute(*args)
+
 @dataclass
 class Attack:
     power: int
+    effects: AbstractEffect
     def from_json(json: dict):
         pass # TODO: return an Attack object
 
