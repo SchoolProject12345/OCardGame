@@ -18,5 +18,29 @@
  "name":"Main de Feu - Spell Example: edit as you change data format.",
  "element":"fire",
  "example":true
-}
+},
+{ 
+  "type":"creature",
+ "name":"Vine serpent",
+ "element":"earth",
+ "hp":10,
+ },
+ {
+   "type":"creature",
+ "name":"Whisperwind Sprite",
+ "element":"air",
+ "hp":6,
+ },
+ {
+   "type":"creature",
+ "name":"Eternal Sunseeker",
+ "element":"water",
+ "hp":21,
+ },
+ {
+   "type":"creature",
+ "name":"Magma Golem",
+ "element":"fire",
+ "hp":8,
+ }
 ]
