@@ -5,14 +5,22 @@ from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
 from json import loads
 
-def getcards() -> dict: # only used to define `global CARDS`
+def getCARDS(CARDS = []) -> list:
+    "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
+    if length(CARDS) != 0:
+        return CARDS
     io = open("cards.json");
     json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
     io.close();
     id = -1; # starts at -1 + 1 = 0
-    return [AbstractCard.from_json(card, (id := id + 1)) for card in json if not "example" in card] # please note that whether example is put to true or false it is excluded from the list.
-CARDS = getcards();
+    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json if ((not "example" in card) or DEV()) and (not getordef(json, "commander", False))] # please note that whether example is put to true or false it is excluded from the list.
+    return CARDS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
+class Constants: # for quick variable changing, might be removed later.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = min(30, length(getCARDS))
 
  # convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
@@ -214,3 +222,47 @@ class CommanderCard(CreatureCard):
 class SpellCard(AbstractCard):
     def from_json(json: dict, id: int):
         return SpellCard(json["name"], id, json["element"])
+
+@dataclass # for display
+class Player:
+    name: str
+    commander: CommanderCard
+    deck: list  # lists of `AbstractCard`s
+    discard: list
+    hand: list
+    energy: int
+    max_energy: int
+    energy_per_turn: int
+    def __init__(self, name: str, commander: CommanderCard, deck: list = ifelse(DEV(), getCARDS(), [])):
+        if length(deck) != Constants.default_deck_size:
+            raise f"Player {name} tried to play with too few cards (error handling will be done later)."
+        self.name = name
+        self.commander = commander.copy() # copy otherwise the same commander would be shared between players
+        self.deck = deck.copy()           # avoid shared, notably if deck is left to default in DEV() mode, as Python is a terrible language
+        shuffle(self.deck)
+        self.discard = [] # is not shared
+        self.hand = []
+        self.draw()
+        self.energy = Constants.default_energy_per_turn
+        self.max_energy = Constants.default_max_energy
+        self.energy_per_turn = Constants.default_max_energy
+    def draw(self) -> list:
+        if length(self.hand) >= Constants.default_hand_size:
+            pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
+        new = [self.deck.pop() for _ in range(Constants.default_hand_size - length(self.hand))] # Please note that the top of the deck is the end of the self.deck list.
+        self.hand.extend(new)
+        return new # to display drawing(s) on the GUI?
+    def add_energy(amount: int = self.energy_per_turn) -> int:
+        amount = min(amount, self.max_energy - self.energy)
+        self.energy += amount
+        return amount # for displaying
+    def haslost(self) -> bool :
+        "Return True is this Player's CommanderCard is defeated, False otherwise."
+        if self.commander.hp <= 0: # actually don't mind that I'll change it it's really spaghetti coded rn
+            return True
+        return False
+
+@dataclass
+class Board:
+    player1: Player
+    player2: Player
