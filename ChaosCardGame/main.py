@@ -9,14 +9,24 @@ def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if length(CARDS) != 0:
         return CARDS
-    io = open("cards.json");
+    io = open("data/cards.json");
     json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
     io.close();
     id = -1; # starts at -1 + 1 = 0
     CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json if ((not "example" in card) or DEV()) and (not getordef(json, "commander", False))] # please note that whether example is put to true or false it is excluded from the list.
     return CARDS
+def getCOMMANDERS(COMMANDERS = []) -> list:
+    "Return the list of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
+    if length(COMMANDERS) != 0:
+        return COMMANDERS
+    io = open("data/commanders.json");
+    json = loads(io.read());
+    io.close()
+    id = -1;
+    COMMANDERS += [CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card)) or DEV()]
+    return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
-class Constants: # for quick variable changing, might be removed later.
+class Constants: # to changing variables quickly, might be removed later.
     default_max_energy = 4
     default_energy_per_turn = 3
     default_hand_size = 5
@@ -60,6 +70,17 @@ def ifelse(cond: Bool, a, b):
     if cond:
         return a
     return b
+def cleanstr(s: str):
+    """
+    Format the string passed in argument to a lowercase alphanumeric string.
+
+    # Examples
+    ```py
+    >>> cleanstr("Foo-bar-73$\_{baz}$🐈‍⬛")
+    "foobar73baz"
+    ```
+    """
+    return "".join(filter(str.isalnum, s)).lower()
 
 class Element(IntEnum):
     elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
@@ -185,7 +206,8 @@ class AbstractCard:
 @dataclass
 class CreatureCard(AbstractCard):
     hp: int
-    attack: list # list of Attack objects
+    attacks: list # list of Attack objects
+    passives: list
     state: State = State.default
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
@@ -258,7 +280,7 @@ class Player:
         return amount # for displaying
     def haslost(self) -> bool :
         "Return True is this Player's CommanderCard is defeated, False otherwise."
-        if self.commander.hp <= 0: # actually don't mind that I'll change it it's really spaghetti coded rn
+        if self.commander.hp <= 0: # don't mind that I'll change it it's really spaghetti coded rn
             return True
         return False
 
