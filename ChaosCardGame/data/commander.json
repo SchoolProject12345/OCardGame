@@ -1,0 +1,10 @@
+[
+{
+  "name":"Sir Cation - Commander Example: edit as you change data format."
+  "type":"creature"
+  "hp":600,
+  "element":"air",
+  "commander":true,
+  "example":true
+}
+]
