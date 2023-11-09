@@ -16,15 +16,14 @@ def getCARDS(CARDS = []) -> list:
     id = -1; # starts at -1 + 1 = 0
     CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json if ((not "example" in card) or DEV()) and (not getordef(json, "commander", False))] # please note that whether example is put to true or false it is excluded from the list.
     return CARDS
-def getCOMMANDERS(COMMANDERS = []) -> list:
-    "Return the list of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
+def getCOMMANDERS(COMMANDERS = {}) -> dict:
+    "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(COMMANDERS) != 0:
         return COMMANDERS
     io = open("data/commanders.json");
     json = loads(io.read());
     io.close()
-    id = -1;
-    COMMANDERS += [CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card) or DEV()]
+    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card) or DEV()})
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 class Constants: # to changing variables quickly, might be removed later.
@@ -180,22 +179,36 @@ class Element(IntEnum):
 class State(IntEnum):
     default = 0 # placeholder
 
+class Target(IntEnum):
+    foes = 0
+    target = 1
+    allies = 2
+    self = 3 # it can't possibly cause a bug, right?
+
 class AbstractEffect:
     def __init__(self):
         warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
-    def execute(self, *args):
+    def execute(self, **kwargs):
         warn(f"AbstractEffect of type {type(self)} has no execute method defined.")
 @dataclass
 class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
     effect2: AbstractEffect # I might change that later though, but for now use `Union(Union(effect1, effect2), effect3)` or similar for more than 2 effects.`
-    def execute(self, *args):
-        self.effect1.execute(*args)
-        self.effect2.execute(*args)
+    def execute(self, **kwargs):
+        self.effect1.execute(**kwargs)
+        self.effect2.execute(**kwargs)
+@dataclass
+class ChangeTarget(AbstractEffect):
+    effect: AbstractEffect
+    new_target: Target
+    def execute(self, **kwargs):
+        kwargs["target"] = new_target
+        effect.execute(**kwargs)
 
 @dataclass
 class Attack:
     power: int
+    target: Target
     cost: int
     effects: AbstractEffect # use EffectUnion for multiple Effects
     def from_json(json: dict):
@@ -288,6 +301,14 @@ class Player:
         self.max_energy = Constants.default_max_energy
         self.energy_per_turn = Constants.default_max_energy
         self.active = []
+    def from_save(name: str):
+        fname = cleanstr(name);
+        io = open("data/players.json");
+        player = loads(io.read())[fname]; # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
+        io.close();
+        return Player(name, getCOMMANDERS[player["commander"]]) # TODO: for a deck from list of ids
+    def save(self):
+        pass # I must learn Python first.
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
