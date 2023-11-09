@@ -20,19 +20,19 @@
  "example":true
 },
 { 
-  "type":"creature",
+ "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
  "hp":100,
  },
  {
-   "type":"creature",
+ "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
  "hp":60,
  },
  {
-   "type":"creature",
+ "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
  "hp":210,
@@ -43,4 +43,46 @@
  "element":"fire",
  "hp":80,
  }
+ {
+ "type":"creature",
+ "name":"monkey of the Skies",
+ "element":"air",
+ "hp":120,
+ },
+ {
+ "type":"creature",
+ "name":"The Skiybound Serpent",
+ "element":"air",
+ "hp":60,
+ },
+ {
+ "type":"creature",
+ "name":"Wise Mystical Golem",
+ "element":"earth",
+ "hp":190,
+ },
+ {
+ "type":"creature",
+ "name":"Blossom Sylph",
+ "element":"water",
+ "hp":40,
+ },
+ {
+ "type":"creature",
+ "name":"Fyyronyr, the dragon",
+ "element":"fire",
+ "hp":80,
+ },
+ {
+ "type":"creature",
+ "name":"Bob the blobfish",
+ "element":"water",
+ "hp":120,
+ },
+ {
+ "type":"creature",
+ "name":"Hydra of the Seas",
+ "element":"water",
+ "hp":140,
+ },
 ]
