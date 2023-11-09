@@ -51,7 +51,7 @@
  },
  {
  "type":"creature",
- "name":"The Skiybound Serpent",
+ "name":"The Skybound Serpent",
  "element":"air",
  "hp":60,
  },
@@ -69,7 +69,7 @@
  },
  {
  "type":"creature",
- "name":"Fyyronyr, the dragon",
+ "name":"Fyyrönyr, the dragon",
  "element":"fire",
  "hp":80,
  },
