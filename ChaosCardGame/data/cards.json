@@ -23,24 +23,24 @@
   "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
- "hp":10,
+ "hp":100,
  },
  {
    "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
- "hp":6,
+ "hp":60,
  },
  {
    "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
- "hp":21,
+ "hp":210,
  },
  {
    "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
- "hp":8,
+ "hp":80,
  }
 ]
