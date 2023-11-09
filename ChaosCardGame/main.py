@@ -24,7 +24,7 @@ def getCOMMANDERS(COMMANDERS = []) -> list:
     json = loads(io.read());
     io.close()
     id = -1;
-    COMMANDERS += [CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card)) or DEV()]
+    COMMANDERS += [CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card) or DEV()]
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 class Constants: # to changing variables quickly, might be removed later.
@@ -243,7 +243,7 @@ class CreatureCard(AbstractCard):
         if DEV() and type(d) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             d = int(d)
-        if d > self.hp
+        if d > self.hp:
             dealt = self.hp
             self.hp = 0
             return dealt
