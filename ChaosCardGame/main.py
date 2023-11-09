@@ -32,6 +32,7 @@ class Constants: # to changing variables quickly, might be removed later.
     default_energy_per_turn = 3
     default_hand_size = 5
     default_deck_size = min(30, len(getCARDS))
+    board_size = randint(1, 7)
 
 # convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
@@ -272,6 +273,7 @@ class Player:
     energy: int
     max_energy: int
     energy_per_turn: int
+    active: list
     def __init__(self, name: str, commander: CommanderCard, deck: list = ifelse(DEV(), getCARDS(), [])):
         if len(deck) != Constants.default_deck_size:
             raise f"Player {name} tried to play with too few cards (error handling will be done later)."
@@ -285,6 +287,7 @@ class Player:
         self.energy = Constants.default_energy_per_turn
         self.max_energy = Constants.default_max_energy
         self.energy_per_turn = Constants.default_max_energy
+        self.active = []
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
@@ -300,8 +303,23 @@ class Player:
         if self.commander.hp <= 0: # don't mind that I'll change it it's really spaghetti coded rn
             return True
         return False
+    def handdiscard(self, i: int):
+        "Discard the `i`th card in `self`'s `hand`, returning it."
+        card = self.hand.pop(i)
+        self.discard.append(card)
+        return card
+    def iddiscard(self, id: int)
+        "Discard the first card in `self`'s `hand` with `id`, returning it."
+        for i = range(len(self.hand)):
+            if self.hand[i].id == id:
+                return self.handdiscard(self, i)
 
 @dataclass
 class Board:
     player1: Player
     player2: Player
+    board_size: int = rng.randint(1, 7) # between 1 and 6 max active cards, chosen at random at the begining of every game.
+    def __init__(self, player1: Player, player2: Player):
+        self.player1 = player1
+        self.player2 = player2
+        self.board_size = randint(1, 7)
