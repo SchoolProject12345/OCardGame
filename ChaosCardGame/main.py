@@ -288,10 +288,10 @@ class Player:
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
-        new = [self.deck.pop() for _ in range(Constants.default_hand_size - length(self.hand))] # Please note that the top of the deck is the end of the self.deck list.
+        new = [self.deck.pop() for _ in range(Constants.default_hand_size - len(self.hand))] # Please note that the top of the deck is the end of the self.deck list.
         self.hand.extend(new)
         return new # to display drawing(s) on the GUI?
-    def add_energy(amount: int = self.energy_per_turn) -> int:
+    def add_energy(self, amount: int) -> int:
         amount = min(amount, self.max_energy - self.energy)
         self.energy += amount
         return amount # for displaying
