@@ -300,6 +300,15 @@ class Player:
         if self.commander.hp <= 0: # don't mind that I'll change it it's really spaghetti coded rn
             return True
         return False
+    def placecard(self, id: int, board):
+    # TO FINISH ( may the lord be with us)
+        
+        
+
+
+
+
+
 
 @dataclass
 class Board:
