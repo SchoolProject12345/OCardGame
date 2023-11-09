@@ -3,6 +3,7 @@
 from dataclasses import dataclass # easier class declaration
 from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
+import numpy as np # for gcd for Kratos card
 from json import loads
 
 def getCARDS(CARDS = []) -> list:
@@ -32,12 +33,10 @@ class Constants: # to changing variables quickly, might be removed later.
     default_hand_size = 5
     default_deck_size = min(30, length(getCARDS))
 
- # convenience functions, might be moved to a separate file later.
+# convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
-    """
-        getordef(dict, key, default)
-    
-    Get value at `key` from `dict` if it exist, returns `default` otherwise.
+    """    
+    Get value at `key` from `dict` if it exists, returns `default` otherwise.
 
     # Examples
     ```py
@@ -47,7 +46,26 @@ def getordef(d: dict, key, default):
     3
     ```
     """
-    if key not in dict:
+    if key not in d:
+        return default
+    return dict.get(key)
+def getorset(d: dict, key, default):
+    """
+    Get value at `key` from `duct` if it exists, set `key` to `default` before returning it otherwise.
+
+    # Examples
+    ```py
+    >>> x = {"foo":"bar"},
+    >>> getorset(x, "foo", 3)
+    'bar'
+    >>> getorset(x, "bar", 3)
+    3
+    >>> x
+    {'foo':'bar', 'bar':3}
+    ```
+    """
+    if key not in d:
+        d[key] = default
         return default
     return dict.get(key)
 def warn(*args, dev = DEV(), **kwargs) -> bool:
@@ -65,12 +83,12 @@ def warn(*args, dev = DEV(), **kwargs) -> bool:
     if dev: # hard check to avoid mistakes
         print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs); # might not work in every terminal, but should in VS Code
     return True # this is definitevely not spaghetti code.
-def ifelse(cond: Bool, a, b):
+def ifelse(cond: bool, a, b):
     "Return `a` if `cond` is `True`, return `b` otherwise. Used to replace the lack of expression in Python."
     if cond:
         return a
     return b
-def cleanstr(s: str):
+def cleanstr(s: str) -> str:
     """
     Format the string passed in argument to a lowercase alphanumeric string.
 
@@ -171,13 +189,14 @@ class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
     effect2: AbstractEffect # I might change that later though, but for now use `Union(Union(effect1, effect2), effect3)` or similar for more than 2 effects.`
     def execute(self, *args):
-        self.execute1.execute(*args)
-        self.execute2.execute(*args)
+        self.effect1.execute(*args)
+        self.effect2.execute(*args)
 
 @dataclass
 class Attack:
     power: int
-    effects: AbstractEffect
+    cost: int
+    effects: AbstractEffect # use EffectUnion for multiple Effects
     def from_json(json: dict):
         pass # TODO: return an Attack object
 
@@ -193,8 +212,6 @@ class AbstractCard:
         type = json["type"]
         if type == "creature":
             return CreatureCard.from_json(json, id)
-        if type == "element":
-            return ElementCard.from_json(json, id)
         if type == "spell":
             return SpellCard.from_json(json, id)
         warn(f"Card with name {json['name']} has type {type} which isn't handled.")
