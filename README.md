@@ -26,3 +26,8 @@ OCardGame is a little chaotic card game coded exhaustively in Python. Inspired b
 - [swisscookieman](https://github.com/swisscookieman)
 - [luiza1607](https://github.com/luiza1607)
 - [UgandanSuperfighter](https://github.com/UgandanSuperfighter)
+
+# Discord server:
+
+https://discord.gg/CTKC7Gskge
+
