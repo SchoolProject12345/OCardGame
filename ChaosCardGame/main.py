@@ -236,10 +236,9 @@ class AbstractCard:
 
 @dataclass
 class CreatureCard(AbstractCard):
-    hp: int
+    max_hp: int
     attacks: list # list of Attack objects
     passives: list
-    state: State = State.default
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = (
@@ -247,11 +246,29 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
-            # use default argument for State
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
         return CreatureCard(*args)
+@dataclass
+class CommanderCard(CreatureCard):
+    # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
+    def iscommander(self) -> bool: return True
+@dataclass
+class ActiveCard:
+    card: CreatureCard
+    hp: int
+    attacked: bool # for passives activations
+    element: Element # to change active type after a specific effect
+    state: State = State.default
+    def __init__(self, card: CreatureCard):
+        self.card = card
+        self.hp = card.max_hp
+        self.attacked = False
+        self.element = card.element
+    def attack(self, attack: Attack, other) -> int: # other is CreatureCard.
+        "Make `self` use `attack` on `other` and return damage dealt."
+        return other.damage(attack.power * ifelse(self.element.effective(other.element), 12, 10) // ifelse(other.element.resist(self.element), 12, 10))
     def damage(self, d: int) -> int:
         "Reduce hp by d but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
         if DEV() and type(d) != int:
@@ -263,13 +280,14 @@ class CreatureCard(AbstractCard):
             return dealt
         self.hp -= d
         return d
-    def attack(self, attack: Attack, other) -> int: # other is CreatureCard.
-        "Make `self` use `attack` on `other` and return damage dealt."
-        return other.damage(attack.power * ifelse(self.element.effective(other.element), 12, 10) // ifelse(other.element.resist(self.element), 12, 10))
-@dataclass
-class CommanderCard(CreatureCard):
-    # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
-    def iscommander(self) -> bool: return True
+    def heal(self, amount: int):
+        "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed.
+        if DEV() and type(amount) != int:
+            warn(f"Card with name \"{self.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
+            amount = int(amount)
+        amount = min(self.card.max_hp - self.hp, amount)
+        self.hp += amount
+        return amount
     
 @dataclass
 class SpellCard(AbstractCard):
