@@ -25,7 +25,7 @@
  "attack":[
   {
    "name":"Lava Pulse",
-   "cost":0 // pas à jour
+   "cost":0 
    "power": 15,
    "target_mode":"self",
    "effect":{
@@ -55,7 +55,7 @@
  "attacks":[
   {
    "name":"Root Pierce",
-   "cost":0 // pas à jour
+   "cost":0 
    "power":8,
    "target":"target",
    "effect":{
@@ -81,7 +81,7 @@
  "attacks":[
   {
    "name":"Fiery slash",
-   "cost":0, // carte pas à jour
+   "cost":0, 
    "power":3,
    "target_mode":"foes",
    "effect":{
