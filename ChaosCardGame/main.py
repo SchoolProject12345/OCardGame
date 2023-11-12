@@ -194,6 +194,27 @@ class TargetMode(IntEnum):
     allies = 2
     self = 3 # it can't possibly cause a bug, right? ( ͡° ͜ʖ ͡°)
     commander = 4
+    allied_commander = 5
+    all_commanders = 6
+    massivedestruction = 7
+    all = 8
+    def from_str(name: str):
+        match cleanstr(name):
+            case "foes": return TargetMode.foes
+            case "target": return TargetMode.target
+            case "allies": return TargetMode.allies
+            case "self": return TargetMode.self
+            case "user": return TargetMode.self
+            case "commander": return TargetMode.commander
+            case "foe_commander": return TargetMode.commander
+            case "enemy_commander": return TargetMode.commander
+            case "allied_commander": return TargetMode.allied_commander
+            case "all_commanders": return TargetMode.all_commanders
+            case "both_commanders": return TargetMode.all_commanders
+            case "commanders": return TargetMode.all_commanders
+            case "all": return TargetMode.all
+            case "massivedestruction": return TargetMode.massivedestruction
+            case "guaranteedchaos": return TargetMode.massivedestruction
 @dataclass
 class EffectSurvey:
     "Is an internal class. Shouldn't be used outside of AbstractEffect's metaalgorithm."
@@ -217,7 +238,38 @@ class AbstractEffect:
             case TargetMode.allies: return [*filter((lambda x: x != None), kwargs["board"].active_player.active)]
             case TargetMode.self: return [kwargs["user"]]
             case TargetMode.commander: return [kwargs["board"].unactive_player.commander]
+            case TargetMode.allied_commander: return [kwargs["board"].active_player.commander]
+            case TargetMode.all_commanders: return [kwargs["board"].unactive_player.commander, kwargs["board"].active_player.commander]
+            case TargetMode.all:
+                return [
+                    *filter((lambda x: x != None), kwargs["board"].unactive_player.active),
+                    *filter((lambda x: x != None and x != kwargs["user"]), kwargs["board"].active_player.active),
+                ]
+            case TargetMode.massivedestruction:
+                return [
+                    *filter((lambda x: x != None), kwargs["board"].unactive_player.active),
+                    *filter((lambda x: x != None), kwargs["board"].active_player.active),
+                    kwargs["board"].unactive_player.commander,
+                    kwargs["board"].active_player.commander
+                ]
             case _: []
+    def from_json(json: dict):
+        type = cleanstr(getordef(json, "type", "undefined"))
+        match type:
+            case "union": return EffectUnion.from_json(json)
+            case "effect_union": return EffectUnion.from_json(json)
+            case "target_change": return ChangeTarget.from_json(json)
+            case "change_target": return ChangeTarget.from_json(json)
+            case "state_change": return ChangeState.from_json(json)
+            case "change_state": return ChangeState.from_json(json)
+            case "damage": return DamageEffect.from_json(json)
+            case "heal":  return HealEffect.from_json(json)
+            case "drain": return DamageDrain.from_json(json)
+            case "with_probability": return WithProbability.from_json(json)
+            case "null": return NullEffect()
+            case "noeffect":  return NullEffect()
+            case None: return NullEffect()
+            case _: return warn(f"Tried to parse an effect with type {type}. Returning NullEffect instead.") and NullEffect()
 @dataclass
 class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
@@ -225,14 +277,19 @@ class EffectUnion(AbstractEffect):
     def execute(self, **kwargs):
         self.effect1.execute(**kwargs)
         self.effect2.execute(**kwargs)
+    def from_json(json: dict):
+        return EffectUnion(AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(json["effect2"]))
 @dataclass
 class ChangeTarget(AbstractEffect):
     "Change targetting mode of sub-effects."
     effect: AbstractEffect
     new_target: TargetMode
     def execute(self, **kwargs):
+        kwargs = kwargs.copy()
         kwargs["target_mode"] = new_target
         effect.execute(**kwargs)
+    def from_json(json: dict):
+        return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
@@ -240,6 +297,8 @@ class ChangeState(AbstractEffect):
     def execute(self, **kwargs):
         for card = AbstractEffect.targeted_objects(**kwargs):
             card.state = new_state
+    def from_json(json: dict):
+        return ChangeTarget(TargetMode.from_str(json["new_state"]))
 @dataclass
 class DamageEffect(AbstractEffect):
     "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
@@ -247,6 +306,8 @@ class DamageEffect(AbstractEffect):
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(self.amount)
+    def from_json(json: dict):
+        return DamageEffect(json["amount"])
 @dataclass
 class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
     "Heal for a ratio (rational) of total damage (indirect/direct) "
@@ -260,6 +321,8 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         effect.execute(**kwargs)
         kwargs["user"].heal(self.numerator * kwargs["survey"] // self.denominator)
         main_survey += kwargs["survey"]
+    def from_json(json: dict):
+        return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
 @dataclass
 class HealEffect(AbstractEffect):
     "Heal target(s) by amount"
@@ -267,6 +330,8 @@ class HealEffect(AbstractEffect):
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].heal += card.heal(self.amount)
+    def from_json(json: dict):
+        return HealEffect(json["amount"])
 @dataclass
 class WithProbability(AbstractEffect):
     "Apply either `self.effect1` or `self.effect2` such that `self.effect1` has `self.probability` to happen."
@@ -277,20 +342,32 @@ class WithProbability(AbstractEffect):
         if rng.rand() < self.probability:
             return self.effect1.execute(**kwargs)
         self.effect2.execute(**kwargs)
+    def from_json(json: dict):
+        return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
     def execute(self, **kwargs):
         return
+    def from_json():
+        return NullEffect()
 
 @dataclass
 class Attack:
+    name: str
     power: int
     target_mode: Target
     cost: int
     effect: AbstractEffect # use EffectUnion for multiple Effects
     tags: tuple = ()
     def from_json(json: dict):
-        pass # TODO: return an Attack object
+        return Attack(
+            getordef(json, "name", ""),
+            int(json["power"]), # no float in power
+            TargetMode.from_str(json["target_mode"]),
+            int(json["cost"]),
+            getordef(json, "effect", "null"),
+            (*getordef(json, "tags", ()),)
+        )
 
 @dataclass
 class AbstractCard:
@@ -348,7 +425,7 @@ class ActiveCard:
         self.element = card.element
         self.owner = owner
         self.board = board
-    def attack(self, attack: Attack, target: CreatureCard, **kwargs) -> int:
+    def attack(self, attack: Attack, target: ActiveCard, **kwargs) -> int:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
@@ -365,6 +442,8 @@ class ActiveCard:
         kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effective(other.element), 12, 10) // ifelse(other.element.resist(self.element), 12, 10))
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
+        if DEV():
+            self.board.devprint()
         return kwargs["survey"]
     def damage(self, amount: int) -> int:
         "Reduce hp by amount but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
@@ -388,8 +467,17 @@ class ActiveCard:
     
 @dataclass
 class SpellCard(AbstractCard):
+    on_use: Attack
     def from_json(json: dict, id: int):
-        return SpellCard(json["name"], id, json["element"])
+        return SpellCard(json["name"], id, json["element"], json["on_use"])
+    def use(self, target: ActiveCard, board: Board):
+        board.active_player.iddiscard(self.id)
+        sim = ActiveCard(
+            CreatureCard(self.name, self.id, self.element, 0, [self.on_use], []),
+            board.active_player,
+            board
+        )
+        sim.attack(self.on_use, target)
 
 @dataclass # for display
 class Player:
@@ -500,4 +588,27 @@ class Board:
     def endturn(self):
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int)"
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
-        return (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), (self.turn := self.turn + 1))
+        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), (self.turn := self.turn + 1))
+        if DEV():
+            print(ret)
+            input("\033[H\033[2J")
+            self.devprint()
+        return ret
+    def devprint(self):
+        you = self.active_player
+        them = self.unactive_player
+        print(f"Them: {them.energy}/{them.max_energy} energies.")
+        print(them.commander.card.name, f"({them.commander.hp}/{them.commander.card.max_hp})")
+        for card in them.active:
+            if card is None:
+                print("none ", end="")
+                continue
+            print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
+        print(f"\nYou : {you.energy}/{you.max_energy} energies")
+        print(you.commander.card.name, f"({you.commander.hp}/{you.commander.card.max_hp})")
+        for card in you.active:
+            if card is None:
+                print("none ", end="")
+                continue
+            print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
+        print([cleanstr(card.name) for card in you.hand])
