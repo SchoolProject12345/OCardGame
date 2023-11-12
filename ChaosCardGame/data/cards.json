@@ -61,10 +61,13 @@
    "effect":{
     "type":"target_change",
     "new_target":"self",
-    "effect":
-  {"type":"heal, "amount":2} 
+    "effect":{
+     "type":"heal“, 
+     "amount":2,
+    } 
    }
   }
+ }
  ],
  {
  "type":"creature",
@@ -88,6 +91,7 @@
     "amount":3,
   }
  }
+}
 ], 
  {
  "type":"creature",
