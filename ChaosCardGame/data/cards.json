@@ -62,13 +62,13 @@
     "type":"target_change",
     "new_target":"self",
     "effect":{
-     "type":"heal“, 
+     "type":"heal“,
      "amount":2,
     } 
    }
   }
- }
- ],
+ ]
+ },
  {
  "type":"creature",
  "name":"Blossom Sylph",
@@ -89,10 +89,10 @@
    "effect":{
     "type":"damage",
     "amount":3,
+   }
   }
- }
-}
-], 
+ ]
+ }, 
  {
  "type":"creature",
  "name":"Bob the blobfish",
