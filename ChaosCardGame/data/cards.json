@@ -22,7 +22,19 @@
  "name":"Magma Golem",
  "element":"fire",
  "hp":80,
+ "attack":[
+  {
+   "name":"Lava Pulse",
+   "cost":0 // pas à jour
+   "power": 15,
+   "target_mode":"self",
+   "effect":{
+    "type":"damage",
+    "amount":"1"
+   }
+  }
  }
+]
  {
  "type":"creature",
  "name":"monkey of the Skies",
@@ -40,7 +52,21 @@
  "name":"Wise Mystical Golem",
  "element":"earth",
  "hp":190,
- },
+ "attacks":[
+  {
+   "name":"Root Pierce",
+   "cost":0 // pas à jour
+   "power":8,
+   "target":"target",
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":
+  {"type":"heal, "amount":2} 
+   }
+  }
+ }
+],
  {
  "type":"creature",
  "name":"Blossom Sylph",
@@ -52,7 +78,19 @@
  "name":"Fyyrönyr, the dragon",
  "element":"fire",
  "hp":80,
- },
+ "attacks":[
+  {
+   "name":"Fiery slash",
+   "cost":0, // carte pas à jour
+   "power":3,
+   "target_mode":"foes",
+   "effect":{
+    "type":"damage",
+    "amount":3,
+   }
+  }
+ }
+], 
  {
  "type":"creature",
  "name":"Bob the blobfish",
