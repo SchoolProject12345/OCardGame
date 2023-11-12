@@ -4,21 +4,21 @@
  "name":"Vine serpent",
  "element":"earth",
  "hp":100,
- },
- {
+},
+{
  "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
  "hp":60,
- },
- {
+},
+{
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
  "hp":210,
- },
- {
-   "type":"creature",
+},
+{
+ "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
  "hp":80,
@@ -26,28 +26,29 @@
   {
    "name":"Lava Pulse",
    "cost":0 
-   "power": 15,
-   "target_mode":"self",
+   "power": 150,
+   "target_mode":"target",
    "effect":{
-    "type":"damage",
-    "amount":"1"
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{"type":"damage","amount":10}
    }
   }
  ]
- },
- {
+},
+{
  "type":"creature",
  "name":"monkey of the Skies",
  "element":"air",
  "hp":120,
- },
- {
+},
+{
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
  "hp":60,
- },
- {
+},
+{
  "type":"creature",
  "name":"Wise Mystical Golem",
  "element":"earth",
@@ -56,26 +57,26 @@
   {
    "name":"Root Pierce",
    "cost":0 
-   "power":8,
+   "power":80,
    "target":"target",
    "effect":{
     "type":"target_change",
     "new_target":"self",
     "effect":{
-     "type":"heal“,
-     "amount":2,
+     "type":"heal",
+     "amount":20,
     } 
    }
   }
  ]
- },
- {
+},
+{
  "type":"creature",
  "name":"Blossom Sylph",
  "element":"water",
  "hp":40,
- },
- {
+},
+{
  "type":"creature",
  "name":"Fyyrönyr, the dragon",
  "element":"fire",
@@ -84,25 +85,78 @@
   {
    "name":"Fiery slash",
    "cost":0, 
-   "power":3,
+   "power":30,
    "target_mode":"foes",
    "effect":{
     "type":"damage",
-    "amount":3,
+    "amount":30,
    }
   }
  ]
- }, 
- {
+}, 
+{
  "type":"creature",
  "name":"Bob the blobfish",
  "element":"water",
  "hp":120,
- },
- {
+ "attacks":[
+  {
+   "name":"Blobblast",
+   "cost":0,
+   "power":60,
+   "target_mode":"foes",
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{"type":"damage","amount":65535}
+   }
+  }
+ ]
+},
+{
  "type":"creature",
  "name":"Hydra of the Seas",
  "element":"water",
  "hp":140,
- },
+},
+{
+ "type":"spell",
+ "name":"Small Potion",
+ "element":"water",
+ "on_use":{
+  "name":"",
+  "power":0,
+  "cost":1,
+  "target_mode":"target",
+  "effect":{"heal","amount":40}
+ }
+},
+{
+ "type":"spell",
+ "name":"Large Fireball",
+ "element":"fire",
+ "on_use":{
+  "name":"",
+  "power":60,
+  "cost":2,
+  "target_mode":"target"
+ }
+},
+{
+ "type":"spell",
+ "name":"Holy Biblbe",
+ "element":"chaos",
+ "on_use":{
+  "name":"Read",
+  "power":0,
+  "cost":4,
+  "target_mode":"self",
+  "effect":{
+   "type":"add_energy",
+   "gain":1,
+   "max":2,
+   "per_turn":1
+  }
+ }
+}
 ]
