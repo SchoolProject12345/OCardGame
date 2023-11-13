@@ -50,6 +50,7 @@
    "effect":{
     "type":"state_change",
     "new_state":"blocked"
+   }
   }
  ]
 },
