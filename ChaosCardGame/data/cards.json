@@ -40,7 +40,18 @@
  "type":"creature",
  "name":"monkey of the Skies",
  "element":"air",
- "hp":120
+ "hp":120,
+ "attacks":[
+  {
+   "name":"Tornado Beam",
+   "cost":0,
+   "power":10,
+   "target_mode":"target",
+   "effect":{
+    "type":"state_change",
+    "new_state":"blocked"
+  },
+ ]
 },
 {
  "type":"creature",
