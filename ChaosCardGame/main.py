@@ -30,7 +30,7 @@ class Constants: # to changing variables quickly, might be removed later.
     default_max_energy = 4
     default_energy_per_turn = 3
     default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS))
+    default_deck_size = min(30, len(getCARDS()))
     board_size = rng.randint(1, 7)
 
 # convenience functions, might be moved to a separate file later.
