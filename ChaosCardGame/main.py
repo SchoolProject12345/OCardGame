@@ -545,7 +545,17 @@ class Player:
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(self, i)
-
+    def place(self, i: int, j: int, board: Board):
+        "Place the `i`th card of hand onto the `j`th tile of board, activing it. Return `True` if sucessful, `False` otherwise."
+        if not 0 <= i < len(self.hand):
+            return False
+        if not 0 <= j < len(self.active):
+            return False
+        if self.active[j] is not None:
+            return False
+        self.active[j] = ActiveCard(self.hand.pop(i), self, board)
+        return True
+            
 def rps2int(rpc: str):
     match rpc:
         case "rock": return 0
