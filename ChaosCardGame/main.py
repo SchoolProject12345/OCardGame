@@ -5,6 +5,8 @@ from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
+import os
+os.chdir("PLEASE ENTER DIR HERE")
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -26,12 +28,6 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
     COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json})
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
-class Constants: # to change variables quickly.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS()))
-    board_size = rng.randint(1, 7)
 
 # convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
@@ -48,7 +44,7 @@ def getordef(d: dict, key, default):
     """
     if key not in d:
         return default
-    return dict.get(key)
+    return d.get(key)
 def getorset(d: dict, key, default):
     """
     Get value at `key` from `duct` if it exists, set `key` to `default` before returning it otherwise.
@@ -67,7 +63,7 @@ def getorset(d: dict, key, default):
     if key not in d:
         d[key] = default
         return default
-    return dict.get(key)
+    return d.get(key)
 def warn(*args, dev = DEV(), **kwargs) -> bool:
     """
     Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
@@ -76,7 +72,7 @@ def warn(*args, dev = DEV(), **kwargs) -> bool:
     ```py
     >>> warn("foobarbaz") and print("do something here")
     ┌ Warning:
-    └ foobarbaz
+    └  foobarbaz
     do something here
     ```
     """
@@ -272,6 +268,7 @@ class AbstractEffect:
             case _: return warn(f"Tried to parse an effect with type {type}. Returning NullEffect instead.") and NullEffect()
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
+    def __init__(self): return
     def execute(self, **kwargs):
         return
     def from_json():
@@ -401,6 +398,8 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
+            [Attack.from_json(attack) for attack in getordef(json, "attacks", [])],
+            []
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
@@ -417,9 +416,9 @@ class ActiveCard:
     hp: int
     attacked: bool # for passives activations
     element: Element # to change active type after a specific effect
-    state: State = State.default
     owner: Player
     board: Board
+    state: State = State.default
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
@@ -482,6 +481,12 @@ class SpellCard(AbstractCard):
         )
         sim.attack(self.on_use, target)
 
+class Constants: # to change variables quickly. TODO: remove Python from this universe.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = min(30, len(getCARDS()))
+    board_size = rng.randint(1, 7)
 @dataclass # for display
 class Player:
     name: str
@@ -554,7 +559,7 @@ def rps2int(rpc: str):
 class Board:
     player1: Player
     player2: Player
-    board_size: int = rng.randint(1, 7) # between 1 and 6 max active cards, chosen at random at the begining of every game.
+    board_size: int # between 1 and 6 max active cards, chosen at random at the begining of every game.
     active_player: Player
     unactive_player: Player
     turn: int
