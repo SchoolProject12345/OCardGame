@@ -31,7 +31,7 @@ class Constants: # to changing variables quickly, might be removed later.
     default_energy_per_turn = 3
     default_hand_size = 5
     default_deck_size = min(30, len(getCARDS))
-    board_size = randint(1, 7)
+    board_size = rng.randint(1, 7)
 
 # convenience functions, might be moved to a separate file later.
 def getordef(d: dict, key, default):
@@ -270,6 +270,12 @@ class AbstractEffect:
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
             case _: return warn(f"Tried to parse an effect with type {type}. Returning NullEffect instead.") and NullEffect()
+class NullEffect(AbstractEffect):
+    "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
+    def execute(self, **kwargs):
+        return
+    def from_json():
+        return NullEffect()
 @dataclass
 class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
@@ -286,8 +292,8 @@ class ChangeTarget(AbstractEffect):
     new_target: TargetMode
     def execute(self, **kwargs):
         kwargs = kwargs.copy()
-        kwargs["target_mode"] = new_target
-        effect.execute(**kwargs)
+        kwargs["target_mode"] = self.new_target
+        self.effect.execute(**kwargs)
     def from_json(json: dict):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
 @dataclass
@@ -295,8 +301,8 @@ class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
     new_state: State
     def execute(self, **kwargs):
-        for card = AbstractEffect.targeted_objects(**kwargs):
-            card.state = new_state
+        for card in AbstractEffect.targeted_objects(**kwargs):
+            card.state = self.new_state
     def from_json(json: dict):
         return ChangeTarget(TargetMode.from_str(json["new_state"]))
 @dataclass
@@ -318,7 +324,7 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         main_survey = kwargs["survey"]
         kwargs = kwargs.copy()
         kwargs["survey"] = EffectSurvey()
-        effect.execute(**kwargs)
+        self.effect.execute(**kwargs)
         kwargs["user"].heal(self.numerator * kwargs["survey"] // self.denominator)
         main_survey += kwargs["survey"]
     def from_json(json: dict):
@@ -344,18 +350,12 @@ class WithProbability(AbstractEffect):
         self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
-class NullEffect(AbstractEffect):
-    "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
-    def execute(self, **kwargs):
-        return
-    def from_json():
-        return NullEffect()
 
 @dataclass
 class Attack:
     name: str
     power: int
-    target_mode: Target
+    target_mode: TargetMode
     cost: int
     effect: AbstractEffect # use EffectUnion for multiple Effects
     tags: tuple = ()
@@ -409,6 +409,8 @@ class CreatureCard(AbstractCard):
 class CommanderCard(CreatureCard):
     # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
     def iscommander(self) -> bool: return True
+class Player: pass # necessary cause Python
+class Board: pass
 @dataclass
 class ActiveCard:
     card: CreatureCard
@@ -425,7 +427,7 @@ class ActiveCard:
         self.element = card.element
         self.owner = owner
         self.board = board
-    def attack(self, attack: Attack, target: ActiveCard, **kwargs) -> int:
+    def attack(self, attack: Attack, target, **kwargs) -> int:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
@@ -439,9 +441,10 @@ class ActiveCard:
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "user", self)
-        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effective(other.element), 12, 10) // ifelse(other.element.resist(self.element), 12, 10))
+        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effective(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
+        self.attacked = True
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
@@ -457,7 +460,7 @@ class ActiveCard:
         self.hp -= amount
         return amount
     def heal(self, amount: int):
-        "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed.
+        "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
@@ -532,9 +535,9 @@ class Player:
         card = self.hand.pop(i)
         self.discard.append(card)
         return card
-    def iddiscard(self, id: int)
+    def iddiscard(self, id: int):
         "Discard the first card in `self`'s `hand` with `id`, returning it."
-        for i = range(len(self.hand)):
+        for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(self, i)
 
@@ -560,7 +563,7 @@ class Board:
         player1, player2 = rps2int(player1), rps2int(player2)
         if player1 == (player2 + 1) % 3:
             return 0
-        if (player1 - 1) % 3 == player2
+        if (player1 - 1) % 3 == player2:
             return 1
         return -1
     def rpsbo5dev(): # no idea why this is a method
@@ -575,12 +578,12 @@ class Board:
             wins[win] += 1
         return wins[0] == 3
     def __init__(self, player1: Player, player2: Player):
-        if !Board.rpsbo5dev(): # if player1 lose rpsbo5: player2 start
+        if not Board.rpsbo5dev(): # if player1 lose rpsbo5: player2 start
             player1, player2 = player2, player1
         self.player1 = player1
         self.player2 = player2
-        self.board_size = randint(1, 7)
-        player1.active = [None for _ = range(self.board_size)]
+        self.board_size = rng.randint(1, 7)
+        player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.active_player = player1 # player1 start
         self.unactive_player = player2
@@ -588,7 +591,8 @@ class Board:
     def endturn(self):
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int)"
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
-        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), (self.turn := self.turn + 1))
+        self.turn += 1
+        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), self.turn)
         if DEV():
             print(ret)
             input("\033[H\033[2J")
