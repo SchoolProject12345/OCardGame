@@ -3,19 +3,19 @@
  "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
- "hp":100,
+ "hp":100
 },
 {
  "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
- "hp":60,
+ "hp":60
 },
 {
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
- "hp":210,
+ "hp":210
 },
 {
  "type":"creature",
@@ -25,7 +25,7 @@
  "attack":[
   {
    "name":"Lava Pulse",
-   "cost":0 
+   "cost":0, 
    "power": 150,
    "target_mode":"target",
    "effect":{
@@ -40,13 +40,13 @@
  "type":"creature",
  "name":"monkey of the Skies",
  "element":"air",
- "hp":120,
+ "hp":120
 },
 {
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
- "hp":60,
+ "hp":60
 },
 {
  "type":"creature",
@@ -56,7 +56,7 @@
  "attacks":[
   {
    "name":"Root Pierce",
-   "cost":0 
+   "cost":0, 
    "power":80,
    "target":"target",
    "effect":{
@@ -64,7 +64,7 @@
     "new_target":"self",
     "effect":{
      "type":"heal",
-     "amount":20,
+     "amount":20
     } 
    }
   }
@@ -74,7 +74,7 @@
  "type":"creature",
  "name":"Blossom Sylph",
  "element":"water",
- "hp":40,
+ "hp":40
 },
 {
  "type":"creature",
@@ -89,7 +89,7 @@
    "target_mode":"foes",
    "effect":{
     "type":"damage",
-    "amount":30,
+    "amount":30
    }
   }
  ]
@@ -117,7 +117,7 @@
  "type":"creature",
  "name":"Hydra of the Seas",
  "element":"water",
- "hp":140,
+ "hp":140
 },
 {
  "type":"spell",
@@ -128,7 +128,7 @@
   "power":0,
   "cost":1,
   "target_mode":"target",
-  "effect":{"heal","amount":40}
+  "effect":{"type":"heal","amount":40}
  }
 },
 {
