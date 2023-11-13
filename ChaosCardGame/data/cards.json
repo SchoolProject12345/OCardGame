@@ -58,7 +58,7 @@
    "name":"Root Pierce",
    "cost":0, 
    "power":80,
-   "target":"target",
+   "target_mode":"target",
    "effect":{
     "type":"target_change",
     "new_target":"self",
