@@ -519,7 +519,13 @@ class Player:
         io.close();
         return Player(name, getCOMMANDERS[player["commander"]], [getCARDS[i] for i in player["deck"]])
     def save(self):
-        pass # I must learn Python first.
+        # prendre username et juste rentrer dans players.json?
+        io = open("data/players.json");
+        if __name__ in io:
+            pass
+        io.write("test123")
+        io.close()
+        # je sais pas ce que je fais
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
