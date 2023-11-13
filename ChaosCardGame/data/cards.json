@@ -1,88 +1,174 @@
 [
-{
- "type":"creature",
- "name":"Foobar - Commander Example: edit as you change data format.",
- "element":"water",
- "hp":600,
- "commander":true
-}
-{
- "type":"creature",
- "name":"Feu Follet - Creature Example: edit as you change data format.",
- "element":"fire",
- "hp":60,
- "example":true
-},
-{
- "type":"spell",
- "name":"Main de Feu - Spell Example: edit as you change data format.",
- "element":"fire",
- "example":true
-},
 { 
  "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
- "hp":100,
- },
- {
+ "hp":100
+},
+{
  "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
- "hp":60,
- },
- {
+ "hp":60
+},
+{
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
- "hp":210,
- },
- {
-   "type":"creature",
+ "hp":210
+},
+{
+ "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
  "hp":80,
- }
- {
+ "attack":[
+  {
+   "name":"Lava Pulse",
+   "cost":0, 
+   "power": 150,
+   "target_mode":"target",
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{"type":"damage","amount":10}
+   }
+  }
+ ]
+},
+{
  "type":"creature",
  "name":"monkey of the Skies",
  "element":"air",
  "hp":120,
- },
- {
+ "attacks":[
+  {
+   "name":"Tornado Beam",
+   "cost":0,
+   "power":10,
+   "target_mode":"target",
+   "effect":{
+    "type":"state_change",
+    "new_state":"blocked"
+   }
+  }
+ ]
+},
+{
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
- "hp":60,
- },
- {
+ "hp":60
+},
+{
  "type":"creature",
  "name":"Wise Mystical Golem",
  "element":"earth",
  "hp":190,
- },
- {
+ "attacks":[
+  {
+   "name":"Root Pierce",
+   "cost":0, 
+   "power":80,
+   "target_mode":"target",
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{
+     "type":"heal",
+     "amount":20
+    } 
+   }
+  }
+ ]
+},
+{
  "type":"creature",
  "name":"Blossom Sylph",
  "element":"water",
- "hp":40,
- },
- {
+ "hp":40
+},
+{
  "type":"creature",
  "name":"Fyyrönyr, the dragon",
  "element":"fire",
  "hp":80,
- },
- {
+ "attacks":[
+  {
+   "name":"Fiery slash",
+   "cost":0, 
+   "power":30,
+   "target_mode":"foes",
+   "effect":{
+    "type":"damage",
+    "amount":30
+   }
+  }
+ ]
+}, 
+{
  "type":"creature",
  "name":"Bob the blobfish",
  "element":"water",
  "hp":120,
- },
- {
+ "attacks":[
+  {
+   "name":"Blobblast",
+   "cost":0,
+   "power":60,
+   "target_mode":"foes",
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{"type":"damage","amount":65535}
+   }
+  }
+ ]
+},
+{
  "type":"creature",
  "name":"Hydra of the Seas",
  "element":"water",
- "hp":140,
- },
+ "hp":140
+},
+{
+ "type":"spell",
+ "name":"Small Potion",
+ "element":"water",
+ "on_use":{
+  "name":"",
+  "power":0,
+  "cost":1,
+  "target_mode":"target",
+  "effect":{"type":"heal","amount":40}
+ }
+},
+{
+ "type":"spell",
+ "name":"Large Fireball",
+ "element":"fire",
+ "on_use":{
+  "name":"",
+  "power":60,
+  "cost":2,
+  "target_mode":"target"
+ }
+},
+{
+ "type":"spell",
+ "name":"Holy Bible",
+ "element":"chaos",
+ "on_use":{
+  "name":"Read",
+  "power":0,
+  "cost":4,
+  "target_mode":"self",
+  "effect":{
+   "type":"add_energy",
+   "gain":1,
+   "max":2,
+   "per_turn":1
+  }
+ }
+}
 ]
