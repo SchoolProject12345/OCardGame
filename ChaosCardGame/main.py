@@ -11,10 +11,10 @@ def getCARDS(CARDS = []) -> list:
     if len(CARDS) != 0:
         return CARDS
     io = open("data/cards.json");
-    json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas.
+    json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas. And don't add to much.
     io.close();
     id = -1; # starts at -1 + 1 = 0
-    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json if ((not "example" in card) or DEV()) and (not getordef(json, "commander", False))] # please note that whether example is put to true or false it is excluded from the list.
+    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json]
     return CARDS
 def getCOMMANDERS(COMMANDERS = {}) -> dict:
     "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -23,10 +23,10 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
     io = open("data/commanders.json");
     json = loads(io.read());
     io.close()
-    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json if (not "example" in card) or DEV()})
+    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json})
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
-class Constants: # to changing variables quickly, might be removed later.
+class Constants: # to change variables quickly.
     default_max_energy = 4
     default_energy_per_turn = 3
     default_hand_size = 5
