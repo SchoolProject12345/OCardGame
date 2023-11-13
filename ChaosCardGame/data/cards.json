@@ -4,6 +4,18 @@
  "name":"Vine serpent",
  "element":"earth",
  "hp":100
+ "attacks":[
+  {
+   "name":"Vine Strangle",
+   "cost":0,
+   "power":8
+   "target_mode":"target",
+   "effect":{
+    "type":"damage",
+    "amount":8
+   }
+  }
+ ]  
 },
 {
  "type":"creature",
