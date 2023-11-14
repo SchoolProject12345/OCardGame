@@ -16,7 +16,7 @@ Cards must be defined in `cards.json` as follow:
  "type":"spell",
  "name":"{card's name}",
  "element":"{element string}",
- "effect":{/*effect object*/}
+ "on_use":{/*attack object*/}
 }
 ```
 With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, `"earth"` and `"chaos"`
@@ -107,10 +107,10 @@ With possible values for field `"target_mode"` being:
     `"allies"`: all of your cards.
     `"target"`: the card targeted by the attack.
     `"commander"`: your opponent's commander
-    (**TODO**)
-    `"acommander"` or `allied_commander`: your commander.
+    `"allied_commander"`: your commander.
+    `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
     `"all"`: every card but the user.
-    `"massivedestruction"`: EVERY card.
+    `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
 
 Effect objects exists through different type as follow:
 
@@ -179,6 +179,17 @@ Heal from a ratio of total damage dealt in sub-effects.
  "effect":{/*effect object*/}
 }
 ```
+
+### Energy Manipulation
+```js
+{
+ "type":"add_energy",
+ "energy":0, // add to the user's owner's raw energy
+ "max_energy":0, // add to the user's owner maximum's energy
+ "energy_per_turn":0 // add to the user's owner's energy per turn
+}
+```
+
 
 ### Conditional Effect:
 ```js

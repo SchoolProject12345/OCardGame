@@ -96,6 +96,13 @@ def cleanstr(s: str) -> str:
     """
     return "".join(filter(str.isalnum, s)).lower()
 
+class Constants: # to change variables quickly. TODO: remove Python from this universe.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = min(30, len(getCARDS()))
+    board_size = rng.randint(1, 7)
+
 class Element(IntEnum):
     elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
     water = 1
@@ -176,6 +183,7 @@ class State(IntEnum):
     default = 0 # placeholder
     blocked = 1 # can't attack
     invisble = 2 # can't attack; can't be targeted
+    discarded = 3 # for GUI
     def from_str(name: str):
         match cleanstr(name):
             case "default": return State.default
@@ -262,6 +270,9 @@ class AbstractEffect:
             case "heal":  return HealEffect.from_json(json)
             case "drain": return DamageDrain.from_json(json)
             case "with_probability": return WithProbability.from_json(json)
+            case "gain_energy": return EnergyEffect.from_json(json)
+            case "add_energy": return EenergyEffect.from_json(json)
+            case "energy_gain": return EnergyEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -347,6 +358,18 @@ class WithProbability(AbstractEffect):
         self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
+@dataclass
+class EnergyEffect(AbstractEffect):
+    "Adds (or remove) to the user's Player, energy, max_energy and energy_per_turn."
+    energy: int
+    max_energy: int
+    energy_per_turn: int
+    def execute(self, **kwargs):
+        kwargs["player"].max_energy += self.max_energy
+        kwargs["player"].energy_per_turn += self.energy_per_turn
+        kwargs["player"].add_energy(self.energy)
+    def from_json(json: dict):
+        return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
 
 @dataclass
 class Attack:
@@ -444,6 +467,8 @@ class ActiveCard:
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
         self.attacked = True
+        self.board.unactive_player.boarddiscard()
+        self.board.active_player.boarddiscard()
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
@@ -481,12 +506,6 @@ class SpellCard(AbstractCard):
         )
         sim.attack(self.on_use, target)
 
-class Constants: # to change variables quickly. TODO: remove Python from this universe.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS()))
-    board_size = rng.randint(1, 7)
 @dataclass # for display
 class Player:
     name: str
@@ -546,7 +565,7 @@ class Player:
         return amount # for displaying
     def haslost(self) -> bool :
         "Return True is this Player's CommanderCard is defeated, False otherwise."
-        if self.commander.hp <= 0: # don't mind that I'll change it it's really spaghetti coded rn
+        if self.commander.hp <= 0:
             return True
         return False
     def handdiscard(self, i: int):
@@ -559,6 +578,19 @@ class Player:
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(self, i)
+    def boarddiscard(self):
+        "Discard every defeated cards, returning them."
+        discards = []
+        cards = self.active
+        for i in range(len(cards)):
+            if cards[i] is None:
+                continue
+            if cards[i].hp <= 0:
+                cards[i].state = State.discarded
+                discards.append(cards[i])
+                self.discard.append(cards[i].card)
+                cards[i] = None
+        return discards
     def place(self, i: int, j: int, board: Board):
         "Place the `i`th card of hand onto the `j`th tile of board, activing it. Return `True` if sucessful, `False` otherwise."
         if not 0 <= i < len(self.hand):
@@ -617,12 +649,21 @@ class Board:
         self.active_player = player1 # player1 start
         self.unactive_player = player2
         self.turn = 0
-    def endturn(self):
-        "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int)"
+    def getwinner(self) -> Player | None:
+        if self.unactive_player.haslost():
+            return self.active_player
+        if self.active_player.haslost():
+            return self.unactive_player():
+        return None
+    def endturn(self) -> tuple:
+        "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
-        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), self.turn)
+        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
         if DEV():
+            if ret[4] is not None:
+                print(f"The winner is {ret[4].name}")
+                return ret
             print(ret)
             input("\033[H\033[2J")
             self.devprint()
