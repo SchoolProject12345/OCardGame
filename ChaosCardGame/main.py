@@ -271,7 +271,7 @@ class AbstractEffect:
             case "drain": return DamageDrain.from_json(json)
             case "with_probability": return WithProbability.from_json(json)
             case "gain_energy": return EnergyEffect.from_json(json)
-            case "add_energy": return EenergyEffect.from_json(json)
+            case "add_energy": return EnergyEffect.from_json(json)
             case "energy_gain": return EnergyEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
@@ -653,7 +653,7 @@ class Board:
         if self.unactive_player.haslost():
             return self.active_player
         if self.active_player.haslost():
-            return self.unactive_player():
+            return self.unactive_player()
         return None
     def endturn(self) -> tuple:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
