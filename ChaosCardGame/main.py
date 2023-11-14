@@ -271,6 +271,8 @@ class AbstractEffect:
             case "drain": return DamageDrain.from_json(json)
             case "with_probability": return WithProbability.from_json(json)
             case "gain_energy": return EnergyEffect.from_json(json)
+            case "add_energy": return EenergyEffect.from_json(json)
+            case "energy_gain": return EnergyEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
