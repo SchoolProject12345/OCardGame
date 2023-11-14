@@ -369,7 +369,7 @@ class EnergyEffect(AbstractEffect):
         kwargs["player"].energy_per_turn += self.energy_per_turn
         kwargs["player"].add_energy(self.energy)
     def from_json(json: dict):
-        return EnergyEffect(getordef(json, "energy", 0), getordef(json, "max_energy", 0), getordef(json, "energy_per_turn", 0))
+        return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
 
 @dataclass
 class Attack:
