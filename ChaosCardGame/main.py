@@ -518,14 +518,22 @@ class Player:
         player = loads(io.read())[fname];
         io.close();
         return Player(name, getCOMMANDERS[player["commander"]], [getCARDS[i] for i in player["deck"]])
-    def save(self):
-        # prendre username et juste rentrer dans players.json?
+    
+
+    def save(self, name: str):
+        # prendre username et juste rentrer dans players.json ?
+        # comment faire la syntaxe json la dedans ?
         io = open("data/players.json");
-        if __name__ in io:
-            pass
-        io.write("test123")
+        userdata = f"""
+"{name}":{
+    "deck":[deck],
+    "commander":"{CommanderCard}"
+},
+"""
+        io.dump(userdata)
         io.close()
-        # je sais pas ce que je fais
+
+
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
