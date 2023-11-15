@@ -385,7 +385,7 @@ class Attack:
             int(json["power"]), # no float in power
             TargetMode.from_str(json["target_mode"]),
             int(json["cost"]),
-            getordef(json, "effect", "null"),
+            AbstractEffect.from_json(etordef(json, "effect", "null")),
             (*getordef(json, "tags", ()),)
         )
 
