@@ -6,7 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
-os.chdir("PLEASE ENTER DIR HERE")
+os.chdir("/Users/etudiant/Desktop/OC/ChaosCardGame/")
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -97,13 +97,6 @@ def cleanstr(s: str) -> str:
     """
     return "".join(filter(str.isalnum, s)).lower()
 
-class Constants: # to change variables quickly. TODO: remove Python from this universe.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS()))
-    board_size = rng.randint(1, 7)
-
 class Element(IntEnum):
     elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
     water = 1
@@ -132,9 +125,9 @@ class Element(IntEnum):
         if "element" not in json:
             return warn(f"Card with name {json['name']} has no element defined (don't do that intentionally please)") and Element.elementless
         return Element.from_str(json["element"])
-    def effective(self, other) -> bool:
+    def effectiveness(self, other) -> bool:
         """
-            Element.effective(self, other: Element)
+            Element.effectiveness(self, other: Element)
         
         Return True if self is effective on other/if other is weak to self, False otherwise.
         To get resistance, use `self.resist(other)` instead.
@@ -386,7 +379,7 @@ class Attack:
             int(json["power"]), # no float in power
             TargetMode.from_str(json["target_mode"]),
             int(json["cost"]),
-            AbstractEffect.from_json(etordef(json, "effect", "null")),
+            AbstractEffect.from_json(getordef(json, "effect", "null")),
             (*getordef(json, "tags", ()),)
         )
 
@@ -464,7 +457,7 @@ class ActiveCard:
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "user", self)
-        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effective(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
+        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effectiveness(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
         self.attacked = True
@@ -492,7 +485,7 @@ class ActiveCard:
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
         return amount
-    
+
 @dataclass
 class SpellCard(AbstractCard):
     on_use: Attack
@@ -506,6 +499,13 @@ class SpellCard(AbstractCard):
             board
         )
         sim.attack(self.on_use, target)
+
+class Constants: # to change variables quickly. TODO: remove Python from this universe.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = min(30, len(getCARDS()))
+    board_size = rng.randint(1, 7)
 
 @dataclass # for display
 class Player:
@@ -569,7 +569,7 @@ class Player:
         "Discard the first card in `self`'s `hand` with `id`, returning it."
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
-                return self.handdiscard(self, i)
+                return self.handdiscard(i)
     def boarddiscard(self):
         "Discard every defeated cards, returning them."
         discards = []
@@ -653,7 +653,7 @@ class Board:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
-        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
+        ret = (self.unactive_player, self.unactive_player.add_energy(self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
         if DEV():
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
@@ -672,11 +672,12 @@ class Board:
                 print("none ", end="")
                 continue
             print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
-        print(f"\nYou : {you.energy}/{you.max_energy} energies")
+        print(f"\n\nYou : {you.energy}/{you.max_energy} energies")
         print(you.commander.card.name, f"({you.commander.hp}/{you.commander.card.max_hp})")
         for card in you.active:
             if card is None:
                 print("none ", end="")
                 continue
             print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
+        print()
         print([cleanstr(card.name) for card in you.hand])
