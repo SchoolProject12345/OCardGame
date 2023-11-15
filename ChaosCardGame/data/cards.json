@@ -7,7 +7,7 @@
  "attacks":[
   {
    "name":"Vine Strangle",
-   "cost":0,
+   "cost":1,
    "power":8
    "target_mode":"target",
    "effect":{
@@ -37,7 +37,7 @@
  "attack":[
   {
    "name":"Lava Pulse",
-   "cost":0, 
+   "cost":1, 
    "power": 150,
    "target_mode":"target",
    "effect":{
@@ -56,7 +56,7 @@
  "attacks":[
   {
    "name":"Tornado Beam",
-   "cost":0,
+   "cost":1,
    "power":10,
    "target_mode":"target",
    "effect":{
@@ -80,7 +80,7 @@
  "attacks":[
   {
    "name":"Root Pierce",
-   "cost":0, 
+   "cost":1, 
    "power":80,
    "target_mode":"target",
    "effect":{
@@ -108,7 +108,7 @@
  "attacks":[
   {
    "name":"Fiery slash",
-   "cost":0, 
+   "cost":1, 
    "power":30,
    "target_mode":"foes",
    "effect":{
@@ -126,7 +126,7 @@
  "attacks":[
   {
    "name":"Blobblast",
-   "cost":0,
+   "cost":1,
    "power":60,
    "target_mode":"foes",
    "effect":{
