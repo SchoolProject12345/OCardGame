@@ -160,7 +160,6 @@ class Element(IntEnum):
             Element.resist(self, other: Element)
 
         Return `True` if `self` resist `other`, `False` otherwise.
-        Equivalent to `other.efectiveness(self)`.
 
         # Examples
         ```py
@@ -172,7 +171,7 @@ class Element(IntEnum):
             return True
         if self == Element.chaos or other == Element.chaos:
             return False
-        return other.effectiveness(self)
+        return self.effectiveness(other)
 class State(IntEnum):
     default = 0 # placeholder
     blocked = 1 # can't attack
@@ -213,16 +212,21 @@ class TargetMode(IntEnum):
             case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
+class ReturnCode(IntEnum):
+    ok = 200
+    wrong_turn = 400
+    no_energy = 401
+    cant = 402
 @dataclass
 class EffectSurvey:
-    "Is an internal class. Shouldn't be used outside of AbstractEffect's metaalgorithm."
+    "Contain all values returned by an attack"
     damage: int = 0
     heal: int = 0
+    return_code: ReturnCode = ReturnCode.ok
     def __add__(self, other):
-        return EffectSurvey(self.damage + other.damage, self.heal + other.heal)
+        return EffectSurvey(self.damage + other.damage, self.heal + other.heal, self.return_code)
     def __iadd__(self, other):
         return self + other # please save me from this language; the more I discover the more I ask myself why python is used.
-
 class AbstractEffect:
     def __init__(self):
         warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
@@ -333,7 +337,7 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
 @dataclass
 class HealEffect(AbstractEffect):
-    "Heal target(s) by amount"
+    "Heal target(s) by amount."
     amount: int
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
@@ -447,10 +451,13 @@ class ActiveCard:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
+            kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"] # doesn't act if it can't
         if self.state == State.blocked or target.state == State.invisble:
+            kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if self.owner.energy < attack.cost:
+            kwargs["survey"].return_code = ReturnCode.no_energy
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "board", self.board)
@@ -466,7 +473,7 @@ class ActiveCard:
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
-    def damage(self, amount: int) -> int:
+    def damage(self, amount: int, **kwargs) -> int:
         "Reduce hp by amount but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
@@ -490,15 +497,17 @@ class ActiveCard:
 class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
-        return SpellCard(json["name"], id, json["element"], json["on_use"])
+        return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
     def use(self, target: ActiveCard, board: Board):
-        board.active_player.iddiscard(self.id)
         sim = ActiveCard(
             CreatureCard(self.name, self.id, self.element, 0, [self.on_use], []),
             board.active_player,
             board
         )
-        sim.attack(self.on_use, target)
+        survey = sim.attack(self.on_use, target)
+        if survey.return_code == ReturnCode.ok:
+            board.active_player.iddiscard(self.id)
+        return survey
 
 class Constants: # to change variables quickly. TODO: remove Python from this universe.
     default_max_energy = 4
@@ -631,7 +640,7 @@ class Board:
             wins[win] += 1
         return wins[0] == 3
     def __init__(self, player1: Player, player2: Player):
-        if not Board.rpsbo5dev(): # if player1 lose rpsbo5: player2 start
+        if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
             player1, player2 = player2, player1
         player1.commander.board = self
         player2.commander.board = self
@@ -643,6 +652,7 @@ class Board:
         self.active_player = player1 # player1 start
         self.unactive_player = player2
         self.turn = 0
+        self.devprint()
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
             return self.active_player
@@ -665,6 +675,7 @@ class Board:
     def devprint(self):
         you = self.active_player
         them = self.unactive_player
+        print(self.turn)
         print(f"Them: {them.energy}/{them.max_energy} energies.")
         print(them.commander.card.name, f"({them.commander.hp}/{them.commander.card.max_hp})")
         for card in them.active:
