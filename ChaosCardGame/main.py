@@ -6,7 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
-os.chdir("C:/Users/yvain/Desktop/ProgLang/Python/app/OCG/")
+os.chdir("ENTER DIR HERE")
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
