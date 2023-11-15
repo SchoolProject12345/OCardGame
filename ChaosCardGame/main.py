@@ -212,6 +212,16 @@ class TargetMode(IntEnum):
             case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
+class DamageMode(IntEnum):
+    direct = 0
+    indirect = 1
+    ignore_resist = 2
+    def from_str(name: str):
+        match cleanstr(name):
+            case "direct": return DamageMode.direct
+            case "indirect": return DamageMode.indirect
+            case "ignoreresist": return DamageMode.ignore_resist
+            case _: return warn(f"Tried to form DamageMode from {name}, returning DamageMode.direct instead.") and DamageMode.direct
 class ReturnCode(IntEnum):
     ok = 200
     wrong_turn = 400
@@ -476,7 +486,11 @@ class ActiveCard:
         return kwargs["survey"]
     def damage(self, amount, **kwargs):
         "Does direct damage to self, modified by any modifiers."
-        self.indirectdamage(amount * ifelse(self.element.effectiveness(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
+        mode = getordef(kwargs, "damage_mode", DamageMode.direct)
+        if mode == DamageMode.indirect:
+            return self.indirectdamage(amount)
+        target = kwargs["user"]
+        return self.indirectdamage(amount * ifelse(self.element.effectiveness(target.element) and mode != DamageMode.indirect, 12, 10) // ifelse(target.element.resist(self.element) and mode == DamageMode.direct, 12, 10))
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if DEV() and type(amount) != int:
