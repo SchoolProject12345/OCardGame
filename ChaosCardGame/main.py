@@ -412,6 +412,7 @@ class CreatureCard(AbstractCard):
     max_hp: int
     attacks: list # list of Attack objects
     passives: list
+    cost: int
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = (
@@ -419,8 +420,9 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
-            [Attack.from_json(attack) for attack in getordef(json, "attacks", [])],
-            []
+            [Constants.default_attack, *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            [],
+            json["cost"]
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
@@ -435,15 +437,14 @@ class Board: pass
 class ActiveCard:
     card: CreatureCard
     hp: int
-    attacked: bool # for passives activations
     element: Element # to change active type after a specific effect
     owner: Player
     board: Board
+    attacked: bool = False
     state: State = State.default
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
-        self.attacked = False
         self.element = card.element
         self.owner = owner
         self.board = board
@@ -453,7 +454,7 @@ class ActiveCard:
         if self.board.active_player != self.owner:
             kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"] # doesn't act if it can't
-        if self.state == State.blocked or target.state == State.invisble:
+        if self.state == State.blocked or target.state == State.invisble or self.attacked:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if self.owner.energy < attack.cost:
@@ -464,17 +465,20 @@ class ActiveCard:
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "user", self)
-        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effectiveness(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
+        kwargs["survey"].damage += target.damage(attack.power)
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
-        self.attacked = True
         self.board.unactive_player.boarddiscard()
         self.board.active_player.boarddiscard()
+        self.attacked = True
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
-    def damage(self, amount: int, **kwargs) -> int:
-        "Reduce hp by amount but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
+    def damage(self, amount, **kwargs):
+        "Does direct damage to self, modified by any modifiers."
+        self.indirectdamage(amount * ifelse(self.element.effectiveness(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
+    def indirectdamage(self, amount: int) -> int:
+        "Reduce HP by amount but never goes into negative, then return damage dealt."
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
@@ -515,6 +519,7 @@ class Constants: # to change variables quickly. TODO: remove Python from this un
     default_hand_size = 5
     default_deck_size = min(30, len(getCARDS()))
     board_size = rng.randint(1, 7)
+    default_attack = Attack(name="Default Attack",cost=1,power=10,effect=NullEffect(),target_mode=TargetMode.target)
 
 @dataclass # for display
 class Player:
@@ -600,9 +605,12 @@ class Player:
             return False
         if self.active[j] is not None:
             return False
+        if self.energy < self.hand[i].cost:
+            return False
+        self.energy -= self.hand[i].cost
         self.active[j] = ActiveCard(self.hand.pop(i), self, board)
         return True
-            
+
 def rps2int(rpc: str):
     match rpc:
         case "rock": return 0
