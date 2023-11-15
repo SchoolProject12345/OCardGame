@@ -24,8 +24,9 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
         return COMMANDERS
     io = open("data/commanders.json");
     json = loads(io.read());
-    io.close()
-    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json})
+    io.close();
+    id = -1;
+    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json});
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 
