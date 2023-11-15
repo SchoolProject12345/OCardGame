@@ -210,11 +210,11 @@ class TargetMode(IntEnum):
             case "self": return TargetMode.self
             case "user": return TargetMode.self
             case "commander": return TargetMode.commander
-            case "foe_commander": return TargetMode.commander
-            case "enemy_commander": return TargetMode.commander
-            case "allied_commander": return TargetMode.allied_commander
-            case "all_commanders": return TargetMode.all_commanders
-            case "both_commanders": return TargetMode.all_commanders
+            case "foecommander": return TargetMode.commander
+            case "enemycommander": return TargetMode.commander
+            case "alliedcommander": return TargetMode.allied_commander
+            case "allcommanders": return TargetMode.all_commanders
+            case "bothcommanders": return TargetMode.all_commanders
             case "commanders": return TargetMode.all_commanders
             case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
@@ -261,18 +261,18 @@ class AbstractEffect:
         type = cleanstr(getordef(json, "type", "undefined"))
         match type:
             case "union": return EffectUnion.from_json(json)
-            case "effect_union": return EffectUnion.from_json(json)
-            case "target_change": return ChangeTarget.from_json(json)
-            case "change_target": return ChangeTarget.from_json(json)
-            case "state_change": return ChangeState.from_json(json)
-            case "change_state": return ChangeState.from_json(json)
+            case "effectunion": return EffectUnion.from_json(json)
+            case "targetchange": return ChangeTarget.from_json(json)
+            case "changetarget": return ChangeTarget.from_json(json)
+            case "statechange": return ChangeState.from_json(json)
+            case "changestate": return ChangeState.from_json(json)
             case "damage": return DamageEffect.from_json(json)
             case "heal":  return HealEffect.from_json(json)
             case "drain": return DamageDrain.from_json(json)
-            case "with_probability": return WithProbability.from_json(json)
-            case "gain_energy": return EnergyEffect.from_json(json)
-            case "add_energy": return EnergyEffect.from_json(json)
-            case "energy_gain": return EnergyEffect.from_json(json)
+            case "withprobability": return WithProbability.from_json(json)
+            case "gainenergy": return EnergyEffect.from_json(json)
+            case "addenergy": return EnergyEffect.from_json(json)
+            case "energygain": return EnergyEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -312,7 +312,7 @@ class ChangeState(AbstractEffect):
         for card in AbstractEffect.targeted_objects(**kwargs):
             card.state = self.new_state
     def from_json(json: dict):
-        return ChangeTarget(TargetMode.from_str(json["new_state"]))
+        return ChangeState(TargetMode.from_str(json["new_state"]))
 @dataclass
 class DamageEffect(AbstractEffect):
     "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
