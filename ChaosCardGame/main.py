@@ -26,7 +26,7 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
     json = loads(io.read());
     io.close();
     id = -1;
-    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json});
+    COMMANDERS.update({cleanstr(card["name"]):CreatureCard.from_json(card, (id := id + 1)) for card in json});
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 
@@ -522,7 +522,7 @@ class Player:
         if len(deck) != Constants.default_deck_size:
             raise f"Player {name} tried to play with too few cards (error handling will be done later)."
         self.name = name
-        self.commander = ActiveCard(commander)
+        self.commander = ActiveCard(commander, self, None)
         self.deck = deck.copy() # avoid sharing, notably if deck is left to default in DEV() mode, as Python is a terrible language
         rng.shuffle(self.deck)
         self.discard = [] # is not shared
@@ -538,22 +538,13 @@ class Player:
         player = loads(io.read())[fname];
         io.close();
         return Player(name, getCOMMANDERS[player["commander"]], [getCARDS[i] for i in player["deck"]])
-    
-
-    def save(self, name: str):
+    def save(self):
         # prendre username et juste rentrer dans players.json ?
         # comment faire la syntaxe json la dedans ?
         io = open("data/players.json");
-        userdata = f"""
-"{name}":{
-    "deck":[deck],
-    "commander":"{CommanderCard}"
-},
-"""
+        userdata = {cleanstr(self.name):{"commander":cleanstr(self.commander.card.name),"deck":self.deck}} # must change a little
         io.dump(userdata)
         io.close()
-
-
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
@@ -642,6 +633,8 @@ class Board:
     def __init__(self, player1: Player, player2: Player):
         if not Board.rpsbo5dev(): # if player1 lose rpsbo5: player2 start
             player1, player2 = player2, player1
+        player1.commander.board = self
+        player2.commander.board = self
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(1, 7)
