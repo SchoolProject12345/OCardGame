@@ -9,7 +9,7 @@
   {
    "name":"Vine Strangle",
    "cost":1,
-   "power":8
+   "power":8,
    "target_mode":"target",
    "effect":{
     "type":"damage",
@@ -22,15 +22,15 @@
  "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
- "hp":60
- "cost":1,
+ "hp":60,
+ "cost":1
 },
 {
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
- "hp":210
- "cost":1,
+ "hp":210,
+ "cost":1
 },
 {
  "type":"creature",
@@ -75,8 +75,8 @@
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
- "hp":60
- "cost":1,
+ "hp":60,
+ "cost":1
 },
 {
  "type":"creature",
@@ -105,8 +105,8 @@
  "type":"creature",
  "name":"Blossom Sylph",
  "element":"water",
- "hp":40
- "cost":1,
+ "hp":40,
+ "cost":1
 },
 {
  "type":"creature",
@@ -151,8 +151,8 @@
  "type":"creature",
  "name":"Hydra of the Seas",
  "element":"water",
- "hp":140
- "cost":1,
+ "hp":140,
+ "cost":1
 },
 {
  "type":"spell",
