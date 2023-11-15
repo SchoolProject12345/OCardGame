@@ -6,7 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
-os.chdir("/Users/etudiant/Desktop/OC/ChaosCardGame/")
+os.chdir("C:/Users/yvain/Desktop/ProgLang/Python/app/OCG/")
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -430,7 +430,7 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
-            [Constants.default_attack, *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            [Attack("Default Attack", 10, TargetMode.target, 0, NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
             [],
             json["cost"]
         )
@@ -533,7 +533,6 @@ class Constants: # to change variables quickly. TODO: remove Python from this un
     default_hand_size = 5
     default_deck_size = min(30, len(getCARDS()))
     board_size = rng.randint(1, 7)
-    default_attack = Attack(name="Default Attack",cost=1,power=10,effect=NullEffect(),target_mode=TargetMode.target)
 
 @dataclass # for display
 class Player:
@@ -662,8 +661,8 @@ class Board:
             wins[win] += 1
         return wins[0] == 3
     def __init__(self, player1: Player, player2: Player):
-        if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
-            player1, player2 = player2, player1
+        #if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
+        #    player1, player2 = player2, player1
         player1.commander.board = self
         player2.commander.board = self
         self.player1 = player1
