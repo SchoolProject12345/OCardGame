@@ -3,7 +3,8 @@
  "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
- "hp":100
+ "hp":100,
+ "cost":1,
  "attacks":[
   {
    "name":"Vine Strangle",
@@ -22,18 +23,21 @@
  "name":"Whisperwind Sprite",
  "element":"air",
  "hp":60
+ "cost":1,
 },
 {
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
  "hp":210
+ "cost":1,
 },
 {
  "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
  "hp":80,
+ "cost":1,
  "attack":[
   {
    "name":"Lava Pulse",
@@ -53,6 +57,7 @@
  "name":"monkey of the Skies",
  "element":"air",
  "hp":120,
+ "cost":1,
  "attacks":[
   {
    "name":"Tornado Beam",
@@ -71,12 +76,14 @@
  "name":"The Skybound Serpent",
  "element":"air",
  "hp":60
+ "cost":1,
 },
 {
  "type":"creature",
  "name":"Wise Mystical Golem",
  "element":"earth",
  "hp":190,
+ "cost":1,
  "attacks":[
   {
    "name":"Root Pierce",
@@ -99,12 +106,14 @@
  "name":"Blossom Sylph",
  "element":"water",
  "hp":40
+ "cost":1,
 },
 {
  "type":"creature",
  "name":"Fyyrönyr, the dragon",
  "element":"fire",
  "hp":80,
+ "cost":1,
  "attacks":[
   {
    "name":"Fiery slash",
@@ -123,6 +132,7 @@
  "name":"Bob the blobfish",
  "element":"water",
  "hp":120,
+ "cost":4,
  "attacks":[
   {
    "name":"Blobblast",
@@ -142,6 +152,7 @@
  "name":"Hydra of the Seas",
  "element":"water",
  "hp":140
+ "cost":1,
 },
 {
  "type":"spell",
