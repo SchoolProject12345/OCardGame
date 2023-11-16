@@ -540,13 +540,12 @@ class Player:
     
 
     def save(self, name: str):
-        # prendre username et juste rentrer dans players.json ?
-        # comment faire la syntaxe json la dedans ?
+        # TODO: la syntaxe json??
         io = open("data/players.json");
         userdata = f"""
 "{name}":{
-    "deck":[deck],
-    "commander":"{CommanderCard}"
+    "deck": deck,
+    "commander": CommanderCard
 },
 """
         io.dump(userdata)
