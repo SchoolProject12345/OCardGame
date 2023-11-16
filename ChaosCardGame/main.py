@@ -177,6 +177,9 @@ class AbstractEffect:
     def execute(self, **kwargs):
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
         warn(f"AbstractEffect of type {type(self)} has no execute method defined.")
+    def endturn(self, target: ActiveCard):
+        "AbstractEffect.endturn is a method that is applied at the end of each turn to the creature affected by it, returning False if the effect ends on this turn."
+        return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
     def targeted_objects(**kwargs):
         match kwargs["target_mode"]:
             case TargetMode.target: return [kwargs["main_target"]]
@@ -215,6 +218,9 @@ class AbstractEffect:
             case "gainenergy": return EnergyEffect.from_json(json)
             case "addenergy": return EnergyEffect.from_json(json)
             case "energygain": return EnergyEffect.from_json(json)
+            case "dot": return DOTEffect.from_json(json)
+            case "damageovertime": return DOTEffect.from_json(json)
+            case "delay": return DelayEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -273,6 +279,8 @@ class DOTEffect(AbstractEffect):
     turn: int
     def copy(self):
         return DOTEffect(self.damage, self.turn)
+    def from_json(json: dict):
+        return DOTEffect(json["damage"],json["duration"])
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.copy())
@@ -281,7 +289,28 @@ class DOTEffect(AbstractEffect):
         self.damage -= amount
         self.turn -= 1
         target.indirectdamage(damage)
-        return self.turn == 0
+        return self.turn > 0
+@dataclass
+class DelayEffect(AbstractEffect):
+    effect: AbstractEffect
+    time: int
+    kwargs: dict = {}
+    def copy(self):
+        return DelayEffect(self.effect, self.time)
+    def from_json(json: dict):
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"])
+    def execute(self, **kwargs):
+        self.kwargs = kwargs
+        for target in AbstractEffect.targeted_objects(**kwargs):
+            target.effects.append(self.copy())
+    def endturn(self, target: ActiveCard):
+        if self.time > 0:
+            self.ime -= 1
+            return True
+        kwargs = kwargs.copy()
+        self.kwargs["main_target"] = target
+        self.kwargs["target_mode"] = TargetMode.target
+        self.effect.execute(**self.kwargs)
 @dataclass
 class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
     "Heal for a ratio (rational) of total damage (indirect/direct) "
@@ -468,6 +497,7 @@ class ActiveCard:
         return amount
     def endturn(self):
         "Apply all effects at the end of turn."
+        self.effects = [effect for effect in self.effects if effect.endturn(self)]
 
 @dataclass
 class SpellCard(AbstractCard):
@@ -643,6 +673,9 @@ class Board:
         return None
     def endturn(self) -> tuple:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
+        for card in self.active_player.active:
+            card.endturn()
+        self.active_player.commander.endturn()
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
         ret = (self.unactive_player, self.unactive_player.add_energy(self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
