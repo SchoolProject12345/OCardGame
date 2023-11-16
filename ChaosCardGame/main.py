@@ -146,6 +146,18 @@ class TargetMode(IntEnum):
             case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
+            case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
+    def to_str(self):
+        match self:
+            case TargetMode.foes: return "foes"
+            case TargetMode.target: return "target"
+            case TargetMode.allies: return "allies"
+            case TargetMode.self: return "user"
+            case TargetMode.commander: return "enemy Commander"
+            case TargetMode.allied_commander: return "allied Commander"
+            case TargetMode.all_commanders: return "both Commanders"
+            case TargetMode.all: return "all"
+            case TargetMode.massivedestruction: return "every creature that has ever set foot in this Arena"
 class DamageMode(IntEnum):
     direct = 0
     indirect = 1
@@ -377,6 +389,10 @@ class Attack:
             AbstractEffect.from_json(getordef(json, "effect", "null")),
             (*getordef(json, "tags", ()),)
         )
+    def __str__(self) -> str:
+        "Return a verbal representation of self."
+        return f"{self.name} (cost:{str(self.cost)}) does {self.power} damages on {self.target_mode.to_str()} and does {self.effect}."
+        
 
 @dataclass
 class AbstractCard:
@@ -418,6 +434,14 @@ class CreatureCard(AbstractCard):
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
         return CreatureCard(*args)
+    def __str__(self) -> str:
+        "Return beautiful string reprensenting self instead of ugly mess defaulting from dataclasses."
+        pretty = f"{self.name} (id:{self.id}): {self.element.to_str}\nMax HP : {self.max_hp}\nCost   : {self.cost}\nAttacks: [\n"
+        for attack in self.attacks:
+            pretty += f" \n" + str(attack)
+        pretty += "]\nPassives: [\n (unimplemented yet)\n]"
+        return pretty
+        
 @dataclass
 class CommanderCard(CreatureCard):
     # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
