@@ -147,20 +147,35 @@ Change the state of every target(s).
 ```js
 {
  "type":"state_change",
- "new_state":"{State object}"
+ "new_state":"{State string}"
+}
+```
+Form a temporary State change, that last `"for"` a given number of turns, reverting afterward, with the following syntax:
+```js
+{
+ "type":"state_change",
+ "new_state":"{State string}",
+ "for":1 // revert at the end of the targeted team next turn (at the end of the current turn if targeting an ally)
 }
 ```
 With possible values of field `"new_state"` being:
     `"default"`: has no effect.
     `"block"` or `"blocked"`: cannot attack.
     `"invisible"`: cannot attack nor be targeted.
+    (unimplemented yet)
+    `"damageless"`: cannot receive damage.
 
 ### HP Manipulation
-Inflict indirect damages to target(s), which ignore any change.
+Inflict damages to target(s), which depend on mode.
+DamageModes include:
+    `"direct"`: depend on weakness, resistance & other modification
+    `"ignore_resist"` or `"ignore_resistance"`: depend on weakness & other modification, but not resistance.
+    `"indirect"`: doesn't depend on anything else, reduce the target HP directly.
 ```js
 {
  "type":"damage",
- "amount":0
+ "amount":0,
+ "damage_mode":"{DamageMode string}"
 }
 ```
 Heal target(s) by `amount`.
@@ -170,7 +185,16 @@ Heal target(s) by `amount`.
  "amount":0
 }
 ```
-Heal from a ratio of total damage dealt in sub-effects.
+Damage Over Time, deal `"damage"` over `"time"` turns. A DOT over 1 turn is equivalent to indirect damage, with the only difference being that it happens at the end of the target's owner's next turn and hence doesn't count in draining.
+As the name suggest, the `"damage"` field represent the *total* damage dealt over the time; in the following example the target would lose 2 HP, then 3 and finally 3, for a total of 8 damages over 3 turns.
+```js
+{
+ "type":"dot",
+ "damage":8,
+ "time":3
+}
+```
+Heal from a ratio of total damage dealt in sub-effects. This doesn't take DOT into account.
 ```js
 {
  "type":"drain",
@@ -191,7 +215,9 @@ Heal from a ratio of total damage dealt in sub-effects.
 ```
 
 
-### Conditional Effect:
+###  Control:
+Apply either `"effect1"` or `"effect2"`, chosen at random, with `"probability"` of being `effect1`.
+`probability` defaults to 0.5 and `effect2` to no effect.
 ```js
 {
  "type":"with_probability",
@@ -200,5 +226,11 @@ Heal from a ratio of total damage dealt in sub-effects.
  "effect2":{/*effect object*/}
 }
 ```
-Apply either `effect1` or `effect2`, chosen at random, with `probability` of being effect1.
-`probability` defaults to 0.5 and `effect2` to no effect.
+Apply `"effect"` after `"delay"` turns of delay.
+```js
+{
+ "type":"delay",
+ "effect":{/*effect object*/},
+ "delay":1
+}
+```
