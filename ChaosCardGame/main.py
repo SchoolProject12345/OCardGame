@@ -5,8 +5,8 @@ from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
+from convenience import * # make code cleaner
 import os
-from convenience import *
 os.chdir("ENTER DIR HERE")
 
 def getCARDS(CARDS = []) -> list:
@@ -259,11 +259,29 @@ class ChangeState(AbstractEffect):
 class DamageEffect(AbstractEffect):
     "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
     amount: int
+    damage_mode: DamageMode = DamageMode.direct
     def execute(self, **kwargs):
+        kwargs = kwargs.copy()
+        kwargs["damage_mode"] = self.damage_mode
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(self.amount, **kwargs)
     def from_json(json: dict):
-        return DamageEffect(json["amount"])
+        return DamageEffect(json["amount"], DamageMode.from_str(json["damage_mode"]))
+@dataclass
+class DOTEffect(AbstractEffect):
+    damage: int
+    turn: int
+    def copy(self):
+        return DOTEffect(self.damage, self.turn)
+    def execute(self, **kwargs):
+        for target in AbstractEffect.targeted_objects(**kwargs):
+            target.effects.append(self.copy())
+    def endturn(self, target: ActiveCard):
+        amount = self.damage // self.turn
+        self.damage -= amount
+        self.turn -= 1
+        target.indirectdamage(damage)
+        return self.turn == 0
 @dataclass
 class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
     "Heal for a ratio (rational) of total damage (indirect/direct) "
@@ -386,13 +404,15 @@ class ActiveCard:
     board: Board
     attacked: bool = False
     state: State = State.default
+    effects: list = []
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
         self.element = card.element
         self.owner = owner
         self.board = board
-    def attack(self, attack: Attack, target, **kwargs) -> int:
+        self.effects = []
+    def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
@@ -408,6 +428,7 @@ class ActiveCard:
         getorset(kwargs, "board", self.board)
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
+        getorset(kwargs, "damage_mode", DamageMode.direct)
         getorset(kwargs, "user", self)
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
@@ -419,13 +440,13 @@ class ActiveCard:
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
-    def damage(self, amount, **kwargs):
+    def damage(self, amount, **kwargs) -> int:
         "Does direct damage to self, modified by any modifiers."
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         if mode == DamageMode.indirect:
             return self.indirectdamage(amount)
-        target = kwargs["user"]
-        return self.indirectdamage(amount * ifelse(self.element.effectiveness(target.element) and mode != DamageMode.indirect, 12, 10) // ifelse(target.element.resist(self.element) and mode == DamageMode.direct, 12, 10))
+        attacker = kwargs["user"]
+        return self.indirectdamage(amount * ifelse(attacker.element.effectiveness(self.element) and mode != DamageMode.indirect, 12, 10) // ifelse(self.element.resist(attacker.element) and mode == DamageMode.direct, 12, 10))
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if DEV() and type(amount) != int:
@@ -437,7 +458,7 @@ class ActiveCard:
             return amount
         self.hp -= amount
         return amount
-    def heal(self, amount: int):
+    def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
@@ -445,6 +466,8 @@ class ActiveCard:
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
         return amount
+    def endturn(self):
+        "Apply all effects at the end of turn."
 
 @dataclass
 class SpellCard(AbstractCard):
@@ -589,6 +612,7 @@ class Board:
     def rpsbo5dev(): # no idea why this is a method
         "Return `True` if player1 reaches 3 Rock Paper Scissor wins before player2. Used for DEV() mode."
         DEV() or print("I think you forgot to update something in your code 'cause it's currently running rpsbo5dev while DEV() = False.")
+        DEV() and return False
         wins = [0, 0]
         while max(*wins) != 3:
             win = Board.rps_win(input("<◁< Player1, choose your move (r/p/s) >>>: "), input("\x1b[1A\x1b[0J<<< Player2, choose your move (r/p/s) >▷>: "))
@@ -598,8 +622,8 @@ class Board:
             wins[win] += 1
         return wins[0] == 3
     def __init__(self, player1: Player, player2: Player):
-        #if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
-        #    player1, player2 = player2, player1
+        if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
+            player1, player2 = player2, player1
         player1.commander.board = self
         player2.commander.board = self
         self.player1 = player1
