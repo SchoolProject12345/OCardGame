@@ -6,7 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
-os.chdir("PLEASE ENTER DIR HERE")
+os.chdir("ENTER DIR HERE")
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -24,8 +24,9 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
         return COMMANDERS
     io = open("data/commanders.json");
     json = loads(io.read());
-    io.close()
-    COMMANDERS.update({CreatureCard.from_json(card, (id := id + 1)) for card in json})
+    io.close();
+    id = -1;
+    COMMANDERS.update({cleanstr(card["name"]):CreatureCard.from_json(card, (id := id + 1)) for card in json});
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 
@@ -96,13 +97,6 @@ def cleanstr(s: str) -> str:
     """
     return "".join(filter(str.isalnum, s)).lower()
 
-class Constants: # to change variables quickly. TODO: remove Python from this universe.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS()))
-    board_size = rng.randint(1, 7)
-
 class Element(IntEnum):
     elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
     water = 1
@@ -131,9 +125,9 @@ class Element(IntEnum):
         if "element" not in json:
             return warn(f"Card with name {json['name']} has no element defined (don't do that intentionally please)") and Element.elementless
         return Element.from_str(json["element"])
-    def effective(self, other) -> bool:
+    def effectiveness(self, other) -> bool:
         """
-            Element.effective(self, other: Element)
+            Element.effectiveness(self, other: Element)
         
         Return True if self is effective on other/if other is weak to self, False otherwise.
         To get resistance, use `self.resist(other)` instead.
@@ -166,7 +160,6 @@ class Element(IntEnum):
             Element.resist(self, other: Element)
 
         Return `True` if `self` resist `other`, `False` otherwise.
-        Equivalent to `other.efectiveness(self)`.
 
         # Examples
         ```py
@@ -178,7 +171,7 @@ class Element(IntEnum):
             return True
         if self == Element.chaos or other == Element.chaos:
             return False
-        return other.effectiveness(self)
+        return self.effectiveness(other)
 class State(IntEnum):
     default = 0 # placeholder
     blocked = 1 # can't attack
@@ -210,25 +203,40 @@ class TargetMode(IntEnum):
             case "self": return TargetMode.self
             case "user": return TargetMode.self
             case "commander": return TargetMode.commander
-            case "foe_commander": return TargetMode.commander
-            case "enemy_commander": return TargetMode.commander
-            case "allied_commander": return TargetMode.allied_commander
-            case "all_commanders": return TargetMode.all_commanders
-            case "both_commanders": return TargetMode.all_commanders
+            case "foecommander": return TargetMode.commander
+            case "enemycommander": return TargetMode.commander
+            case "alliedcommander": return TargetMode.allied_commander
+            case "allcommanders": return TargetMode.all_commanders
+            case "bothcommanders": return TargetMode.all_commanders
             case "commanders": return TargetMode.all_commanders
             case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
+class DamageMode(IntEnum):
+    direct = 0
+    indirect = 1
+    ignore_resist = 2
+    def from_str(name: str):
+        match cleanstr(name):
+            case "direct": return DamageMode.direct
+            case "indirect": return DamageMode.indirect
+            case "ignoreresist": return DamageMode.ignore_resist
+            case _: return warn(f"Tried to form DamageMode from {name}, returning DamageMode.direct instead.") and DamageMode.direct
+class ReturnCode(IntEnum):
+    ok = 200
+    wrong_turn = 400
+    no_energy = 401
+    cant = 402
 @dataclass
 class EffectSurvey:
-    "Is an internal class. Shouldn't be used outside of AbstractEffect's metaalgorithm."
+    "Contain all values returned by an attack"
     damage: int = 0
     heal: int = 0
+    return_code: ReturnCode = ReturnCode.ok
     def __add__(self, other):
-        return EffectSurvey(self.damage + other.damage, self.heal + other.heal)
+        return EffectSurvey(self.damage + other.damage, self.heal + other.heal, self.return_code)
     def __iadd__(self, other):
         return self + other # please save me from this language; the more I discover the more I ask myself why python is used.
-
 class AbstractEffect:
     def __init__(self):
         warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
@@ -261,18 +269,18 @@ class AbstractEffect:
         type = cleanstr(getordef(json, "type", "undefined"))
         match type:
             case "union": return EffectUnion.from_json(json)
-            case "effect_union": return EffectUnion.from_json(json)
-            case "target_change": return ChangeTarget.from_json(json)
-            case "change_target": return ChangeTarget.from_json(json)
-            case "state_change": return ChangeState.from_json(json)
-            case "change_state": return ChangeState.from_json(json)
+            case "effectunion": return EffectUnion.from_json(json)
+            case "targetchange": return ChangeTarget.from_json(json)
+            case "changetarget": return ChangeTarget.from_json(json)
+            case "statechange": return ChangeState.from_json(json)
+            case "changestate": return ChangeState.from_json(json)
             case "damage": return DamageEffect.from_json(json)
             case "heal":  return HealEffect.from_json(json)
             case "drain": return DamageDrain.from_json(json)
-            case "with_probability": return WithProbability.from_json(json)
-            case "gain_energy": return EnergyEffect.from_json(json)
-            case "add_energy": return EnergyEffect.from_json(json)
-            case "energy_gain": return EnergyEffect.from_json(json)
+            case "withprobability": return WithProbability.from_json(json)
+            case "gainenergy": return EnergyEffect.from_json(json)
+            case "addenergy": return EnergyEffect.from_json(json)
+            case "energygain": return EnergyEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -312,14 +320,14 @@ class ChangeState(AbstractEffect):
         for card in AbstractEffect.targeted_objects(**kwargs):
             card.state = self.new_state
     def from_json(json: dict):
-        return ChangeTarget(TargetMode.from_str(json["new_state"]))
+        return ChangeState(TargetMode.from_str(json["new_state"]))
 @dataclass
 class DamageEffect(AbstractEffect):
     "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
     amount: int
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
-            kwargs["survey"].damage += card.damage(self.amount)
+            kwargs["survey"].damage += card.damage(self.amount, **kwargs)
     def from_json(json: dict):
         return DamageEffect(json["amount"])
 @dataclass
@@ -339,7 +347,7 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
 @dataclass
 class HealEffect(AbstractEffect):
-    "Heal target(s) by amount"
+    "Heal target(s) by amount."
     amount: int
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
@@ -385,7 +393,7 @@ class Attack:
             int(json["power"]), # no float in power
             TargetMode.from_str(json["target_mode"]),
             int(json["cost"]),
-            getordef(json, "effect", "null"),
+            AbstractEffect.from_json(getordef(json, "effect", "null")),
             (*getordef(json, "tags", ()),)
         )
 
@@ -414,6 +422,7 @@ class CreatureCard(AbstractCard):
     max_hp: int
     attacks: list # list of Attack objects
     passives: list
+    cost: int
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = (
@@ -421,8 +430,9 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
-            [Attack.from_json(attack) for attack in getordef(json, "attacks", [])],
-            []
+            [Attack("Default Attack", 10, TargetMode.target, 0, NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            [],
+            json["cost"]
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
@@ -437,15 +447,14 @@ class Board: pass
 class ActiveCard:
     card: CreatureCard
     hp: int
-    attacked: bool # for passives activations
     element: Element # to change active type after a specific effect
     owner: Player
     board: Board
+    attacked: bool = False
     state: State = State.default
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
-        self.attacked = False
         self.element = card.element
         self.owner = owner
         self.board = board
@@ -453,27 +462,38 @@ class ActiveCard:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
+            kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"] # doesn't act if it can't
-        if self.state == State.blocked or target.state == State.invisble:
+        if self.state == State.blocked or target.state == State.invisble or self.attacked:
+            kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if self.owner.energy < attack.cost:
+            kwargs["survey"].return_code = ReturnCode.no_energy
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "board", self.board)
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "user", self)
-        kwargs["survey"].damage += target.damage(attack.power * ifelse(self.element.effective(target.element), 12, 10) // ifelse(target.element.resist(self.element), 12, 10))
+        for card in AbstractEffect.targeted_objects(**kwargs):
+            kwargs["survey"].damage += card.damage(attack.power, **kwargs)
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
-        self.attacked = True
         self.board.unactive_player.boarddiscard()
         self.board.active_player.boarddiscard()
+        self.attacked = True
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
-    def damage(self, amount: int) -> int:
-        "Reduce hp by amount but never goes into negative, then return damage dealt; exists so we can add modifier in it if necessary."
+    def damage(self, amount, **kwargs):
+        "Does direct damage to self, modified by any modifiers."
+        mode = getordef(kwargs, "damage_mode", DamageMode.direct)
+        if mode == DamageMode.indirect:
+            return self.indirectdamage(amount)
+        target = kwargs["user"]
+        return self.indirectdamage(amount * ifelse(self.element.effectiveness(target.element) and mode != DamageMode.indirect, 12, 10) // ifelse(target.element.resist(self.element) and mode == DamageMode.direct, 12, 10))
+    def indirectdamage(self, amount: int) -> int:
+        "Reduce HP by amount but never goes into negative, then return damage dealt."
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
@@ -491,20 +511,29 @@ class ActiveCard:
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
         return amount
-    
+
 @dataclass
 class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
-        return SpellCard(json["name"], id, json["element"], json["on_use"])
+        return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
     def use(self, target: ActiveCard, board: Board):
-        board.active_player.iddiscard(self.id)
         sim = ActiveCard(
             CreatureCard(self.name, self.id, self.element, 0, [self.on_use], []),
             board.active_player,
             board
         )
-        sim.attack(self.on_use, target)
+        survey = sim.attack(self.on_use, target)
+        if survey.return_code == ReturnCode.ok:
+            board.active_player.iddiscard(self.id)
+        return survey
+
+class Constants: # to change variables quickly. TODO: remove Python from this universe.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = min(30, len(getCARDS()))
+    board_size = rng.randint(1, 7)
 
 @dataclass # for display
 class Player:
@@ -521,7 +550,7 @@ class Player:
         if len(deck) != Constants.default_deck_size:
             raise f"Player {name} tried to play with too few cards (error handling will be done later)."
         self.name = name
-        self.commander = ActiveCard(commander)
+        self.commander = ActiveCard(commander, self, None)
         self.deck = deck.copy() # avoid sharing, notably if deck is left to default in DEV() mode, as Python is a terrible language
         rng.shuffle(self.deck)
         self.discard = [] # is not shared
@@ -537,11 +566,15 @@ class Player:
         player = loads(io.read())[fname];
         io.close();
         return Player(name, getCOMMANDERS[player["commander"]], [getCARDS[i] for i in player["deck"]])
+    def save(self):
+        # prendre username et juste rentrer dans players.json ?
+        # comment faire la syntaxe json la dedans ?
     
 
     def save(self, name: str):
         # TODO: la syntaxe json??
         io = open("data/players.json");
+        userdata = {cleanstr(self.name):{"commander":cleanstr(self.commander.card.name),"deck":self.deck}} # must change a little
         userdata = f"""
 "{name}":{
     "deck": deck,
@@ -550,8 +583,6 @@ class Player:
 """
         io.dump(userdata)
         io.close()
-
-
     def draw(self) -> list:
         if len(self.hand) >= Constants.default_hand_size:
             pass # TODO: start a prompt to discard one card OR give an option to discard any amount of card during turn (which allow to draw a number of desired card at the end of the turn)
@@ -576,7 +607,7 @@ class Player:
         "Discard the first card in `self`'s `hand` with `id`, returning it."
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
-                return self.handdiscard(self, i)
+                return self.handdiscard(i)
     def boarddiscard(self):
         "Discard every defeated cards, returning them."
         discards = []
@@ -598,9 +629,12 @@ class Player:
             return False
         if self.active[j] is not None:
             return False
+        if self.energy < self.hand[i].cost:
+            return False
+        self.energy -= self.hand[i].cost
         self.active[j] = ActiveCard(self.hand.pop(i), self, board)
         return True
-            
+
 def rps2int(rpc: str):
     match rpc:
         case "rock": return 0
@@ -638,8 +672,10 @@ class Board:
             wins[win] += 1
         return wins[0] == 3
     def __init__(self, player1: Player, player2: Player):
-        if not Board.rpsbo5dev(): # if player1 lose rpsbo5: player2 start
-            player1, player2 = player2, player1
+        #if not (DEV() and Board.rpsbo5dev()): # if player1 lose rpsbo5: player2 start
+        #    player1, player2 = player2, player1
+        player1.commander.board = self
+        player2.commander.board = self
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(1, 7)
@@ -648,6 +684,7 @@ class Board:
         self.active_player = player1 # player1 start
         self.unactive_player = player2
         self.turn = 0
+        self.devprint()
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
             return self.active_player
@@ -658,7 +695,7 @@ class Board:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
-        ret = (self.unactive_player, self.unactive_player.add_energy(self.turn.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
+        ret = (self.unactive_player, self.unactive_player.add_energy(self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
         if DEV():
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
@@ -670,6 +707,7 @@ class Board:
     def devprint(self):
         you = self.active_player
         them = self.unactive_player
+        print(self.turn)
         print(f"Them: {them.energy}/{them.max_energy} energies.")
         print(them.commander.card.name, f"({them.commander.hp}/{them.commander.card.max_hp})")
         for card in them.active:
@@ -677,11 +715,12 @@ class Board:
                 print("none ", end="")
                 continue
             print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
-        print(f"\nYou : {you.energy}/{you.max_energy} energies")
+        print(f"\n\nYou : {you.energy}/{you.max_energy} energies")
         print(you.commander.card.name, f"({you.commander.hp}/{you.commander.card.max_hp})")
         for card in you.active:
             if card is None:
                 print("none ", end="")
                 continue
             print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
+        print()
         print([cleanstr(card.name) for card in you.hand])

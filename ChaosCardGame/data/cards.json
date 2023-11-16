@@ -3,12 +3,13 @@
  "type":"creature",
  "name":"Vine serpent",
  "element":"earth",
- "hp":100
+ "hp":100,
+ "cost":1,
  "attacks":[
   {
    "name":"Vine Strangle",
-   "cost":0,
-   "power":8
+   "cost":1,
+   "power":8,
    "target_mode":"target",
    "effect":{
     "type":"damage",
@@ -21,23 +22,26 @@
  "type":"creature",
  "name":"Whisperwind Sprite",
  "element":"air",
- "hp":60
+ "hp":60,
+ "cost":1
 },
 {
  "type":"creature",
  "name":"Eternal Sunseeker",
  "element":"water",
- "hp":210
+ "hp":210,
+ "cost":1
 },
 {
  "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
  "hp":80,
+ "cost":1,
  "attack":[
   {
    "name":"Lava Pulse",
-   "cost":0, 
+   "cost":1, 
    "power": 150,
    "target_mode":"target",
    "effect":{
@@ -53,10 +57,11 @@
  "name":"monkey of the Skies",
  "element":"air",
  "hp":120,
+ "cost":1,
  "attacks":[
   {
    "name":"Tornado Beam",
-   "cost":0,
+   "cost":1,
    "power":10,
    "target_mode":"target",
    "effect":{
@@ -70,17 +75,19 @@
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
- "hp":60
+ "hp":60,
+ "cost":1
 },
 {
  "type":"creature",
  "name":"Wise Mystical Golem",
  "element":"earth",
  "hp":190,
+ "cost":1,
  "attacks":[
   {
    "name":"Root Pierce",
-   "cost":0, 
+   "cost":1, 
    "power":80,
    "target_mode":"target",
    "effect":{
@@ -98,17 +105,19 @@
  "type":"creature",
  "name":"Blossom Sylph",
  "element":"water",
- "hp":40
+ "hp":40,
+ "cost":1
 },
 {
  "type":"creature",
  "name":"Fyyrönyr, the dragon",
  "element":"fire",
  "hp":80,
+ "cost":1,
  "attacks":[
   {
    "name":"Fiery slash",
-   "cost":0, 
+   "cost":1, 
    "power":30,
    "target_mode":"foes",
    "effect":{
@@ -123,10 +132,11 @@
  "name":"Bob the blobfish",
  "element":"water",
  "hp":120,
+ "cost":4,
  "attacks":[
   {
    "name":"Blobblast",
-   "cost":0,
+   "cost":1,
    "power":60,
    "target_mode":"foes",
    "effect":{
@@ -141,7 +151,8 @@
  "type":"creature",
  "name":"Hydra of the Seas",
  "element":"water",
- "hp":140
+ "hp":140,
+ "cost":1
 },
 {
  "type":"spell",
