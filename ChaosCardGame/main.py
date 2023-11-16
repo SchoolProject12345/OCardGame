@@ -6,6 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
+from convenience import *
 os.chdir("ENTER DIR HERE")
 
 def getCARDS(CARDS = []) -> list:
@@ -29,73 +30,6 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
     COMMANDERS.update({cleanstr(card["name"]):CreatureCard.from_json(card, (id := id + 1)) for card in json});
     return COMMANDERS
 def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
-
-# convenience functions, might be moved to a separate file later.
-def getordef(d: dict, key, default):
-    """    
-    Get value at `key` from `dict` if it exists, returns `default` otherwise.
-
-    # Examples
-    ```py
-    >>> getordef({"foo":"bar"}, "foo", 3)
-    "bar"
-    >>> getordef({"foo":"bar"}, "baz", 3)
-    3
-    ```
-    """
-    if key not in d:
-        return default
-    return d.get(key)
-def getorset(d: dict, key, default):
-    """
-    Get value at `key` from `duct` if it exists, set `key` to `default` before returning it otherwise.
-
-    # Examples
-    ```py
-    >>> x = {"foo":"bar"},
-    >>> getorset(x, "foo", 3)
-    'bar'
-    >>> getorset(x, "bar", 3)
-    3
-    >>> x
-    {'foo':'bar', 'bar':3}
-    ```
-    """
-    if key not in d:
-        d[key] = default
-        return default
-    return d.get(key)
-def warn(*args, dev = DEV(), **kwargs) -> bool:
-    """
-    Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
-
-    # Examples
-    ```py
-    >>> warn("foobarbaz") and print("do something here")
-    ┌ Warning:
-    └  foobarbaz
-    do something here
-    ```
-    """
-    if dev: # hard check to avoid mistakes
-        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs); # might not work in every terminal, but should in VS Code
-    return True # this is definitevely not spaghetti code.
-def ifelse(cond: bool, a, b):
-    "Return `a` if `cond` is `True`, return `b` otherwise. Used to replace the lack of expression in Python."
-    if cond:
-        return a
-    return b
-def cleanstr(s: str) -> str:
-    """
-    Format the string passed in argument to a lowercase alphanumeric string.
-
-    # Examples
-    ```py
-    >>> cleanstr("Foo-bar-73$\_{baz}$🐈‍⬛")
-    "foobar73baz"
-    ```
-    """
-    return "".join(filter(str.isalnum, s)).lower()
 
 class Element(IntEnum):
     elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
