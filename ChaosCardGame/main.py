@@ -327,7 +327,7 @@ class DamageEffect(AbstractEffect):
     amount: int
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
-            kwargs["survey"].damage += card.damage(self.amount)
+            kwargs["survey"].damage += card.damage(self.amount, **kwargs)
     def from_json(json: dict):
         return DamageEffect(json["amount"])
 @dataclass
@@ -475,7 +475,8 @@ class ActiveCard:
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "user", self)
-        kwargs["survey"].damage += target.damage(attack.power)
+        for card in AbstractEffect.targeted_objects(**kwargs):
+            kwargs["survey"].damage += card.damage(attack.power, **kwargs)
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
         self.board.unactive_player.boarddiscard()
