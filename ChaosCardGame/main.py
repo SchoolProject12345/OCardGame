@@ -241,6 +241,7 @@ class AbstractEffect:
             case "dot": return DOTEffect.from_json(json)
             case "damageovertime": return DOTEffect.from_json(json)
             case "delay": return DelayEffect.from_json(json)
+            case "loop": return LoopEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -332,12 +333,25 @@ class DOTEffect(AbstractEffect):
         return f"{self.damage} damage over {self.time} turns"
 @dataclass
 class LoopEffect(AbstractEffect):
-    "Apply the effect at the end of each turn while the one applying it is not defeated."
+    "Apply the effect at the end of each turn while the one applying it is not defeated, unless `self.infinite` is set to `True`, then the effect is applied at the end of every turn."
     effect: AbstractEffect
     infinite: bool
     kwargs: dict
     def with_kwargs(self, kwargs: dict):
         return LoopEffect(self.effect, self.infinite, kwargs)
+    def from_json(json: dict):
+        return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {})
+    def endturn(self, target) -> bool:
+        if (not infinite) and (self.kwargs["user"].state == State.defeated):
+            return False
+        kwargs["main_target"] = target
+        kwargs["target_mode"] = TargetMode.target
+        self.effect.execute(**kwargs)
+        return True
+    def __str__(self):
+        if self.infinite:
+            return f"{str(self.effect)} at the end of each turn, until the target dies out"
+        return f"{str(self.effect)} at the end of each turn, until the user dies out"
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
@@ -350,13 +364,14 @@ class DelayEffect(AbstractEffect):
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
-    def endturn(self, target):
+    def endturn(self, target) -> bool:
         if self.time > 0:
             self.ime -= 1
             return True
         self.kwargs["main_target"] = target
         self.kwargs["target_mode"] = TargetMode.target
         self.effect.execute(**self.kwargs)
+        return False
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 @dataclass
@@ -386,7 +401,7 @@ class HealEffect(AbstractEffect):
     def from_json(json: dict):
         return HealEffect(json["amount"])
     def __str__(self):
-        return f"heal from {self.amount} damage"
+        return f"a healing of {self.amount}"
 @dataclass
 class WithProbability(AbstractEffect):
     "Apply either `self.effect1` or `self.effect2` such that `self.effect1` has `self.probability` to happen."
@@ -415,6 +430,27 @@ class EnergyEffect(AbstractEffect):
         return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
     def __str__(self):
         return f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
+
+class PassiveTrigger(IntEnum):
+    endofturn = 0 # target => self
+    whenplaced = 1 # target => self
+    whendefeated = 2 # target => killer (must improve code first)
+    whenattack = 3 # same kwargs as attack
+    def from_str(name: str):
+        match cleanstr(name):
+            case "endofturn": return PassiveTrigger.endofturn
+            case "whenplaced": return PassiveTrigger.whenplaced
+            case "whendefeated": return PassiveTrigger.whendefeated
+            case "whenattack": return PassiveTrigger.whenattack
+            case "whenattacking": return PassiveTrigger.whenattack
+
+@dataclass
+class Passive:
+    trigger: PassiveTrigger
+    effect: AbstractEffect
+    def from_json(json: dict):
+        return Passive(PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(json["effect"]))
+    def execute(self, **kwargs): return self.effect.execute(**kwargs)
 
 @dataclass
 class Attack:
@@ -475,7 +511,7 @@ class CreatureCard(AbstractCard):
             Element.from_json(json),
             json["hp"],
             [Attack("Default Attack", 10, TargetMode.target, 0, NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
-            [],
+            [Passive.from_json(passive) for passive in getordef(json, "passives", [])],
             json["cost"]
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
@@ -486,7 +522,7 @@ class CreatureCard(AbstractCard):
         pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP : {self.max_hp}\nCost   : {self.cost}\nAttacks: ["
         for attack in self.attacks:
             pretty += f" \n" + str(attack)
-        pretty += "]\nPassives: [\n (unimplemented yet)\n]"
+        pretty += "\n]\nPassives: [\n (unimplemented yet)\n]"
         return pretty
         
 @dataclass
@@ -532,16 +568,34 @@ class ActiveCard:
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "damage_mode", DamageMode.direct)
         getorset(kwargs, "user", self)
+        for passive in self.card.passives:
+            if passive.trigger != PassiveTrigger.whenattack:
+                continue
+            passive.execute(**kwargs)
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
         attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
-        self.board.unactive_player.boarddiscard()
-        self.board.active_player.boarddiscard()
+        for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
+            card.defeatedby(self) # must be improved to apply passive of card defeated by passives or other sources
         self.attacked = True
         if DEV():
             self.board.devprint()
         return kwargs["survey"]
+    def defeatedby(self, killer):
+        kwargs = {
+            "player":self.owner,
+            "board":self.board,
+            "main_target":killer,
+            "damage_mode":DamageMode.indirect,
+            "target_mode":TargetMode.target,
+            "user":self,
+            "survey":EffectSurvey()
+        }
+        for passive in self.card.passives:
+            if passive.trigger != PassiveTrigger.whendefeated:
+                continue
+            passive.execute(**kwargs)
     def damage(self, amount, **kwargs) -> int:
         "Does direct damage to self, modified by any modifiers."
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
@@ -571,6 +625,19 @@ class ActiveCard:
     def endturn(self):
         "Apply all effects at the end of turn."
         self.effects = [effect for effect in self.effects if effect.endturn(self)]
+        kwargs = {
+            "player":self.owner,
+            "board":self.board,
+            "main_target":self,
+            "damage_mode":DamageMode.indirect
+            "target_mode":TargetMode.self,
+            "user":self,
+            "survey":EffectSurvey()
+        }
+        for passive in self.card.passives:
+            if passive.trigger != PassiveTrigger.endofturn:
+                continue
+            passive.execute(**kwargs)
 
 @dataclass
 class SpellCard(AbstractCard):
@@ -682,6 +749,19 @@ class Player:
             return False
         self.energy -= self.hand[i].cost
         self.active[j] = ActiveCard(self.hand.pop(i), self, board)
+        kwargs = {
+            "player":self,
+            "board":board,
+            "main_target":self.active[j],
+            "damage_mode":DamageMode.indirect,
+            "target_mode":TargetMode.self,
+            "user":self.active[j],
+            "survey":EffectSurvey()
+        }
+        for passive in self.active[j].card.passives:
+            if passive.trigger != PassiveTrigger.whenplaced:
+                continue
+            passive.execute(**kwargs)
         return True
 
 def rps2int(rpc: str):
