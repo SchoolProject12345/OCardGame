@@ -394,7 +394,7 @@ class WithProbability(AbstractEffect):
     def from_json(json: dict):
         return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
     def __str__(self):
-        return f"{str(self.effect1)} {int(100.0*self.probability)}% of the time, {self.effects2} otherwise"
+        return f"{str(self.effect1)} {int(100.0*self.probability)}% of the time, {self.effect2} otherwise"
 @dataclass
 class EnergyEffect(AbstractEffect):
     "Adds (or remove) to the user's Player, energy, max_energy and energy_per_turn."
