@@ -189,7 +189,7 @@ class AbstractEffect:
     def execute(self, **kwargs):
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
         warn(f"AbstractEffect of type {type(self)} has no execute method defined.")
-    def endturn(self, target: ActiveCard):
+    def endturn(self, target) -> bool:
         "AbstractEffect.endturn is a method that is applied at the end of each turn to the creature affected by it, returning False if the effect ends on this turn."
         return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
     def targeted_objects(**kwargs):
@@ -310,11 +310,11 @@ class DOTEffect(AbstractEffect):
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.copy())
-    def endturn(self, target: ActiveCard):
+    def endturn(self, target):
         amount = self.damage // self.turn
         self.damage -= amount
         self.turn -= 1
-        target.indirectdamage(damage)
+        target.indirectdamage(amount)
         return self.turn > 0
     def __str__(self) -> str:
         return f"{self.damage} damage over {self.time} turns"
@@ -330,7 +330,7 @@ class DelayEffect(AbstractEffect):
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
-    def endturn(self, target: ActiveCard):
+    def endturn(self, target):
         if self.time > 0:
             self.ime -= 1
             return True
@@ -606,9 +606,6 @@ class Player:
         player = loads(io.read())[fname];
         io.close();
         return Player(name, getCOMMANDERS[player["commander"]], [getCARDS[i] for i in player["deck"]])
-    def save(self):
-        # prendre username et juste rentrer dans players.json ?
-        # comment faire la syntaxe json la dedans ?
     def save(self, name: str):
         # TODO: la syntaxe json??
         io = open("data/players.json");
@@ -695,7 +692,7 @@ class Board:
     def rpsbo5dev(): # no idea why this is a method
         "Return `True` if player1 reaches 3 Rock Paper Scissor wins before player2. Used for DEV() mode."
         DEV() or print("I think you forgot to update something in your code 'cause it's currently running rpsbo5dev while DEV() = False.")
-        DEV() and return False
+        if not DEV(): return False
         wins = [0, 0]
         while max(*wins) != 3:
             win = Board.rps_win(input("<◁< Player1, choose your move (r/p/s) >>>: "), input("\x1b[1A\x1b[0J<<< Player2, choose your move (r/p/s) >▷>: "))
@@ -737,7 +734,6 @@ class Board:
                 print(f"The winner is {ret[4].name}")
                 return ret
             print(ret)
-            input("\033[H\033[2J")
             self.devprint()
         return ret
     def devprint(self):
