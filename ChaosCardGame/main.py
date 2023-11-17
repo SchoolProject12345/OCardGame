@@ -244,6 +244,8 @@ class NullEffect(AbstractEffect):
         return
     def from_json():
         return NullEffect()
+    def __str__(self) -> str:
+        return "nothing"
 @dataclass
 class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
@@ -253,6 +255,8 @@ class EffectUnion(AbstractEffect):
         self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return EffectUnion(AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(json["effect2"]))
+    def __str__(self) -> str:
+        return f"{str(self.effect1)} and {str(self.effect2)}"
 @dataclass
 class ChangeTarget(AbstractEffect):
     "Change targetting mode of sub-effects."
@@ -264,6 +268,8 @@ class ChangeTarget(AbstractEffect):
         self.effect.execute(**kwargs)
     def from_json(json: dict):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
+    def __str__(self) -> str:
+        return f"{str(self.effect)} on {self.target.to_str()}"
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
@@ -273,6 +279,12 @@ class ChangeState(AbstractEffect):
             card.state = self.new_state
     def from_json(json: dict):
         return ChangeState(TargetMode.from_str(json["new_state"]))
+    def __str__(self) -> str:
+        match self.new_state:
+            case State.blocked: return "block them"
+            case State.invisible: return "make them invisible
+            case State.default: return "reset their state"
+            case _: return "???"
 @dataclass
 class DamageEffect(AbstractEffect):
     "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
@@ -285,6 +297,8 @@ class DamageEffect(AbstractEffect):
             kwargs["survey"].damage += card.damage(self.amount, **kwargs)
     def from_json(json: dict):
         return DamageEffect(json["amount"], DamageMode.from_str(json["damage_mode"]))
+    def __str__(self) -> str:
+        return f"{self.amount} {self.damage_mode.to_str()} damage"
 @dataclass
 class DOTEffect(AbstractEffect):
     damage: int
@@ -292,7 +306,7 @@ class DOTEffect(AbstractEffect):
     def copy(self):
         return DOTEffect(self.damage, self.turn)
     def from_json(json: dict):
-        return DOTEffect(json["damage"],json["duration"])
+        return DOTEffect(json["damage"],json["time"])
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.copy())
@@ -302,19 +316,20 @@ class DOTEffect(AbstractEffect):
         self.turn -= 1
         target.indirectdamage(damage)
         return self.turn > 0
+    def __str__(self) -> str:
+        return f"{self.damage} damage over {self.time} turns"
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
     time: int
     kwargs: dict = {}
-    def copy(self):
+    def with_kwargs(self, kwargs):
         return DelayEffect(self.effect, self.time)
     def from_json(json: dict):
         return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"])
     def execute(self, **kwargs):
-        self.kwargs = kwargs
         for target in AbstractEffect.targeted_objects(**kwargs):
-            target.effects.append(self.copy())
+            target.effects.append(self.with_kwargs(kwargs))
     def endturn(self, target: ActiveCard):
         if self.time > 0:
             self.ime -= 1
@@ -323,6 +338,8 @@ class DelayEffect(AbstractEffect):
         self.kwargs["main_target"] = target
         self.kwargs["target_mode"] = TargetMode.target
         self.effect.execute(**self.kwargs)
+    def __str__(self):
+        return f"{str(self.effect)} after {self.time} turns"
 @dataclass
 class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
     "Heal for a ratio (rational) of total damage (indirect/direct) "
@@ -338,6 +355,8 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         main_survey += kwargs["survey"]
     def from_json(json: dict):
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
+    def __str__(self):
+        return f"heal {self.numerator}/{self.denominator} of damage dealt from {str(self.effect)}"
 @dataclass
 class HealEffect(AbstractEffect):
     "Heal target(s) by amount."
@@ -347,6 +366,8 @@ class HealEffect(AbstractEffect):
             kwargs["survey"].heal += card.heal(self.amount)
     def from_json(json: dict):
         return HealEffect(json["amount"])
+    def __str__(self):
+        return f"heal from {self.amount} damage"
 @dataclass
 class WithProbability(AbstractEffect):
     "Apply either `self.effect1` or `self.effect2` such that `self.effect1` has `self.probability` to happen."
@@ -359,6 +380,8 @@ class WithProbability(AbstractEffect):
         self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
+    def __str__(self):
+        return f"{str(self.effect1)} {int(100.0*self.probability)}% of the time, {self.effects2} otherwise"
 @dataclass
 class EnergyEffect(AbstractEffect):
     "Adds (or remove) to the user's Player, energy, max_energy and energy_per_turn."
@@ -371,6 +394,8 @@ class EnergyEffect(AbstractEffect):
         kwargs["player"].add_energy(self.energy)
     def from_json(json: dict):
         return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
+    def __str__(self):
+        f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
 
 @dataclass
 class Attack:
@@ -391,7 +416,11 @@ class Attack:
         )
     def __str__(self) -> str:
         "Return a verbal representation of self."
-        return f"{self.name} (cost:{str(self.cost)}) does {self.power} damages on {self.target_mode.to_str()} and does {self.effect}."
+        s = f"{self.name} (cost:{str(self.cost)}) targets {self.target_mode.to_str()} "
+        if self.power != 0:
+            s += "dealing {self.power} damages and "
+        s += f"doing {str(self.effect)}"
+        f"does {self.power} damages on {self.target_mode.to_str()} and does {self.effect}."
         
 
 @dataclass
