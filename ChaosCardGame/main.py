@@ -322,9 +322,9 @@ class DOTEffect(AbstractEffect):
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
     time: int
-    kwargs: dict = {}
+    kwargspp: dict = {}
     def with_kwargs(self, kwargs):
-        return DelayEffect(self.effect, self.time)
+        return DelayEffect(self.effect, self.time, kwargs)
     def from_json(json: dict):
         return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"])
     def execute(self, **kwargs):
@@ -334,10 +334,9 @@ class DelayEffect(AbstractEffect):
         if self.time > 0:
             self.ime -= 1
             return True
-        kwargs = kwargs.copy()
-        self.kwargs["main_target"] = target
-        self.kwargs["target_mode"] = TargetMode.target
-        self.effect.execute(**self.kwargs)
+        self.kwargspp["main_target"] = target
+        self.kwargspp["target_mode"] = TargetMode.target
+        self.effect.execute(**self.kwargspp)
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 @dataclass
