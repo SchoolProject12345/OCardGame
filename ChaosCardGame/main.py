@@ -169,7 +169,13 @@ class DamageMode(IntEnum):
             case "direct": return DamageMode.direct
             case "indirect": return DamageMode.indirect
             case "ignoreresist": return DamageMode.ignore_resist
+            case "resistanceignoring": return DamageMode.ignore_resist
             case _: return warn(f"Tried to form DamageMode from {name}, returning DamageMode.direct instead.") and DamageMode.direct
+    def to_str(self) -> str:
+        match self:
+            case DamageMode.direct: return "direct"
+            case DamageMode.indirect: return "indirect"
+            case DamageMode.ignore_resist: return "resistance-ignoring"
 class ReturnCode(IntEnum):
     ok = 200
     wrong_turn = 400
@@ -271,7 +277,7 @@ class ChangeTarget(AbstractEffect):
     def from_json(json: dict):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
     def __str__(self) -> str:
-        return f"{str(self.effect)} on {self.target.to_str()}"
+        return f"{str(self.effect)} on {self.new_target.to_str()}"
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
@@ -431,7 +437,7 @@ class Attack:
         "Return a verbal representation of self."
         s = f"{self.name} (cost:{str(self.cost)}) targets {self.target_mode.to_str()} "
         if self.power != 0:
-            s += "dealing {self.power} damages and "
+            s += f"dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
         return s
 
