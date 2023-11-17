@@ -408,7 +408,7 @@ class EnergyEffect(AbstractEffect):
     def from_json(json: dict):
         return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
     def __str__(self):
-        f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
+        return f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
 
 @dataclass
 class Attack:
@@ -433,8 +433,7 @@ class Attack:
         if self.power != 0:
             s += "dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
-        f"does {self.power} damages on {self.target_mode.to_str()} and does {self.effect}."
-        
+        return s
 
 @dataclass
 class AbstractCard:
