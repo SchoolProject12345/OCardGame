@@ -22,6 +22,7 @@ Cards must be defined in `cards.json` as follow:
 With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, `"earth"` and `"chaos"`
 
 ## Complete Example
+### Creature, Attacks and Passives
 ```js
 {
  "type":"creature",
@@ -45,7 +46,8 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
       "new_target":"all",
       "effect":{
        "type":"damage",
-       "amount":40 // isn't affected by weakness/resistance as it come from a "damage" effect and will heal the Cat as inside a "drain" block.
+       "damage_mode":"direct"
+       "amount":40 // will heal the Cat as inside a "drain" block.
       }
      }
     },
@@ -88,6 +90,21 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  "passives":[/*unimplemented yet*/]
 } // commander is set to false by default
 ```
+### Spells
+```js
+{
+ "type":"spell",
+ "name":"Large Fireball",
+ "element":"fire",
+ "on_use":{
+  "name":"Throw",
+  "cost":1,
+  "power":50,
+  "target_mode":"target",
+  "effect":{"type":"null"}
+ }
+}
+```
 See below for more details
 
 ## Attack
@@ -111,6 +128,23 @@ With possible values for field `"target_mode"` being:
     `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
     `"all"`: every card but the user.
     `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
+## Passive
+A Passive object is formed as follow:
+```js
+{
+ "name":"passive's name"
+ "trigger":"{PassiveTrigger string}",
+ "effect":{/*effect object*/}
+}
+```
+With possible values for field `"target_mode"` being:
+    `"endofturn"`: applied on self at the end of each turn.
+    `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking.
+    `"whenplaced"`: applied on self when card is placed for the first time.
+    `"whendefeated"`: applied on attacker when defeated directly.
+    (*Upcoming*)
+    `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
+    `"whendrawn"`: applied on allied commander when drawn.
 
 Effect objects exists through different type as follow:
 
@@ -232,5 +266,13 @@ Apply `"effect"` after `"delay"` turns of delay.
  "type":"delay",
  "effect":{/*effect object*/},
  "delay":1
+}
+```
+Apply `effect` at the end of every turn, until the user is defeated if `"infinite"` is set to `false` (default value).
+```js
+{
+ "type":"loop",
+ "effect":{/*effect object*/},
+ "infinite":true // false is undefined
 }
 ```
