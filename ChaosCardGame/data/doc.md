@@ -87,7 +87,12 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
    }
   }
  ],
- "passives":[/*unimplemented yet*/]
+ "passives":[
+  {
+   "trigger":"endofturn",
+   "effect":{"type":"heal","amount":15}
+  }
+ ]
 } // commander is set to false by default
 ```
 ### Spells
