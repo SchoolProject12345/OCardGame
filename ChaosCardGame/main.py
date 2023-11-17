@@ -6,7 +6,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
 import os
-os.chdir("ENTER DIR HERE")
+os.chdir("/Users/etudiant/Desktop/OC/ChaosCardGame/")
 from convenience import * # make code cleaner
 
 def getCARDS(CARDS = []) -> list:
@@ -296,7 +296,7 @@ class DamageEffect(AbstractEffect):
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(self.amount, **kwargs)
     def from_json(json: dict):
-        return DamageEffect(json["amount"], DamageMode.from_str(json["damage_mode"]))
+        return DamageEffect(json["amount"], DamageMode.from_str(getordef(json, "damage_mode", "indirect")))
     def __str__(self) -> str:
         return f"{self.amount} {self.damage_mode.to_str()} damage"
 @dataclass
@@ -322,11 +322,11 @@ class DOTEffect(AbstractEffect):
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
     time: int
-    kwargspp: dict = {}
-    def with_kwargs(self, kwargs):
+    kwargs: dict
+    def with_kwargs(self, kwargs: dict):
         return DelayEffect(self.effect, self.time, kwargs)
     def from_json(json: dict):
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"])
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {})
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -334,9 +334,9 @@ class DelayEffect(AbstractEffect):
         if self.time > 0:
             self.ime -= 1
             return True
-        self.kwargspp["main_target"] = target
-        self.kwargspp["target_mode"] = TargetMode.target
-        self.effect.execute(**self.kwargspp)
+        self.kwargs["main_target"] = target
+        self.kwargs["target_mode"] = TargetMode.target
+        self.effect.execute(**self.kwargs)
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 @dataclass
@@ -483,9 +483,9 @@ class ActiveCard:
     element: Element # to change active type after a specific effect
     owner: Player
     board: Board
+    effects: list
     attacked: bool = False
     state: State = State.default
-    effects: list = []
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
@@ -493,6 +493,8 @@ class ActiveCard:
         self.owner = owner
         self.board = board
         self.effects = []
+        self.attacked = False
+        self.state = State.default
     def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
