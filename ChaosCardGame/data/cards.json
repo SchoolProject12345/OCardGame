@@ -9,11 +9,12 @@
   {
    "name":"Vine Strangle",
    "cost":1,
-   "power":8,
+   "power":80,
    "target_mode":"target",
    "effect":{
-    "type":"damage",
-    "amount":8
+    "type":"dot",
+    "damage":20,
+    "time":1000
    }
   }
  ]  
@@ -62,7 +63,7 @@
   {
    "name":"Tornado Beam",
    "cost":1,
-   "power":10,
+   "power":100,
    "target_mode":"target",
    "effect":{
     "type":"state_change",
