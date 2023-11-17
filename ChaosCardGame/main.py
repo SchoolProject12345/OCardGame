@@ -443,14 +443,23 @@ class PassiveTrigger(IntEnum):
             case "whendefeated": return PassiveTrigger.whendefeated
             case "whenattack": return PassiveTrigger.whenattack
             case "whenattacking": return PassiveTrigger.whenattack
+    def to_str(self):
+        match self:
+            case PassiveTrigger.endofturn: return "the turn end"
+            case PassiveTrigger.whenplaced: return "when placed"
+            case PassiveTrigger.whendefeated: return "when defeated"
+            case PassiveTrigger.whenattack: return "when attacking"
 
 @dataclass
 class Passive:
+    name: str
     trigger: PassiveTrigger
     effect: AbstractEffect
     def from_json(json: dict):
-        return Passive(PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(json["effect"]))
+        return Passive(getordef(json, "name", ""), PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(json["effect"]))
     def execute(self, **kwargs): return self.effect.execute(**kwargs)
+    def __str__(self):
+        return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
 
 @dataclass
 class Attack:
