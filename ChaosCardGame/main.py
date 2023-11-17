@@ -5,9 +5,9 @@ from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads
-from convenience import * # make code cleaner
 import os
 os.chdir("ENTER DIR HERE")
+from convenience import * # make code cleaner
 
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
