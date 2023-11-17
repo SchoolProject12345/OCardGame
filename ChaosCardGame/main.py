@@ -342,11 +342,11 @@ class LoopEffect(AbstractEffect):
     def from_json(json: dict):
         return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {})
     def endturn(self, target) -> bool:
-        if (not infinite) and (self.kwargs["user"].state == State.defeated):
+        if (not self.infinite) and (self.kwargs["user"].state == State.defeated):
             return False
-        kwargs["main_target"] = target
-        kwargs["target_mode"] = TargetMode.target
-        self.effect.execute(**kwargs)
+        self.kwargs["main_target"] = target
+        self.kwargs["target_mode"] = TargetMode.target
+        self.effect.execute(**self.kwargs)
         return True
     def __str__(self):
         if self.infinite:
@@ -629,7 +629,7 @@ class ActiveCard:
             "player":self.owner,
             "board":self.board,
             "main_target":self,
-            "damage_mode":DamageMode.indirect
+            "damage_mode":DamageMode.indirect,
             "target_mode":TargetMode.self,
             "user":self,
             "survey":EffectSurvey()
