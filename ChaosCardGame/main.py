@@ -483,7 +483,7 @@ class CreatureCard(AbstractCard):
         return CreatureCard(*args)
     def __str__(self) -> str:
         "Return beautiful string reprensenting self instead of ugly mess defaulting from dataclasses."
-        pretty = f"{self.name} (id:{self.id}): {self.element.to_str}\nMax HP : {self.max_hp}\nCost   : {self.cost}\nAttacks: [\n"
+        pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP : {self.max_hp}\nCost   : {self.cost}\nAttacks: ["
         for attack in self.attacks:
             pretty += f" \n" + str(attack)
         pretty += "]\nPassives: [\n (unimplemented yet)\n]"
