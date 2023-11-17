@@ -111,12 +111,14 @@ class State(IntEnum):
     blocked = 1 # can't attack
     invisble = 2 # can't attack; can't be targeted
     discarded = 3 # for GUI
+    damageless = 4 # can't take direct damage
     def from_str(name: str):
         match cleanstr(name):
             case "default": return State.default
             case "blocked": return State.blocked
             case "block": return State.block
             case "invisible": return State.invisible
+            case "damageless": return State.damageless
             case _: return warn("Tried to form State from an non-recognized string; returing State.default instead.") and State.default
 
 class TargetMode(IntEnum):
@@ -278,7 +280,10 @@ class ChangeState(AbstractEffect):
         for card in AbstractEffect.targeted_objects(**kwargs):
             card.state = self.new_state
     def from_json(json: dict):
-        return ChangeState(TargetMode.from_str(json["new_state"]))
+        effect = ChangeState(TargetMode.from_str(json["new_state"]))
+        if "for" in json:
+            return EffectUnion(effect, DelayEffect(ChangeState(TargetMode.default), json["for"]), {})
+        return effect
     def __str__(self) -> str:
         match self.new_state:
             case State.blocked: return "block them"
@@ -287,7 +292,7 @@ class ChangeState(AbstractEffect):
             case _: return "???"
 @dataclass
 class DamageEffect(AbstractEffect):
-    "Does indirect damage to the target(s). Indirect damage are not affected by modifier on the user.\nChange the Attack power | target in order to change direct damages."
+    "Does damage to the target(s), depending on DamageMode."
     amount: int
     damage_mode: DamageMode = DamageMode.direct
     def execute(self, **kwargs):
@@ -301,6 +306,7 @@ class DamageEffect(AbstractEffect):
         return f"{self.amount} {self.damage_mode.to_str()} damage"
 @dataclass
 class DOTEffect(AbstractEffect):
+    "Affect the target(s) with Damage Over Time, dealing `self.damage` over the *total* duration of the effect."
     damage: int
     turn: int
     def copy(self):
@@ -318,6 +324,14 @@ class DOTEffect(AbstractEffect):
         return self.turn > 0
     def __str__(self) -> str:
         return f"{self.damage} damage over {self.time} turns"
+@dataclass
+class LoopEffect(AbstractEffect):
+    "Apply the effect at the end of each turn while the one applying it is not defeated."
+    effect: AbstractEffect
+    infinite: bool
+    kwargs: dict
+    def with_kwargs(self, kwargs: dict):
+        return LoopEffect(self.effect, self.infinite, kwargs)
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
