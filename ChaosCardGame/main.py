@@ -282,7 +282,7 @@ class ChangeState(AbstractEffect):
     def __str__(self) -> str:
         match self.new_state:
             case State.blocked: return "block them"
-            case State.invisible: return "make them invisible
+            case State.invisible: return "make them invisible"
             case State.default: return "reset their state"
             case _: return "???"
 @dataclass
