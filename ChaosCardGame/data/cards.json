@@ -14,7 +14,7 @@
    "effect":{
     "type":"loop",
     "infinite":true,
-    "effect":{"type":"damage","damage_mode":"indirect","value":20}
+    "effect":{"type":"damage","damage_mode":"indirect","amount":20}
    }
   }
  ]  
