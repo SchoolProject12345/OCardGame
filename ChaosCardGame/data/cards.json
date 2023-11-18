@@ -12,9 +12,9 @@
    "power":80,
    "target_mode":"target",
    "effect":{
-    "type":"dot",
-    "damage":20,
-    "time":1000
+    "type":"loop",
+    "infinite":true,
+    "effect":{"type":"damage","damage_mode":"indirect","value":20}
    }
   }
  ]  
@@ -160,7 +160,7 @@
  "name":"Small Potion",
  "element":"water",
  "on_use":{
-  "name":"",
+  "name":"Drink",
   "power":0,
   "cost":1,
   "target_mode":"target",
@@ -172,7 +172,7 @@
  "name":"Large Fireball",
  "element":"fire",
  "on_use":{
-  "name":"",
+  "name":"Throw",
   "power":60,
   "cost":2,
   "target_mode":"target"
@@ -181,7 +181,7 @@
 {
  "type":"spell",
  "name":"Magic Scrolls of Himinnsøkva",
- "element":"chaos",
+ "element":"air",
  "on_use":{
   "name":"Read",
   "power":0,
