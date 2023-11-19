@@ -1,10 +1,37 @@
 [
 {
-  "name":"Sir Cation - Commander Example: edit as you change data format."
-  "type":"creature"
-  "hp":600,
-  "element":"air",
-  "commander":true,
-  "example":true
+ "name":"Skývísindi"
+ "type":"creature"
+ "hp":600,
+ "element":"air",
+ "commander":true,
+},
+{
+ "name":"Vafisorg"
+ "type":"creature"
+ "hp":600,
+ "element":"chaos",
+ "commander":true,
+},
+{
+ "name":"Valkjörd"
+ "type":"creature"
+ "hp":600,
+ "element":"earth",
+ "commander":true,
+},
+{
+ "name":"Ævilogi"
+ "type":"creature"
+ "hp":600,
+ "element":"fire",
+ "commander":true,
+},
+{
+ "name":"Krakiþrek"
+ "type":"creature"
+ "hp":600,
+ "element":"water",
+ "commander":true,
 }
 ]
