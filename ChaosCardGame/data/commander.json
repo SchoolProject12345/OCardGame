@@ -1,37 +1,42 @@
 [
 {
- "name":"Skývísindi"
- "type":"creature"
+ "name":"Skývísindi",
+ "type":"creature",
  "hp":600,
  "element":"air",
  "commander":true,
+ "cost":0
 },
 {
- "name":"Vafisorg"
- "type":"creature"
+ "name":"Vafisorg",
+ "type":"creature",
  "hp":600,
  "element":"chaos",
  "commander":true,
+ "cost":0
 },
 {
- "name":"Valkjörd"
- "type":"creature"
+ "name":"Valkjörd",
+ "type":"creature",
  "hp":600,
  "element":"earth",
  "commander":true,
+ "cost":0
 },
 {
- "name":"Ævilogi"
- "type":"creature"
+ "name":"Ævilogi",
+ "type":"creature",
  "hp":600,
  "element":"fire",
  "commander":true,
+ "cost":0
 },
 {
- "name":"Krakiþrek"
- "type":"creature"
+ "name":"Krakiþrek",
+ "type":"creature",
  "hp":600,
  "element":"water",
  "commander":true,
+ "cost":0
 }
 ]
