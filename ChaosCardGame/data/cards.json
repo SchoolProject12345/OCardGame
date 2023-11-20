@@ -162,7 +162,7 @@
    "power":10,
    "target_mode":"target",
    "effect":{"type":"heal","amount":10}
-  }
+  },
   {
    "name":"Blobblast",
    "cost":0,
