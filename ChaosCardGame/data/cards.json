@@ -31,7 +31,14 @@
  "name":"Eternal Sunseeker",
  "element":"water",
  "hp":210,
- "cost":1
+ "cost":3,
+ "passives":[
+  {
+   "name":"Sunseeking?",
+   "trigger":"endofturn",
+   "effect":{"type":"add_energy","gain":2}
+  }
+ ]
 },
 {
  "type":"creature",
@@ -39,7 +46,7 @@
  "element":"fire",
  "hp":80,
  "cost":1,
- "attack":[
+ "attacks":[
   {
    "name":"Lava Pulse",
    "cost":1, 
@@ -62,12 +69,13 @@
  "attacks":[
   {
    "name":"Tornado Beam",
-   "cost":1,
+   "cost":2,
    "power":100,
    "target_mode":"target",
    "effect":{
     "type":"state_change",
-    "new_state":"blocked"
+    "new_state":"blocked",
+    "for":2
    }
   }
  ]
@@ -89,14 +97,16 @@
   {
    "name":"Root Pierce",
    "cost":1, 
-   "power":80,
+   "power":0,
    "target_mode":"target",
    "effect":{
-    "type":"target_change",
-    "new_target":"self",
+    "type":"drain",
+    "num":1,
+    "den":4,
     "effect":{
-     "type":"heal",
-     "amount":20
+     "type":"damage",
+     "damage_mode":"direct",
+     "amount":80
     } 
    }
   }
@@ -107,7 +117,18 @@
  "name":"Blossom Sylph",
  "element":"water",
  "hp":40,
- "cost":1
+ "cost":2,
+ "passives":[
+  {
+   "name":"TODO: proper name and heal scaling",
+   "trigger":"whenplaced",
+   "effect":{
+    "type":"target_change",
+    "new_target":"allies",
+    "effect":{"type":"heal","amount":2}
+   }
+  }
+ ]
 },
 {
  "type":"creature",
@@ -136,8 +157,15 @@
  "cost":4,
  "attacks":[
   {
+   "name":"Splish-Splosh",
+   "cost":0,
+   "power":10,
+   "target_mode":"target",
+   "effect":{"type":"heal","amount":10}
+  }
+  {
    "name":"Blobblast",
-   "cost":1,
+   "cost":0,
    "power":60,
    "target_mode":"foes",
    "effect":{
@@ -146,6 +174,13 @@
     "effect":{"type":"damage","amount":65535}
    }
   }
+ ],
+ "passives":[
+  {
+   "name":"Completely Useless",
+   "trigger":"whenplaced",
+   "effect":{"type":"null"}
+  }
  ]
 },
 {
@@ -153,12 +188,26 @@
  "name":"Hydra of the Seas",
  "element":"water",
  "hp":140,
- "cost":1
+ "cost":1,
+ "attacks":[
+  {
+   "name":"Geyser",
+   "cost":1,
+   "power":0,
+   "target_mode":"target",
+   "effect":{
+    "type":"withprobability",
+    "probability":0.5,
+    "effect1":{"type":"damage","damage_mode":"ignore_resist","amount":70},
+    "effect2":{"type":"damage","damage_mode":"direct","amount":70}
+   }
+  }
+ ]
 },
 {
  "type":"spell",
  "name":"Small Potion",
- "element":"water",
+ "element":"grass",
  "on_use":{
   "name":"Drink",
   "power":0,
@@ -173,7 +222,7 @@
  "element":"fire",
  "on_use":{
   "name":"Throw",
-  "power":60,
+  "power":80,
   "cost":2,
   "target_mode":"target"
  }
