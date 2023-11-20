@@ -89,6 +89,7 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  ],
  "passives":[
   {
+   "name":"Fish Crunching"
    "trigger":"endofturn",
    "effect":{"type":"heal","amount":15}
   }
@@ -103,8 +104,8 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  "element":"fire",
  "on_use":{
   "name":"Throw",
-  "cost":1,
-  "power":50,
+  "cost":2,
+  "power":80,
   "target_mode":"target",
   "effect":{"type":"null"}
  }
@@ -124,15 +125,20 @@ An attack object is formed as follow:
 }
 ```
 With possible values for field `"target_mode"` being:
-    `"self"`: the user of the move.
-    `"foes"`: all of the opponent's cards.
-    `"allies"`: all of your cards.
-    `"target"`: the card targeted by the attack.
-    `"commander"`: your opponent's commander
-    `"allied_commander"`: your commander.
-    `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
-    `"all"`: every card but the user.
-    `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
+- `"self"`: the user of the move.
+- `"foes"`: all of the opponent's cards.
+- `"allies"`: all of your cards.
+- `"target"`: the card targeted by the attack.
+- `"commander"`: your opponent's commander
+- `"allied_commander"`: your commander.
+- `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
+- `"all"`: every card but the user.
+- `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
+(***upcoming***)
+- `"random_foe"`: a foe chosen at random.
+- `"random_ally"`: an ally chosen at random.
+- `"random"`: a single random unit.
+- `"random_chaos"` or `"random_target_mode"`: change the targetting type to random. Yes.
 ## Passive
 A Passive object is formed as follow:
 ```js
@@ -142,14 +148,14 @@ A Passive object is formed as follow:
  "effect":{/*effect object*/}
 }
 ```
-With possible values for field `"target_mode"` being:
-    `"endofturn"`: applied on self at the end of each turn.
-    `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking.
-    `"whenplaced"`: applied on self when card is placed for the first time.
-    `"whendefeated"`: applied on attacker when defeated directly.
-    (*Upcoming*)
-    `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
-    `"whendrawn"`: applied on allied commander when drawn.
+With possible values for field `"trigger"` being:
+- `"endofturn"`: applied on self at the end of each turn.
+- `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking (before damages).
+- `"whenplaced"`: applied on self when card is placed for the first time.
+- `"whendefeated"`: applied on attacker when defeated directly.
+(***upcoming***)
+- `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
+- `"whendrawn"`: applied on allied commander when drawn.
 
 Effect objects exists through different type as follow:
 
@@ -163,7 +169,7 @@ Effect union apply two effect, allowing to make attack with two completely indep
 }
 ```
 To combine 3 or more effect, one may use chain of nested unions.
-(**TODO**) using the following syntax to form a chain of nested unions can be automatically created from an arbitrary amount of effect objects.
+(***upcoming***) use the following syntax to form a chain of nested unions can be automatically created from an arbitrary amount of effect objects.
 ```js
 {
  "type":"union_chain",
@@ -177,6 +183,14 @@ Change the target of every sub-effects to a new target_mode.
 {
  "type":"target_change",
  "new_target":"{TargetMode string}",
+ "effect":{/*effect object*/}
+}
+```
+(***upcoming***) use the following syntax to use independant targets for the same effect. Overlaping units are affected twice.
+```js
+{
+ "type":"target_union",
+ "new_targets":["{TargetMode string}", /*...*/]
  "effect":{/*effect object*/}
 }
 ```
