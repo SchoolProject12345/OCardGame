@@ -32,7 +32,7 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  "attacks":[
   {
    "name":"Indiscrimante (Neutral) Draining Attack That Destroy This Cat Mental Health™",
-   "cost":5,
+   "cost":2,
    "power":30,
    "target_mode":"self",
    "effect":{
@@ -54,6 +54,7 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
     "effect2":{
      "type":"state_change",
      "new_state":"blocked" // there is no target_change effect before, so the effect is using the attack's target: self
+     "for":2
     }
    }
   },
@@ -84,6 +85,17 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
       "heal":30
      } // effect2 is null by default
     }
+   }
+  },
+  {
+   "name":"Unlimited Attack",
+   "cost":1,
+   "target_mode":"target",
+   "power":40,
+   "effect":{
+    "type":"target_change",
+    "new_target":"self",
+    "effect":{"type":"state_change","new_state":"unattacked"} // can be used more than once per turn.
    }
   }
  ],
@@ -138,7 +150,7 @@ With possible values for field `"target_mode"` being:
 - `"random_foe"`: a foe chosen at random.
 - `"random_ally"`: an ally chosen at random.
 - `"random"`: a single random unit.
-- `"random_chaos"` or `"random_target_mode"`: change the targetting type to random. Yes.
+- `"random_chaos"` or `"random_target_mode"`: change the targetting mode to random. Yes.
 ## Passive
 A Passive object is formed as follow:
 ```js
@@ -156,6 +168,7 @@ With possible values for field `"trigger"` being:
 (***upcoming***)
 - `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
 - `"whendrawn"`: applied on allied commander when drawn.
+- `"whenattacked"`: applied on attack when attacked.
 
 Effect objects exists through different type as follow:
 
@@ -186,7 +199,7 @@ Change the target of every sub-effects to a new target_mode.
  "effect":{/*effect object*/}
 }
 ```
-(***upcoming***) use the following syntax to use independant targets for the same effect. Overlaping units are affected twice.
+(***upcoming***) use the following syntax to use independant targets for the same effect. Overlaping units are affected multiple times (e.g. `"new_targets":["foes","massivedestruction","random_foe"]` would apply once the effect to the allies and commanders, twice to most active foes except one who would receive them thrice).
 ```js
 {
  "type":"target_union",
@@ -203,7 +216,7 @@ Change the state of every target(s).
  "new_state":"{State string}"
 }
 ```
-Form a temporary State change, that last `"for"` a given number of turns, reverting afterward, with the following syntax:
+Form a temporary State change (doesn't work for `"new_state":"unattacked"`), that last `"for"` a given number of turns, reverting afterward, with the following syntax:
 ```js
 {
  "type":"state_change",
@@ -215,6 +228,7 @@ With possible values of field `"new_state"` being:
     `"default"`: has no effect.
     `"block"` or `"blocked"`: cannot attack.
     `"invisible"`: cannot attack nor be targeted.
+    `"unattacked"`: allow to attack one more time during turn, if already attacked before effect take place. This doesn't actually change the targets' states.
     (unimplemented yet)
     `"damageless"`: cannot receive damage.
 
