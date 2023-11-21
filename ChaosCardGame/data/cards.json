@@ -25,6 +25,21 @@
  "element":"air",
  "hp":60,
  "cost":1
+ "passives":[{
+  "name":"Smokescreen",
+  "trigger":"whenattack",
+  "type":"union"
+  "effect1":{
+   "type":"state_change",
+   "new_state":"block",
+   "for":2
+  },
+  "effect2":{
+   "type": "state_change",
+   "new_state":"invisible",
+   "for": 2
+  }
+ }]
 },
 {
  "type":"creature",
