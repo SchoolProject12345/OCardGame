@@ -124,6 +124,7 @@ class State(IntEnum):
             case _: return (warn("Tried to form State from an non-recognized string; returing State.default instead.") and State.default)
 
 class TargetMode(IntEnum):
+    random_chaos = -1
     foes = 0
     target = 1
     allies = 2
@@ -133,8 +134,13 @@ class TargetMode(IntEnum):
     all_commanders = 6
     massivedestruction = 7
     all = 8
+    random_foe = 9
+    random_ally = 10
+    random = 11
     def from_str(name: str):
         match cleanstr(name):
+            case "random_chaos": return TargetMode.random_chaos
+            case "random_target_mode": return TargetMode.random_chaos
             case "foes": return TargetMode.foes
             case "target": return TargetMode.target
             case "allies": return TargetMode.allies
@@ -147,7 +153,7 @@ class TargetMode(IntEnum):
             case "allcommanders": return TargetMode.all_commanders
             case "bothcommanders": return TargetMode.all_commanders
             case "commanders": return TargetMode.all_commanders
-            case "all": return TargetMode.all
+            case "all": return TargetMode.all,
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
             case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
@@ -224,7 +230,8 @@ class AbstractEffect:
                     kwargs["board"].unactive_player.commander,
                     kwargs["board"].active_player.commander
                 ]
-            case _: []
+            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode(rng.randint(9))))
+            case _: return []
     def from_json(json: dict):
         type = cleanstr(getordef(json, "type", "undefined"))
         match type:
@@ -245,6 +252,8 @@ class AbstractEffect:
             case "damageovertime": return DOTEffect.from_json(json)
             case "delay": return DelayEffect.from_json(json)
             case "loop": return LoopEffect.from_json(json)
+            case "randomtarget": return RandomTargets.from_json(json)
+            case "randomtargets": return RandomTargets.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -282,6 +291,21 @@ class ChangeTarget(AbstractEffect):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
     def __str__(self) -> str:
         return f"{str(self.effect)} on {self.new_target.to_str()}"
+@dataclass
+class RandomTargets(AbstractEffect):
+    "Pick `sample` random targets from target distribution."
+    effect: AbstractEffect
+    sample: int
+    def execute(self, **kwargs):
+        targets = AbstractEffect.targeted_objects(**kwargs)
+        rng.shuffle(targets) # maybe unefficient but it works.
+        while len(targets) > self.sample:
+            targets.pop()
+        kwargs = with_field(kwargs, "target_mode", TargetMode.target)
+        for target in targets:
+            self.effect.execute(**with_field(kwargs, "main_target", target))
+    def from_json(json: dict):
+        return RandomTargets(AbstractEffect.from_json(json["effect"]), getordef(json, "sample", 1))
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
