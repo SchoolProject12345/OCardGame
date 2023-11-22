@@ -134,13 +134,11 @@ class TargetMode(IntEnum):
     all_commanders = 6
     massivedestruction = 7
     all = 8
-    random_foe = 9
-    random_ally = 10
-    random = 11
     def from_str(name: str):
         match cleanstr(name):
             case "random_chaos": return TargetMode.random_chaos
             case "random_target_mode": return TargetMode.random_chaos
+            case "randomlyselectedrandomtargets": return TargetMode.random_chaos
             case "foes": return TargetMode.foes
             case "target": return TargetMode.target
             case "allies": return TargetMode.allies
@@ -168,6 +166,7 @@ class TargetMode(IntEnum):
             case TargetMode.all_commanders: return "both Commanders"
             case TargetMode.all: return "all"
             case TargetMode.massivedestruction: return "every creature that has ever set foot in this Arena"
+            case TargetMode.random_chaos: return "randomly selected random targets"
 class DamageMode(IntEnum):
     direct = 0
     indirect = 1
@@ -306,6 +305,8 @@ class RandomTargets(AbstractEffect):
             self.effect.execute(**with_field(kwargs, "main_target", target))
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), getordef(json, "sample", 1))
+    def __str__(self):
+        return f"{str(self.effect) on up to {self.sample} random units among the targets."
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
