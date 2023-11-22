@@ -1,5 +1,3 @@
-# The Card Game
-
 from dataclasses import dataclass # easier class declaration
 from enum import IntEnum # for clear, lightweight (int) elements/state.
 from numpy import random as rng # for shuffle function/rng effects
@@ -183,6 +181,10 @@ class DamageMode(IntEnum):
             case DamageMode.direct: return "direct"
             case DamageMode.indirect: return "indirect"
             case DamageMode.ignore_resist: return "resistance-ignoring"
+    def can_strong(self) -> bool:
+        return self != DamageMode.indirect
+    def can_weak(self) -> bool:
+        return self == DamageMode.direct 
 class ReturnCode(IntEnum):
     ok = 200
     wrong_turn = 400
@@ -462,10 +464,14 @@ class EnergyEffect(AbstractEffect):
         return f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
 
 class PassiveTrigger(IntEnum):
-    endofturn = 0 # target => self
-    whenplaced = 1 # target => self
-    whendefeated = 2 # target => killer (must improve code first)
+    endofturn = 0 # main_target => self
+    whenplaced = 1 # main_target => self
+    whendefeated = 2 # main_target => attacker (must improve code first)
     whenattack = 3 # same kwargs as attack
+    # Must improve code before implementing those:
+    whenattacked = 4 # main_target => atatcker
+    whendiscarded = 5 # main_target => allied_commander
+    whendrawn = 6 # main_target => allied_commander
     def from_str(name: str):
         match cleanstr(name):
             case "endofturn": return PassiveTrigger.endofturn
@@ -641,12 +647,13 @@ class ActiveCard:
                 continue
             passive.execute(**kwargs)
     def damage(self, amount, **kwargs) -> int:
-        "Does direct damage to self, modified by any modifiers."
+        "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         if mode == DamageMode.indirect:
             return self.indirectdamage(amount)
         attacker = kwargs["user"]
-        return self.indirectdamage(amount * ifelse(attacker.element.effectiveness(self.element) and mode != DamageMode.indirect, 12, 10) // ifelse(self.element.resist(attacker.element) and mode == DamageMode.direct, 12, 10))
+        amount *= ifelse(attacker.element.effectiveness(self.element) and mode.can_strong(), 12, 10) // ifelse(self.element.resist(attacker.element) and mode.can_weak(), 12, 10)
+        return self.indirectdamage(amount)
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if DEV() and type(amount) != int:
@@ -718,10 +725,11 @@ class Arena(IntEnum):
     chaos = 4
     def image_file(self):
         match self:
-            case Arena.chaos: return "data/chaos-arena.jpg"
-            case _: return "data/chaos-arena.jpg" # no image of the other ones yet
+            case Arena.chaos: return "assets/chaos-arena.jpg"
+            case _: return "assets/chaos-arena.jpg" # TODO: add the other ones (and create assets/ foler)
     def has_effect(self, other):
-        (self == other) or (self == Arena.chaos) # hardcode so that chaos always has the effects of all other arenas. 
+        "Return whether self has the same effect Arena effect as other."
+        return (self == other) or (self == Arena.chaos) # hardcoded so that chaos always has the effects of all other arenas. 
 
 @dataclass # for display
 class Player:
