@@ -27,8 +27,9 @@
  "cost":1
  "passives":[{
   "name":"Smokescreen",
-  "trigger":"whenattack",
+  "trigger":"whenplaced",
   "type":"union"
+  "target_mode": "targed"
   "effect1":{
    "type":"state_change",
    "new_state":"block",
@@ -36,6 +37,7 @@
   },
   "effect2":{
    "type": "state_change",
+   "new_target":"self",
    "new_state":"invisible",
    "for": 2
   }
@@ -103,15 +105,17 @@
  "cost":1,
  "passives":[{
   "name":"Smokescreen",
-  "trigger":"whenattack",
+  "trigger":"whenplaced",
   "type":"union"
+  "target_mode": "targed"
   "effect1":{
    "type":"state_change",
    "new_state":"block",
    "for":2
-  },
+  }
   "effect2":{
    "type": "state_change",
+   "new_target":"self",
    "new_state":"invisible",
    "for": 2
   }
