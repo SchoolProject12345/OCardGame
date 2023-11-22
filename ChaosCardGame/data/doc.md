@@ -146,11 +146,15 @@ With possible values for field `"target_mode"` being:
 - `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
 - `"all"`: every card but the user.
 - `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
-(***upcoming***)
-- `"random_foe"`: a foe chosen at random.
-- `"random_ally"`: an ally chosen at random.
-- `"random"`: a single random unit.
 - `"random_chaos"` or `"random_target_mode"`: change the targetting mode to random. Yes.
+To select a (or multiple) random target among the target distribution, use the following effect:
+```js
+{
+ "type":"random_targets",
+ "sample":2 // number of targets sampled
+ "effect":{/*effect object*/} // "effect" is applied on each target selected
+}
+```
 ## Passive
 A Passive object is formed as follow:
 ```js
@@ -261,7 +265,7 @@ As the name suggest, the `"damage"` field represent the *total* damage dealt ove
  "time":3
 }
 ```
-Heal from a ratio of total damage dealt in sub-effects. This doesn't take DOT into account.
+Heal from a ratio of total damage dealt in sub-effects. This doesn't take end of turn damages (such as DOT) into account.
 ```js
 {
  "type":"drain",
