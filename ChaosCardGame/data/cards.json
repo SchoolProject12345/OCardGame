@@ -4,12 +4,12 @@
  "name":"Vine serpent",
  "element":"earth",
  "hp":100,
- "cost":1,
+ "cost":2,
  "attacks":[
   {
    "name":"Vine Strangle",
    "cost":1,
-   "power":80,
+   "power":85,
    "target_mode":"target",
    "effect":{
     "type":"loop",
@@ -27,19 +27,19 @@
  "cost":1
  "passives":[{
   "name":"Smokescreen",
-  "trigger":"whenplaced",
-  "type":"union"
-  "target_mode": "targed"
-  "effect1":{
-   "type":"state_change",
-   "new_state":"block",
-   "for":2
-  },
-  "effect2":{
-   "type": "state_change",
-   "new_target":"self",
-   "new_state":"invisible",
-   "for": 2
+  "trigger":"whenattack",
+  "effect":{
+   "type":"union",
+   "effect1":{
+    "type":"state_change",
+    "new_state":"block",
+    "for":2
+   },
+   "effect2":{
+    "type": "target_change",
+    "new_target":"self",
+    "effect":{"type":"state_change", "new_state":"invisible", "for":2}
+   }
   }
  }]
 },
@@ -61,38 +61,42 @@
  "type":"creature",
  "name":"Magma Golem",
  "element":"fire",
- "hp":80,
+ "hp":95,
  "cost":1,
  "attacks":[
   {
    "name":"Lava Pulse",
    "cost":1, 
-   "power": 150,
+   "power": 70,
    "target_mode":"target",
    "effect":{
-    "type":"target_change",
-    "new_target":"self",
-    "effect":{"type":"damage","amount":10}
+    "type":"union"
+    "effect1":{
+     "type":"target_change",
+     "new_target":"self",
+     "effect":{"type":"damage","amount":30}
+    },
+    "effect2":{"type":"dot", "damage":80, "time":3}
    }
   }
  ]
 },
 {
  "type":"creature",
- "name":"monkey of the Skies",
+ "name":"Monkey of the Skies",
  "element":"air",
- "hp":120,
+ "hp":90,
  "cost":1,
  "attacks":[
   {
    "name":"Tornado Beam",
-   "cost":2,
-   "power":100,
+   "cost":1,
+   "power":60,
    "target_mode":"target",
    "effect":{
     "type":"state_change",
     "new_state":"blocked",
-    "for":1
+    "for":2
    }
   }
  ]
@@ -103,29 +107,12 @@
  "element":"air",
  "hp":60,
  "cost":1,
- "passives":[{
-  "name":"Smokescreen",
-  "trigger":"whenplaced",
-  "type":"union"
-  "target_mode": "targed"
-  "effect1":{
-   "type":"state_change",
-   "new_state":"block",
-   "for":2
-  }
-  "effect2":{
-   "type": "state_change",
-   "new_target":"self",
-   "new_state":"invisible",
-   "for": 2
-  }
- }]
 },
 {
  "type":"creature",
  "name":"Wise Mystical Golem",
  "element":"earth",
- "hp":190,
+ "hp":200,
  "cost":1,
  "attacks":[
   {
@@ -136,11 +123,11 @@
    "effect":{
     "type":"drain",
     "num":1,
-    "den":4,
+    "den":3,
     "effect":{
      "type":"damage",
      "damage_mode":"direct",
-     "amount":80
+     "amount":60
     } 
    }
   }
@@ -154,12 +141,20 @@
  "cost":2,
  "passives":[
   {
-   "name":"TODO: proper name and heal scaling",
+   "name":"Bloom Blessing",
    "trigger":"whenplaced",
    "effect":{
     "type":"target_change",
     "new_target":"allies",
-    "effect":{"type":"heal","amount":2}
+    "effect":{"type":"heal","amount":3}
+   }
+  },
+  {
+   "name":"",
+   "trigger":"whenplaced",
+   "effect":{
+    "type":"state_change",
+    "new_state":"damageless",
    }
   }
  ]
@@ -174,18 +169,19 @@
   {
    "name":"Fiery slash",
    "cost":1, 
-   "power":30,
+   "power":50,
    "target_mode":"foes",
    "effect":{
-    "type":"damage",
-    "amount":30
+    "type":"loop",
+    "infinite":false,
+    "effect":{"type":"damage","damage_mode":"ignore_resist","amount":15}
    }
   }
  ]
 }, 
 {
  "type":"creature",
- "name":"Bob the blobfish",
+ "name":"Bob the Blobfish",
  "element":"water",
  "hp":120,
  "cost":4,
@@ -222,18 +218,17 @@
  "name":"Hydra of the Seas",
  "element":"water",
  "hp":140,
- "cost":1,
+ "cost":2,
  "attacks":[
   {
    "name":"Geyser",
-   "cost":1,
+   "cost":2,
    "power":0,
    "target_mode":"target",
    "effect":{
-    "type":"withprobability",
-    "probability":0.5,
-    "effect1":{"type":"damage","damage_mode":"ignore_resist","amount":70},
-    "effect2":{"type":"damage","damage_mode":"direct","amount":70}
+    "type":"damage",
+    "damage_mode":"ignore_resist",
+    "amount":130
    }
   }
  ]
