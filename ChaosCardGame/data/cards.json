@@ -256,7 +256,7 @@
 {
  "type":"spell",
  "name":"Small Potion",
- "element":"grass",
+ "element":"earth",
  "on_use":{
   "name":"Drink",
   "power":0,
