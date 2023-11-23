@@ -136,7 +136,7 @@
 {
  "type":"creature",
  "name":"Blossom Sylph",
- "element":"water",
+ "element":"earth",
  "hp":40,
  "cost":2,
  "passives":[
@@ -154,14 +154,14 @@
    "trigger":"whenplaced",
    "effect":{
     "type":"state_change",
-    "new_state":"damageless",
+    "new_state":"damageless"
    }
   }
  ]
 },
 {
  "type":"creature",
- "name":"Fyyrönyr, the dragon",
+ "name":"Fyyrönyr, the Dragon",
  "element":"fire",
  "hp":80,
  "cost":1,
