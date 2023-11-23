@@ -729,7 +729,7 @@ class Arena(IntEnum):
             case _: return "assets/chaos-arena.jpg" # TODO: add the other ones (and create assets/ foler)
     def has_effect(self, other):
         "Return whether self has the same effect Arena effect as other."
-        return (self == other) or (self == Arena.chaos) # hardcoded so that chaos always has the effects of all other arenas. 
+        return (self == other) or (self == Arena.chaos) # hardcoded so that chaos always has the effects of all other arenas.
 
 @dataclass # for display
 class Player:
@@ -756,6 +756,7 @@ class Player:
         self.max_energy = Constants.default_max_energy
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
+    def isai(self) -> bool: return False
     def from_save(name: str):
         fname = cleanstr(name);
         io = open("data/players.json");
@@ -944,3 +945,17 @@ class Board:
             print(cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp}) ", end="")
         print()
         print([cleanstr(card.name) for card in you.hand])
+
+class AIPLayer(Player): # I hate OOP
+    def __init__(self):
+        Player.__init__(self, self.get_name(), self.get_commander(), self.get_deck())
+    def get_name(*_) -> str: # allow self in argument
+        return "You've probably made a mistake here cuz this AI isn't supposed to be used. Seriously fix this. NOW!"
+    def get_commander(*_) -> CommanderCard:
+        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
+    def get_deck(*_) -> list:
+        return [*rng.choice(getCARDS(), Constants.default_deck_size)]
+    def auto_play(self, board):
+        warn(f"AI of type {type(slef)} tried to play without algorithm; ending turn instead.")
+        return board.endturn()
+    def isai(self) -> bool: return True
