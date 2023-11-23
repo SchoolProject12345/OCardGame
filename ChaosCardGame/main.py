@@ -231,7 +231,7 @@ class AbstractEffect:
                     kwargs["board"].unactive_player.commander,
                     kwargs["board"].active_player.commander
                 ]
-            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode(rng.randint(9))))
+            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(9))))
             case _: return []
     def from_json(json: dict):
         type = cleanstr(getordef(json, "type", "undefined"))
@@ -302,13 +302,13 @@ class RandomTargets(AbstractEffect):
         rng.shuffle(targets) # maybe unefficient but it works.
         while len(targets) > self.sample:
             targets.pop()
-        kwargs = with_field(kwargs, "target_mode", TargetMode.target)
+        kwargs = withfield(kwargs, "target_mode", TargetMode.target)
         for target in targets:
-            self.effect.execute(**with_field(kwargs, "main_target", target))
+            self.effect.execute(**withfield(kwargs, "main_target", target))
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), getordef(json, "sample", 1))
     def __str__(self):
-        return f"{str(self.effect) on up to {self.sample} random units among the targets."
+        return f"{str(self.effect)} on up to {self.sample} random units among the targets."
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
