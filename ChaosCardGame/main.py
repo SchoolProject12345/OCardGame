@@ -756,6 +756,10 @@ class Player:
         self.max_energy = Constants.default_max_energy
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
+    def get_commander(*_) -> CommanderCard:
+        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
+    def get_deck(*_) -> list:
+        return [*rng.choice(getCARDS(), Constants.default_deck_size)]
     def isai(self) -> bool: return False
     def from_save(name: str):
         fname = cleanstr(name);
@@ -902,6 +906,8 @@ class Board:
         player1.draw()
         player2.draw()
         DEV() and self.devprint()
+        if self.active_player.isai():
+            self.active_player.auto_play()
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
             return self.active_player
@@ -924,6 +930,8 @@ class Board:
                 return ret
             print(ret)
             self.devprint()
+        if self.active_player.isai() and ret[4] is None:
+            return self.active_player.auto_play()
         return ret
     def devprint(self):
         you = self.active_player
@@ -951,10 +959,6 @@ class AIPLayer(Player): # I hate OOP
         Player.__init__(self, self.get_name(), self.get_commander(), self.get_deck())
     def get_name(*_) -> str: # allow self in argument
         return "You've probably made a mistake here cuz this AI isn't supposed to be used. Seriously fix this. NOW!"
-    def get_commander(*_) -> CommanderCard:
-        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
-    def get_deck(*_) -> list:
-        return [*rng.choice(getCARDS(), Constants.default_deck_size)]
     def auto_play(self, board):
         warn(f"AI of type {type(slef)} tried to play without algorithm; ending turn instead.")
         return board.endturn()
