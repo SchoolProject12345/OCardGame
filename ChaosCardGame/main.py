@@ -758,7 +758,7 @@ class Player:
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
     def get_commander(*_) -> CommanderCard:
-        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
+        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
     def get_deck(*_) -> list:
         return [*rng.choice(getCARDS(), Constants.default_deck_size)]
     def isai(self) -> bool: return False
@@ -961,6 +961,6 @@ class AIPLayer(Player): # I hate OOP
     def get_name(*_) -> str: # allow self in argument
         return "You've probably made a mistake here cuz this AI isn't supposed to be used. Seriously fix this. NOW!"
     def auto_play(self, board):
-        warn(f"AI of type {type(slef)} tried to play without algorithm; ending turn instead.")
+        warn(f"AI of type {type(self)} tried to play without algorithm; ending turn instead.")
         return board.endturn()
     def isai(self) -> bool: return True
