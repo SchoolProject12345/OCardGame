@@ -423,7 +423,7 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
         kwargs = kwargs.copy()
         kwargs["survey"] = EffectSurvey()
         self.effect.execute(**kwargs)
-        kwargs["user"].heal(self.numerator * kwargs["survey"] // self.denominator)
+        main_survey.heal += kwargs["user"].heal(self.numerator * kwargs["survey"].damage // self.denominator)
         main_survey += kwargs["survey"]
     def from_json(json: dict):
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
@@ -658,7 +658,8 @@ class ActiveCard:
         if mode == DamageMode.indirect:
             return self.indirectdamage(amount)
         attacker = kwargs["user"]
-        amount *= ifelse(attacker.element.effectiveness(self.element) and mode.can_strong(), 12, 10) // ifelse(self.element.resist(attacker.element) and mode.can_weak(), 12, 10)
+        amount  *= ifelse(attacker.element.effectiveness(self.element) and mode.can_strong(), 12, 10)
+        amount //= ifelse(self.element.resist(attacker.element) and mode.can_weak(), 12, 10)
         return self.indirectdamage(amount)
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
