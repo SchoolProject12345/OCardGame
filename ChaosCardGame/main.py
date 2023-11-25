@@ -609,7 +609,7 @@ class ActiveCard:
         if self.board.active_player != self.owner:
             kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"] # doesn't act if it can't
-        if self.state == State.blocked or target.state == State.invisible or self.attacked:
+        if self.state in [State.blocked, State.invisible] or target.state in [State.invisible, State.damageless] or self.attacked:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if self.owner.energy < attack.cost:
@@ -663,6 +663,8 @@ class ActiveCard:
         return self.indirectdamage(amount)
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
+        if self.state == State.damageless:
+            return 0
         if DEV() and type(amount) != int:
             warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
