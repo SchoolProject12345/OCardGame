@@ -66,7 +66,20 @@ def cleanstr(s: str) -> str:
     "foobar73baz"
     ```
     """
-    return "".join(filter(str.isalnum, s)).lower()
+    return "".join(filter(str.isalnum, s)).lower().translate(str.maketrans({
+    'ø':'o',
+    'ö':'o',
+    'ó':'o',
+    'ä':'a',
+    'å':'a',
+    'ÿ':'y',
+    'ý':'y',
+    'í':'i',
+    "ü":'u',
+    'ú':'u',
+    'æ':"ae",
+    'þ':"th"
+    })) # fix bugs with Fyyrönir
 
 def withfield(d: dict, key, value):
     """
