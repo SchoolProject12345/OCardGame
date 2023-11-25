@@ -7,6 +7,12 @@ import os
 os.chdir("ENTER DIR HERE (or remove if it works without)")
 from convenience import * # makes code cleaner
 
+class Constants: # to change variables quickly, easily and buglessly.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = 30
+    #board_size = rng.randint(1, 7) use Board.board_size instead
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(CARDS) != 0:
@@ -711,12 +717,6 @@ class SpellCard(AbstractCard):
     def __str__(self):
         return f"(Spell) {self.name} (id:{self.id}): {self.element.name}\nOn use: {str(self.on_use)}"
 
-class Constants: # to change variables quickly. TODO: remove Python from this universe.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = min(30, len(getCARDS()))
-    board_size = rng.randint(1, 7)
 class Arena(IntEnum):
     smigruv = 0
     himinnsokva = 1
@@ -726,7 +726,7 @@ class Arena(IntEnum):
     def image_file(self):
         match self:
             case Arena.chaos: return "assets/chaos-arena.jpg"
-            case _: return "assets/chaos-arena.jpg" # TODO: add the other ones (and create assets/ foler)
+            case arena: return f"assets/{arena.name}-arena.png"
     def has_effect(self, other):
         "Return whether self has the same effect Arena effect as other."
         return (self == other) or (self == Arena.chaos) # hardcoded so that chaos always has the effects of all other arenas.
@@ -742,9 +742,10 @@ class Player:
     max_energy: int
     energy_per_turn: int
     active: list
-    def __init__(self, name: str, commander: CommanderCard, deck: list = ifelse(DEV(), getCARDS(), [])):
-        #if len(deck) != Constants.default_deck_size:
-        #    raise f"Player {name} tried to play with too few cards (error handling will be done later)."
+    def __init__(self, name: str, commander: CommanderCard, deck: list = []):
+        if len(deck) != Constants.default_deck_size:
+            warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
+            deck = Player.get_deck()
         self.name = name
         self.commander = ActiveCard(commander, self, None)
         self.deck = deck.copy() # avoid sharing, notably if deck is left to default in DEV() mode, as Python is a terrible language
