@@ -419,12 +419,12 @@ class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
     denominator: int
     effect: AbstractEffect
     def execute(self, **kwargs):
-        main_survey = kwargs["survey"]
+        main_kwargs: dict = kwargs # could Python work correctly sometimes?
         kwargs = kwargs.copy()
         kwargs["survey"] = EffectSurvey()
         self.effect.execute(**kwargs)
-        main_survey.heal += kwargs["user"].heal(self.numerator * kwargs["survey"].damage // self.denominator)
-        main_survey += kwargs["survey"]
+        kwargs["survey"].heal += kwargs["user"].heal(self.numerator * kwargs["survey"].damage // self.denominator)
+        main_kwargs["survey"] += kwargs["survey"]
     def from_json(json: dict):
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
     def __str__(self):
