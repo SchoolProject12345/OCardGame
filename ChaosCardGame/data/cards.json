@@ -14,10 +14,11 @@
    "effect":{
     "type":"loop",
     "infinite":true,
-    "effect":{"type":"damage","damage_mode":"indirect","amount":20}
-   }
+    "effect":{"type":"damage","damage_mode":"indirect","amount":20},
+   },
+   "tag":"dot"
   }
- ]  
+ ]
 },
 {
  "type":"creature",
@@ -41,7 +42,8 @@
     "effect":{"type":"state_change", "new_state":"invisible", "for":2}
    }
   }
- }]
+ }],
+ "tag":"support"
 },
 {
  "type":"creature",
@@ -55,7 +57,8 @@
    "trigger":"endofturn",
    "effect":{"type":"add_energy","gain":2}
   }
- ]
+ ],
+ "tags":["support","tank"]
 },
 {
  "type":"creature",
@@ -77,9 +80,10 @@
      "effect":{"type":"damage","amount":30}
     },
     "effect2":{"type":"dot", "damage":80, "time":3}
-   }
+   },
+   "tag":"dot"
   }
- ]
+ ],
 },
 {
  "type":"creature",
@@ -97,16 +101,18 @@
     "type":"state_change",
     "new_state":"blocked",
     "for":2
-   }
+   },
+   "tag":"disability"
   }
- ]
+ ],
+ "tag":"support"
 },
 {
  "type":"creature",
  "name":"The Skybound Serpent",
  "element":"air",
  "hp":60,
- "cost":1,
+ "cost":1
 },
 {
  "type":"creature",
@@ -128,10 +134,11 @@
      "type":"damage",
      "damage_mode":"direct",
      "amount":60
-    } 
+    }
    }
   }
- ]
+ ],
+ "tag":"tank"
 },
 {
  "type":"creature",
@@ -150,14 +157,16 @@
    }
   },
   {
-   "name":"",
+   "name":"First Turn Invincibility",
    "trigger":"whenplaced",
    "effect":{
     "type":"state_change",
-    "new_state":"damageless"
+    "new_state":"damageless",
+    "for":1
    }
   }
- ]
+ ],
+ "tag":"support"
 },
 {
  "type":"creature",
@@ -175,9 +184,11 @@
     "type":"loop",
     "infinite":false,
     "effect":{"type":"damage","damage_mode":"ignore_resist","amount":15}
-   }
+   },
+   "tag":"aoe"
   }
- ]
+ ],
+ "tag":"aoe"
 }, 
 {
  "type":"creature",
@@ -191,7 +202,8 @@
    "cost":0,
    "power":10,
    "target_mode":"target",
-   "effect":{"type":"heal","amount":10}
+   "effect":{"type":"heal","amount":10},
+   "tag":"useless"
   },
   {
    "name":"Blobblast",
@@ -201,7 +213,8 @@
    "effect":{
     "type":"target_change",
     "new_target":"self",
-    "effect":{"type":"damage","amount":65535}
+    "effect":{"type":"damage","amount":65535},
+    "tag":"lastresort"
    }
   }
  ],
@@ -211,7 +224,8 @@
    "trigger":"whenplaced",
    "effect":{"type":"null"}
   }
- ]
+ ],
+ "tag":"useless"
 },
 {
  "type":"creature",
@@ -255,14 +269,15 @@
 },
 {
  "type":"spell",
- "name":"Small Potion",
+ "name":"Healing Potion",
  "element":"earth",
  "on_use":{
   "name":"Drink",
   "power":0,
-  "cost":1,
+  "cost":2,
   "target_mode":"target",
-  "effect":{"type":"heal","amount":40}
+  "effect":{"type":"heal","amount":90},
+  "tag":"heal"
  }
 },
 {
