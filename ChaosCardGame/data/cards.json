@@ -1,4 +1,22 @@
 [
+{
+ "type":"creature",
+ "name":"Magma devil",
+ "element":"fire",
+ "hp":"60",
+ "cost":1,
+ "attacks":[
+  "name":"Lava Bounce",
+  "cost":1,
+  "power":20,
+  "target_mode":"target",
+   "effect":{
+    "type":"loop",
+    "infinite":true,
+    "effect":{"type":"damage","damage_mode":"indirect","amount":20},
+ ],
+ "tag":"dot"
+},
 { 
  "type":"creature",
  "name":"Vine serpent",
