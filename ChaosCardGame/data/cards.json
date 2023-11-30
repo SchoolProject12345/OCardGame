@@ -5,7 +5,7 @@
  "element":"fire",
  "hp":"60",
  "cost":1,
- "attacks":[
+ "attacks":[{
   "name":"Lava Bounce",
   "cost":1,
   "power":20,
@@ -14,8 +14,10 @@
     "type":"loop",
     "infinite":true,
     "effect":{"type":"damage","damage_mode":"indirect","amount":20},
- ],
- "tag":"dot"
+      },
+      "tag":"dot"
+     }
+    ],
 },
 { 
  "type":"creature",
