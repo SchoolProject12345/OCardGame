@@ -4,7 +4,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads, dumps
 import os
-os.chdir("ENTER DIR HERE (or remove if it works without)")
+os.chdir("")
 from convenience import * # makes code cleaner
 
 class Constants: # to change variables quickly, easily and buglessly.
@@ -12,16 +12,15 @@ class Constants: # to change variables quickly, easily and buglessly.
     default_energy_per_turn = 3
     default_hand_size = 5
     default_deck_size = 30
-    #board_size = rng.randint(1, 7) use Board.board_size instead
 def getCARDS(CARDS = []) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(CARDS) != 0:
         return CARDS
     io = open("data/cards.json", encoding="utf-8");
-    json = loads(io.read()); # assuming people aren't stupid enough to write invalid JSON in cards.json. Don't forgot commas. And don't add to much.
+    json = loads(io.read());
     io.close();
     id = -1; # starts at -1 + 1 = 0
-    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json]
+    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json];
     return CARDS
 def getCOMMANDERS(COMMANDERS = {}) -> dict:
     "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -33,10 +32,9 @@ def getCOMMANDERS(COMMANDERS = {}) -> dict:
     id = -1;
     COMMANDERS.update({cleanstr(card["name"]):CreatureCard.from_json(card, (id := id + 1)) for card in json});
     return COMMANDERS
-def DEV() -> bool: return True; # enable debugging; function to avoid taking from global scope
 
 class Element(IntEnum):
-    elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effective
+    elementless = 0 # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effectiveness
     water = 1
     fire = 2
     air = 3
@@ -199,7 +197,7 @@ class ReturnCode(IntEnum):
     no_target = 404
 @dataclass
 class EffectSurvey:
-    "Contain all values returned by an attack"
+    "Contain all values returned by an attack."
     damage: int = 0
     heal: int = 0
     return_code: ReturnCode = ReturnCode.ok
@@ -354,7 +352,7 @@ class DOTEffect(AbstractEffect):
     def copy(self):
         return DOTEffect(self.damage, self.turn)
     def from_json(json: dict):
-        return DOTEffect(json["damage"],json["time"])
+        return DOTEffect(int(json["damage"]),json["time"])
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.copy())
@@ -380,7 +378,7 @@ class LoopEffect(AbstractEffect):
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
     def endturn(self, target) -> bool:
-        if (not self.infinite) and (self.kwargs["user"].state == State.defeated):
+        if (not self.infinite) and (self.kwargs["user"].state == State.discarded):
             return False
         self.kwargs["main_target"] = target
         self.kwargs["target_mode"] = TargetMode.target
@@ -404,7 +402,7 @@ class DelayEffect(AbstractEffect):
             target.effects.append(self.with_kwargs(kwargs))
     def endturn(self, target) -> bool:
         if self.time > 0:
-            self.ime -= 1
+            self.time -= 1
             return True
         self.kwargs["main_target"] = target
         self.kwargs["target_mode"] = TargetMode.target
@@ -413,18 +411,17 @@ class DelayEffect(AbstractEffect):
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 @dataclass
-class DamageDrain(AbstractEffect): # I don't know if this'll ever get a use.
+class DamageDrain(AbstractEffect):
     "Heal for a ratio (rational) of total damage (indirect/direct) "
     numerator: int
     denominator: int
     effect: AbstractEffect
     def execute(self, **kwargs):
-        main_kwargs: dict = kwargs # could Python work correctly sometimes?
-        kwargs = kwargs.copy()
+        alt_kwargs: dict = kwargs.copy() # could Python work correctly sometimes?
         kwargs["survey"] = EffectSurvey()
-        self.effect.execute(**kwargs)
-        kwargs["survey"].heal += kwargs["user"].heal(self.numerator * kwargs["survey"].damage // self.denominator)
-        main_kwargs["survey"] += kwargs["survey"]
+        self.effect.execute(**alt_kwargs)
+        alt_kwargs["survey"].heal += alt_kwargs["user"].heal(self.numerator * alt_kwargs["survey"].damage // self.denominator)
+        kwargs["survey"] = kwargs["survey"] + alt_kwargs["survey"]
     def from_json(json: dict):
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -488,9 +485,9 @@ class PassiveTrigger(IntEnum):
     def to_str(self):
         match self:
             case PassiveTrigger.endofturn: return "the turn end"
-            case PassiveTrigger.whenplaced: return "when placed"
-            case PassiveTrigger.whendefeated: return "when defeated"
-            case PassiveTrigger.whenattack: return "when attacking"
+            case PassiveTrigger.whenplaced: return "placed"
+            case PassiveTrigger.whendefeated: return "defeated"
+            case PassiveTrigger.whenattack: return "attacking"
 
 @dataclass
 class Passive:
@@ -551,8 +548,8 @@ class AbstractCard:
 @dataclass
 class CreatureCard(AbstractCard):
     max_hp: int
-    attacks: list # list of Attack objects
-    passives: list
+    attacks: list[Attack] # list of Attack objects
+    passives: list[Passive]
     cost: int
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
@@ -561,15 +558,17 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             json["hp"],
-            [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 10), TargetMode.target, ifelse(getordef(json, "commander", False), 1, 0), NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7), TargetMode.target, ifelse(getordef(json, "commander", False), 1, 0), NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
             [Passive.from_json(passive) for passive in getordef(json, "passives", [])],
             json["cost"]
         )
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
+        if len(args[4]) == 1:
+            args[4].append(Attack("Prayer", 0, TargetMode.target, 1, HealEffect(30), tags=("heal")))
         return CreatureCard(*args)
     def __str__(self) -> str:
-        "Return beautiful string reprensenting self instead of ugly mess defaulting from dataclasses."
+        "Return a 'beautiful' string reprensenting self instead of ugly mess defaulting from dataclasses."
         pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP: {self.max_hp}\nCost: {self.cost}\nAttacks: ["
         for attack in self.attacks:
             pretty += "\n " + str(attack)
@@ -577,10 +576,17 @@ class CreatureCard(AbstractCard):
         for passive in self.passives:
             pretty += "\n " + str(passive)
         return pretty + "\n]"
+    def image_file(self) -> str:
+        "Return the directory to self's image"
+        fname: str = f"{self.element.name}-{cleanstr(self.name)}.png"
+        if not fname in os.listdir("assets/cards/"):
+            return "assets/cards/NOFILE.png"
+        return "assets/cards/" + fname
+    def get_cost(self) -> int:
+        return self.cost
         
 @dataclass
 class CommanderCard(CreatureCard):
-    # Note: all field of CommanderCard must have a default value as CreatureCard ends with one. (inheritance)
     def iscommander(self) -> bool: return True
 class Player: pass # necessary cause Python
 class Board: pass
@@ -591,7 +597,7 @@ class ActiveCard:
     element: Element # to change active element after a specific effect
     owner: Player
     board: Board
-    effects: list
+    effects: list[AbstractEffect]
     attacked: bool = False
     state: State = State.default
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
@@ -603,13 +609,21 @@ class ActiveCard:
         self.effects = []
         self.attacked = False
         self.state = State.default
+    def can_attack(self):
+        if self.state in [State.blocked, State.invisible]:
+            return False
+        if self.card.iscommander() and np.any([card is not None for card in self.owner.active]):
+            return False
+        if self.board is None or self.owner != self.board.active_player:
+            return False
+        return not self.attacked
     def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
         if self.board.active_player != self.owner:
             kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"] # doesn't act if it can't
-        if self.state in [State.blocked, State.invisible] or target.state in [State.invisible, State.damageless] or self.attacked:
+        if (not self.can_attack()) or target.state in [State.invisible, State.damageless]:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if self.owner.energy < attack.cost:
@@ -658,8 +672,10 @@ class ActiveCard:
         if mode == DamageMode.indirect:
             return self.indirectdamage(amount)
         attacker = kwargs["user"]
-        amount  *= ifelse(attacker.element.effectiveness(self.element) and mode.can_strong(), 12, 10)
-        amount //= ifelse(self.element.resist(attacker.element) and mode.can_weak(), 12, 10)
+        amount  *= ifelse(mode.can_strong() and attacker.element.effectiveness(self.element), 12, 10)
+        amount //= ifelse(mode.can_weak() and self.element.resist(attacker.element), 12, 10)
+        if self.card.iscommander() and mode.can_weak():
+            amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
         return self.indirectdamage(amount)
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
@@ -719,6 +735,14 @@ class SpellCard(AbstractCard):
         return survey
     def __str__(self):
         return f"(Spell) {self.name} (id:{self.id}): {self.element.name}\nOn use: {str(self.on_use)}"
+    def image_file(self) -> str:
+        "Return the directory to self's image"
+        fname: str = f"spell-{self.element.name}-{cleanstr(self.name)}.png"
+        if not fname in os.listdir("assets/cards/"):
+            return "assets/cards/NOFILE.png"
+        return "assets/cards/" + fname
+    def get_cost(self) -> int:
+        return self.on_use.cost
 
 class Arena(IntEnum):
     smigruv = 0
@@ -737,14 +761,14 @@ class Arena(IntEnum):
 @dataclass # for display
 class Player:
     name: str
-    commander: CommanderCard
-    deck: list  # lists of `AbstractCard`s
-    discard: list
-    hand: list
+    commander: ActiveCard
+    deck: list # lists of `AbstractCard`s
+    discard: list[AbstractCard]
+    hand: list[AbstractCard]
     energy: int
     max_energy: int
     energy_per_turn: int
-    active: list
+    active: list[ActiveCard|None]
     def __init__(self, name: str, commander: CommanderCard, deck: list = []):
         if len(deck) != Constants.default_deck_size:
             warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
@@ -762,8 +786,10 @@ class Player:
         self.active = []
     def get_commander(*_) -> CommanderCard:
         return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])] # yes, it's ugly, it's Python
-    def get_deck(*_) -> list:
+    def get_deck(*_) -> list[AbstractCard]:
         return [*rng.choice(getCARDS(), Constants.default_deck_size)]
+    def get_actives(self) -> list[ActiveCard]:
+        return [card for card in self.active if card is not None]
     def isai(self) -> bool: return False
     def from_save(name: str):
         fname = cleanstr(name);
@@ -835,6 +861,8 @@ class Player:
         if not 0 <= j < len(self.active):
             return False
         if self.active[j] is not None:
+            return False
+        if type(self.hand[i]) == SpellCard:
             return False
         if self.energy < self.hand[i].cost:
             return False
@@ -911,7 +939,7 @@ class Board:
         player2.draw()
         DEV() and self.devprint()
         if self.active_player.isai():
-            self.active_player.auto_play()
+            self.active_player.auto_play(self)
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
             return self.active_player
@@ -932,10 +960,10 @@ class Board:
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
                 return ret
-            print(ret)
+            #print(ret)
             self.devprint()
         if self.active_player.isai() and ret[4] is None:
-            return self.active_player.auto_play()
+            return self.active_player.auto_play(self)
         return ret
     def devprint(self):
         you = self.active_player
@@ -958,12 +986,93 @@ class Board:
         print()
         print([cleanstr(card.name) for card in you.hand])
 
-class AIPLayer(Player): # I hate OOP
+class AIPlayer(Player): # I hate OOP
     def __init__(self):
         Player.__init__(self, self.get_name(), self.get_commander(), self.get_deck())
     def get_name(*_) -> str: # allow self in argument
         return "You've probably made a mistake here cuz this AI isn't supposed to be used. Seriously fix this. NOW!"
-    def auto_play(self, board):
+    def auto_play(self, board: Board):
         warn(f"AI of type {type(self)} tried to play without algorithm; ending turn instead.")
         return board.endturn()
+    def can_play(self):
+        for active in self.get_actives():
+            if not active.attacked:
+                return True
+        if not self.commander.attacked and self.energy >= 1:
+            return True
+        if not np.any([card is None for card in self.active]):
+            return False
+        for card in self.hand:
+            if card.get_cost() <= self.energy:
+                return True
+        return False
     def isai(self) -> bool: return True
+
+class NaiveAI(AIPlayer):
+    "Naive AI is an extremely simple AI that can barely play with some basic strategic thoughts, thinking as straigthforwardly & simply as possible."
+    goal: int # goal is the energy NaiveAI will try to reach for next turn, allowing the AI to economize for more expensive cards.
+    def __init__(self):
+        AIPlayer.__init__(self)
+        self.goal = 0
+    def spendable(self) -> int:
+        return self.energy + self.energy_per_turn - self.goal
+    def naive_target_heal(self, board: Board):
+        valids = [card for card in self.get_actives() if card.card.max_hp - card.hp > 29]
+        if len(valids) == 0 or (rng.random() < 0.6 and self.commander.card.max_hp - self.commander.hp > 29):
+            return self.commander
+        return rng.choice(valids)
+    def naive_target(self, board: Board, tags: tuple=()) -> ActiveCard:
+        if "heal" in tags:
+            return self.naive_target_heal(board)
+        valids = board.unactive_player.get_actives()
+        if len(valids) == 0 or rng.random() < 0.5:
+            return self.commander
+        return rng.choice(valids)
+    def get_attackers(self) -> list[ActiveCard]:
+        return [card for card in self.get_actives() if not card.attacked]
+    def try_place(self, board: Board):
+        valids = [i for i in range(len(self.hand)) if self.hand[i].get_cost() <= self.spendable()]
+        if len(valids) == 0:
+            return
+        placeable = [j for j in range(len(self.active)) if self.active[j] is None]
+        if len(placeable) == 0:
+            return
+        i: int = rng.choice(valids)
+        if type(self.hand[i]) == SpellCard:
+            return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags), board)
+        self.place(i, rng.choice(placeable), board)
+    def try_attack(self):
+        attackers = self.get_attackers()
+        if len(attackers) == 0:
+            return
+        attacker: ActiveCard = rng.choice(attackers)
+        attacks = [attack for attack in attacker.card.attacks if attack.cost <= self.spendable()]
+        if len(attacks) == 0:
+            return
+        attack: Attack = rng.choice(attacks)
+        target = self.naive_target(self.commander.board, attack.tags)
+        attacker.attack(attack, target)
+    def try_discard(self):
+        valids = [card for card in self.hand if card.get_cost() > self.max_energy]
+        if len(valids) == 0:
+            return
+        self.iddiscard(rng.choice(valids).id)
+    def auto_play(self, board: Board):
+        self.goal = rng.randint(0, self.max_energy + 1)
+        i: int = 0
+        while self.can_play() and self.energy > self.goal:
+            i += 1
+            if i == 600:
+                warn("NaiveAI couldn't find a way to end its turn. Force ending.")
+                return board.endturn()
+            (rng.random() < 1.0 - len(self.get_actives())/len(self.active)) and self.try_place(board)
+            self.try_attack()
+        if len(self.hand) > 3 or rng.random() < 0.5:
+            self.try_discard()
+        for card in self.get_actives():
+            valids: list[Attack] = [attack for attack in card.card.attacks if attack.cost == 0]
+            if len(valids) == 0:
+                continue
+            attack: Attack = rng.choice(valids)
+            card.attack(attack, board.unactive_player.commander)
+        return board.endturn()
