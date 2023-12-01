@@ -1,9 +1,38 @@
 [
 {
  "type":"creature",
+ "name":"Hand of Ashes",
+ "element":"fire",
+ "hp":30,
+ "cost":1,
+ "attacks":[
+  {
+   "name":"Burning Grab",
+   "cost":1,
+   "power":30,
+   "target_mode":"target"
+ }
+ ],
+},
+{
+ "type":"creature",
+ "name":"Felix Fyris",
+ "element":"fire",
+ "hp":60,
+ "cost":1,
+ "attack":[
+  {
+   "name":"Pyri Blitz",
+   "cost":1,
+   "power":,
+  }
+ ],
+},
+{
+ "type":"creature",
  "name":"Magma devil",
  "element":"fire",
- "hp":"60",
+ "hp":60,
  "cost":1,
  "attacks":[{
   "name":"Lava Bounce",
