@@ -30,6 +30,19 @@
  "element":"fire",
  "commander":true,
  "cost":0
+ "attacks":[
+  {
+   "name":"Fire Slash",
+   "cost":2,
+   "power":50,
+   "target_mode":"foes",
+   "effect":{
+    "type":"dot",
+    "damage":50,
+    "time":2
+   }
+  },
+ ]
 },
 {
  "name":"Krakiþrek",
