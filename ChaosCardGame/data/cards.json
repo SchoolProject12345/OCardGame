@@ -1,360 +1,934 @@
 [
-{
- "type":"creature",
- "name":"Hand of Ashes",
- "element":"fire",
- "hp":30,
- "cost":1,
- "attacks":[
-  {
-   "name":"Burning Grab",
-   "cost":1,
-   "power":30,
-   "target_mode":"target"
- }
- ],
-},
-{
- "type":"creature",
- "name":"Felix Fyris",
- "element":"fire",
- "hp":60,
- "cost":1,
- "attack":[
-  {
-   "name":"Pyri Blitz",
-   "cost":1,
-   "power":,
-  }
- ],
-},
-{
- "type":"creature",
- "name":"Magma devil",
- "element":"fire",
- "hp":60,
- "cost":1,
- "attacks":[{
-  "name":"Lava Bounce",
-  "cost":1,
-  "power":20,
-  "target_mode":"target",
-   "effect":{
-    "type":"loop",
-    "infinite":true,
-    "effect":{"type":"damage","damage_mode":"indirect","amount":20},
-      },
-      "tag":"dot"
-     }
-    ],
-},
-{ 
- "type":"creature",
- "name":"Vine serpent",
- "element":"earth",
- "hp":100,
- "cost":2,
- "attacks":[
-  {
-   "name":"Vine Strangle",
-   "cost":1,
-   "power":85,
-   "target_mode":"target",
-   "effect":{
-    "type":"loop",
-    "infinite":true,
-    "effect":{"type":"damage","damage_mode":"indirect","amount":20},
-   },
-   "tag":"dot"
-  }
- ]
-},
-{
- "type":"creature",
- "name":"Whisperwind Sprite",
- "element":"air",
- "hp":60,
- "cost":1
- "passives":[{
-  "name":"Smokescreen",
-  "trigger":"whenattack",
-  "effect":{
-   "type":"union",
-   "effect1":{
-    "type":"state_change",
-    "new_state":"block",
-    "for":2
-   },
-   "effect2":{
-    "type": "target_change",
-    "new_target":"self",
-    "effect":{"type":"state_change", "new_state":"invisible", "for":2}
-   }
-  }
- }],
- "tag":"support"
-},
-{
- "type":"creature",
- "name":"Eternal Sunseeker",
- "element":"water",
- "hp":210,
- "cost":3,
- "passives":[
-  {
-   "name":"Sun Chanelling",
-   "trigger":"endofturn",
-   "effect":{"type":"add_energy","gain":2}
-  }
- ],
- "tags":["support","tank"]
-},
-{
- "type":"creature",
- "name":"Magma Golem",
- "element":"fire",
- "hp":95,
- "cost":1,
- "attacks":[
-  {
-   "name":"Lava Pulse",
-   "cost":1, 
-   "power": 70,
-   "target_mode":"target",
-   "effect":{
-    "type":"union"
-    "effect1":{
-     "type":"target_change",
-     "new_target":"self",
-     "effect":{"type":"damage","amount":30}
-    },
-    "effect2":{"type":"dot", "damage":80, "time":3}
-   },
-   "tag":"dot"
-  }
- ],
-},
-{
- "type":"creature",
- "name":"Monkey of the Skies",
- "element":"air",
- "hp":90,
- "cost":1,
- "attacks":[
-  {
-   "name":"Tornado Beam",
-   "cost":1,
-   "power":60,
-   "target_mode":"target",
-   "effect":{
-    "type":"state_change",
-    "new_state":"blocked",
-    "for":2
-   },
-   "tag":"disability"
-  }
- ],
- "tag":"support"
-},
-{
- "type":"creature",
- "name":"The Skybound Serpent",
- "element":"air",
- "hp":60,
- "cost":1
-},
-{
- "type":"creature",
- "name":"Wise Mystical Golem",
- "element":"earth",
- "hp":200,
- "cost":1,
- "attacks":[
-  {
-   "name":"Root Pierce",
-   "cost":1, 
-   "power":0,
-   "target_mode":"target",
-   "effect":{
-    "type":"drain",
-    "num":1,
-    "den":3,
-    "effect":{
-     "type":"damage",
-     "damage_mode":"direct",
-     "amount":60
+ {
+  "name": "Monkey of the Skies",
+  "element": "air",
+  "cost": 3,
+  "tag": "support",
+  "hp": 120,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Tornado Beam",
+    "cost": 1,
+    "tag": "disability",
+    "target_mode": "target",
+    "power": 60,
+    "effect": {
+     "new_state": "blocked",
+     "type": "state_change",
+     "for": 2
     }
    }
-  }
- ],
- "tag":"tank"
-},
-{
- "type":"creature",
- "name":"Blossom Sylph",
- "element":"earth",
- "hp":40,
- "cost":2,
- "passives":[
-  {
-   "name":"Bloom Blessing",
-   "trigger":"whenplaced",
-   "effect":{
-    "type":"target_change",
-    "new_target":"allies",
-    "effect":{"type":"heal","amount":3}
+  ]
+ },
+ {
+  "name": "Void Ultraray",
+  "element": "Chaos",
+  "cost": 3,
+  "hp": 150,
+  "passives": [
+   {
+    "name": "None",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    },
+    "trigger": ""
    }
-  },
-  {
-   "name":"First Turn Invincibility",
-   "trigger":"whenplaced",
-   "effect":{
-    "type":"state_change",
-    "new_state":"damageless",
-    "for":1
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Highly Energecity Ray",
+    "cost": "20",
+    "power": "2",
+    "effect": {
+     "type": "todo",
+     "desc": "Increase energy per turn by 1 & does 50 damage over 3 turns."
+    }
    }
-  }
- ],
- "tag":"support"
-},
-{
- "type":"creature",
- "name":"Fyyrönyr, the Dragon",
- "element":"fire",
- "hp":80,
- "cost":1,
- "attacks":[
-  {
-   "name":"Fiery slash",
-   "cost":1, 
-   "power":50,
-   "target_mode":"foes",
-   "effect":{
-    "type":"loop",
-    "infinite":false,
-    "effect":{"type":"damage","damage_mode":"ignore_resist","amount":15}
+  ]
+ },
+ {
+  "name": "Mermaid of Terror",
+  "element": "Water",
+  "cost": 2,
+  "hp": 100,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Terrorising Screech",
+    "cost": "2",
+    "power": "10",
+    "effect": {
+     "type": "todo",
+     "desc": "Confuses/hypnothizes 1 enemy (makes 1 enemy card yours)"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Hydra of the Seas",
+  "element": "water",
+  "cost": 2,
+  "hp": 140,
+  "passives": [],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Geyser",
+    "cost": 2,
+    "target_mode": "target",
+    "power": 0,
+    "effect": {
+     "amount": 130,
+     "type": "damage",
+     "damage_mode": "ignore_resist"
+    }
    },
-   "tag":"aoe"
-  }
- ],
- "tag":"aoe"
-}, 
-{
- "type":"creature",
- "name":"Bob the Blobfish",
- "element":"water",
- "hp":120,
- "cost":4,
- "attacks":[
-  {
-   "name":"Splish-Splosh",
-   "cost":0,
-   "power":10,
-   "target_mode":"target",
-   "effect":{"type":"heal","amount":10},
-   "tag":"useless"
+   {
+    "name": "Hydra Myth",
+    "effect": {
+     "type": "todo",
+     "desc": "Separate into two Weakened Hydra if not affected by DOT or loop damages."
+    },
+    "trigger": "whendefeated"
+   }
+  ]
+ },
+ {
+  "name": "Gargoyle of the Void",
+  "element": "Chaos",
+  "cost": null,
+  "hp": 190,
+  "type": "creature"
+ },
+ {
+  "name": "Eternal Sunseeker",
+  "element": "water",
+  "cost": 2,
+  "hp": 210,
+  "passives": [
+   {
+    "name": "Sun Chanelling",
+    "effect": {
+     "type": "add_energy",
+     "gain": 2
+    },
+    "trigger": "endofturn"
+   }
+  ],
+  "tags": [
+   "support",
+   "tank"
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Radiant Aura",
+    "cost": "2",
+    "power": "0",
+    "effect": {
+     "type": "todo",
+     "desc": "Heals allies by 30"
+    }
+   },
+   {
+    "name": "Sun Channeling",
+    "effect": {
+     "type": "todo",
+     "desc": "+2 raw energy"
+    },
+    "trigger": "endofturn"
+   }
+  ]
+ },
+ {
+  "name": "Blossom Sylph",
+  "element": "earth",
+  "cost": 2,
+  "tag": "support",
+  "hp": 40,
+  "passives": [
+   {
+    "name": "Bloom Blessing",
+    "effect": {
+     "new_target": "allies",
+     "effect": {
+      "amount": 3,
+      "type": "heal"
+     },
+     "type": "target_change"
+    },
+    "trigger": "whenplaced"
+   },
+   {
+    "name": "First Turn Invincibility",
+    "effect": {
+     "new_state": "damageless",
+     "type": "state_change",
+     "for": 1
+    },
+    "trigger": "whenplaced"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Magic Taunt",
+    "cost": "3",
+    "power": "0",
+    "effect": {
+     "type": "todo",
+     "desc": "Force ennemies to attack this card for the next turn."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Wizard of Everburn",
+  "element": "Fire",
+  "cost": 3,
+  "hp": 90,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Infernal Fireball",
+    "cost": "3",
+    "power": "40",
+    "effect": {
+     "type": "todo",
+     "desc": "Does 40 fire loop damage to target."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Fern Goat",
+  "element": "Earth",
+  "cost": 2,
+  "hp": 200,
+  "type": "creature"
+ },
+ {
+  "name": "Fiery Lion",
+  "element": "Fire",
+  "cost": 2,
+  "hp": 120,
+  "passives": [
+   {
+    "name": "Roar",
+    "effect": {
+     "type": "todo",
+     "desc": "Blocks one enemy"
+    },
+    "trigger": "whenplaced"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Flare Fury",
+    "cost": "2",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Magma Golem",
+  "element": "fire",
+  "cost": 2,
+  "hp": 100,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Lava Pulse",
+    "cost": 1,
+    "tag": "dot",
+    "target_mode": "target",
+    "power": 70,
+    "effect": {
+     "effect1": {
+      "new_target": "self",
+      "effect": {
+       "amount": 30,
+       "type": "damage"
+      },
+      "type": "target_change"
+     },
+     "type": "union",
+     "effect2": {
+      "time": 3,
+      "type": "dot",
+      "damage": 80
+     }
+    }
+   },
+   {
+    "name": "Magmatic Separation",
+    "cost": "1",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Soulfire Demon",
+  "element": "Chaos",
+  "cost": null,
+  "hp": 180,
+  "type": "creature"
+ },
+ {
+  "name": "Vine serpent",
+  "element": "earth",
+  "cost": 2,
+  "hp": 100,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Vine Strangle",
+    "cost": 1,
+    "tag": "dot",
+    "target_mode": "target",
+    "power": 85,
+    "effect": {
+     "infinite": true,
+     "effect": {
+      "amount": 20,
+      "type": "damage",
+      "damage_mode": "indirect"
+     },
+     "type": "loop"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Wise Mystical Golem",
+  "element": "earth",
+  "cost": 2,
+  "tag": "tank",
+  "hp": 210,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Root Pierce",
+    "cost": 1,
+    "target_mode": "target",
+    "power": 0,
+    "effect": {
+     "den": 3,
+     "num": 1,
+     "effect": {
+      "amount": 60,
+      "type": "damage",
+      "damage_mode": "direct"
+     },
+     "type": "drain"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Mystical Owl",
+  "element": "Air",
+  "cost": 1,
+  "hp": 110,
+  "type": "creature"
+ },
+ {
+  "name": "Bulk Cherry",
+  "element": "Earth",
+  "cost": 2,
+  "hp": 180,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Muscle Drain",
+    "cost": "2",
+    "power": "90",
+    "effect": {
+     "type": "todo",
+     "desc": "Drain 50% of damage dealt."
+    }
+   }
+  ]
+ },
+ {
+  "name": "The Mystical Pegasus",
+  "element": "Air",
+  "cost": 3,
+  "hp": 140,
+  "passives": [
+   {
+    "name": "Horn Cure",
+    "effect": {
+     "type": "todo",
+     "desc": "Cleanse all negative effects from allies."
+    },
+    "trigger": "whenplaced"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Horn Drill",
+    "cost": "2",
+    "power": "110",
+    "effect": {
+     "type": "todo",
+     "desc": "N/A"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Bob the Blobfish",
+  "element": "water",
+  "cost": 2,
+  "tag": "useless",
+  "hp": 120,
+  "passives": [
+   {
+    "name": "Completely Useless",
+    "effect": {
+     "type": "null"
+    },
+    "trigger": "whenplaced"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Splish-Splosh",
+    "cost": 0,
+    "tag": "useless",
+    "target_mode": "target",
+    "power": 10,
+    "effect": {
+     "amount": 10,
+     "type": "heal"
+    }
+   },
+   {
+    "name": "Blobblast",
+    "cost": 0,
+    "target_mode": "foes",
+    "power": 60,
+    "effect": {
+     "new_target": "self",
+     "tag": "lastresort",
+     "effect": {
+      "amount": 65535,
+      "type": "damage"
+     },
+     "type": "target_change"
+    }
+   },
+   {
+    "name": "Bloob",
+    "cost": "1",
+    "power": "x",
+    "effect": {
+     "type": "todo",
+     "desc": "Explodes, killing itself but deals x damage to all foes"
+    }
+   },
+   {
+    "name": "Deep Sea Power",
+    "effect": {
+     "type": "todo",
+     "desc": "If turn is greater or equal than 10, change this card to Bob the Godfish."
+    },
+    "trigger": "whenplaced"
+   }
+  ]
+ },
+ {
+  "name": "Energy Cat",
+  "element": "Earth",
+  "cost": 1,
+  "hp": 60,
+  "passives": [
+   {
+    "name": "Energizing",
+    "effect": {
+     "type": "todo",
+     "desc": "Increase max energy by 2"
+    },
+    "trigger": "whenplaced"
+   }
+  ],
+  "type": "creature"
+ },
+ {
+  "name": "Fyyrönyr, the Dragon",
+  "element": "fire",
+  "cost": 2,
+  "tag": "aoe",
+  "hp": 150,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Fiery slash",
+    "cost": 1,
+    "tag": "aoe",
+    "target_mode": "foes",
+    "power": 50,
+    "effect": {
+     "infinite": false,
+     "effect": {
+      "amount": 15,
+      "type": "damage",
+      "damage_mode": "ignore_resist"
+     },
+     "type": "loop"
+    }
+   },
+   {
+    "name": "Molten Breath",
+    "cost": "2",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Consumed Werewolf",
+  "element": "Chaos",
+  "cost": null,
+  "hp": 110,
+  "type": "creature"
+ },
+ {
+  "name": "Large Fireball",
+  "element": "fire",
+  "on_use": {
+   "name": "Throw",
+   "cost": 2,
+   "target_mode": "target",
+   "power": 80
   },
-  {
-   "name":"Blobblast",
-   "cost":0,
-   "power":60,
-   "target_mode":"foes",
-   "effect":{
-    "type":"target_change",
-    "new_target":"self",
-    "effect":{"type":"damage","amount":65535},
-    "tag":"lastresort"
+  "type": "spell"
+ },
+ {
+  "name": "Healing Potion",
+  "element": "earth",
+  "on_use": {
+   "name": "Drink",
+   "cost": 2,
+   "tag": "heal",
+   "target_mode": "target",
+   "power": 0,
+   "effect": {
+    "amount": 90,
+    "type": "heal"
    }
-  }
- ],
- "passives":[
-  {
-   "name":"Completely Useless",
-   "trigger":"whenplaced",
-   "effect":{"type":"null"}
-  }
- ],
- "tag":"useless"
-},
-{
- "type":"creature",
- "name":"Hydra of the Seas",
- "element":"water",
- "hp":140,
- "cost":2,
- "attacks":[
-  {
-   "name":"Geyser",
-   "cost":2,
-   "power":0,
-   "target_mode":"target",
-   "effect":{
-    "type":"damage",
-    "damage_mode":"ignore_resist",
-    "amount":130
+  },
+  "type": "spell"
+ },
+ {
+  "name": "Crystal Bat",
+  "element": "Air",
+  "cost": 1,
+  "hp": 90,
+  "passives": [
+   {
+    "name": "Energizing",
+    "effect": {
+     "type": "todo",
+     "desc": "Increase max energy by 2"
+    },
+    "trigger": "whenplaced"
    }
-  }
- ]
-},
-{
- "type":"creature",
- "name":"Everstone Symbiote",
- "element":"earth",
- "hp":110,
- "cost":1,
- "attacks":[
-  {
-   "name":"Separation",
-   "cost":1,
-   "power":100,
-   "target_mode":"target",
-   "effect":{
-    "type":"target_change",
-    "target_mode":"self",
-    "effect":{"type":"damage","damage_mode":"indirect","amount":20}
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Crystalisation",
+    "cost": "3",
+    "power": "15",
+    "effect": {
+     "type": "todo",
+     "desc": "Block 1 enemy forever"
+    }
    }
-  }
- ]
-},
-{
- "type":"spell",
- "name":"Healing Potion",
- "element":"earth",
- "on_use":{
-  "name":"Drink",
-  "power":0,
-  "cost":2,
-  "target_mode":"target",
-  "effect":{"type":"heal","amount":90},
-  "tag":"heal"
+  ]
+ },
+ {
+  "name": "Lamia",
+  "element": "Water",
+  "cost": 2,
+  "hp": 140,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Hypnotic Gaze",
+    "cost": "4",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": "Reveals her true forms, blocks 1 enemy"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Everstone Symbiote",
+  "element": "earth",
+  "cost": 1,
+  "hp": 110,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Separation",
+    "cost": 1,
+    "target_mode": "target",
+    "power": 100,
+    "effect": {
+     "target_mode": "self",
+     "effect": {
+      "amount": 20,
+      "type": "damage",
+      "damage_mode": "indirect"
+     },
+     "type": "target_change"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Shiao, Master of Seas",
+  "element": "Water",
+  "cost": 5,
+  "hp": 300,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Tidal Surge",
+    "cost": "3",
+    "power": "90",
+    "effect": {
+     "type": "todo",
+     "desc": "Attack commander in addition of foes."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Tormented Warrior",
+  "element": "Chaos",
+  "cost": null,
+  "hp": 120,
+  "type": "creature"
+ },
+ {
+  "name": "The Thousand-Toothed",
+  "element": "Water",
+  "cost": 3,
+  "hp": 160,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Thousand Jaws",
+    "cost": "2",
+    "power": "30",
+    "effect": {
+     "type": "todo",
+     "desc": "Does 30 DoT"
+    }
+   }
+  ]
+ },
+ {
+  "name": "Hand of Ashes",
+  "element": "fire",
+  "cost": 1,
+  "hp": 30,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Burning Grab",
+    "cost": 1,
+    "target_mode": "target",
+    "power": 30
+   }
+  ]
+ },
+ {
+  "name": "Tenebrous Mage",
+  "element": "Chaos",
+  "cost": 2,
+  "hp": 70,
+  "passives": [
+   {
+    "name": "None",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    },
+    "trigger": ""
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Summon Chaosling",
+    "cost": "0",
+    "power": "0",
+    "effect": {
+     "type": "todo",
+     "desc": "Summon a Chaosling."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Shokubutsu",
+  "element": "Earth",
+  "cost": 3,
+  "hp": 110,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Photosynthesis Slash",
+    "cost": "",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Captain Octopus",
+  "element": "Water",
+  "cost": 1,
+  "hp": 90,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Tentacle Torrent",
+    "cost": "1",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Chaos Emperor",
+  "element": "Chaos",
+  "cost": 5,
+  "hp": 300,
+  "type": "creature"
+ },
+ {
+  "name": "The Skybound Serpent",
+  "element": "air",
+  "cost": 2,
+  "hp": 210,
+  "type": "creature"
+ },
+ {
+  "name": "Chaos Brigade",
+  "element": "Chaos",
+  "cost": 2,
+  "hp": 20,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Brigade Charge",
+    "cost": "2",
+    "power": "25",
+    "effect": {
+     "type": "todo",
+     "desc": "Repeat this attack 5 times."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Rio, o-colorido",
+  "element": "Air",
+  "cost": 2,
+  "hp": 75,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Colourblast",
+    "cost": "1",
+    "power": "20",
+    "effect": {
+     "type": "todo",
+     "desc": "Blocks all super effective type multipliers from ennemy attacks for two turns "
+    }
+   }
+  ]
+ },
+ {
+  "name": "Magma devil",
+  "element": "fire",
+  "cost": 1,
+  "hp": 60,
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Lava Bounce",
+    "cost": 1,
+    "tag": "dot",
+    "target_mode": "target",
+    "power": 20,
+    "effect": {
+     "infinite": true,
+     "effect": {
+      "amount": 20,
+      "type": "damage",
+      "damage_mode": "indirect"
+     },
+     "type": "loop"
+    }
+   }
+  ]
+ },
+ {
+  "name": "The Silver Crow",
+  "element": "Air",
+  "cost": 1,
+  "hp": 150,
+  "type": "creature"
+ },
+ {
+  "name": "Magic Scrolls of Himinnsøkva",
+  "element": "air",
+  "on_use": {
+   "name": "Read",
+   "cost": 4,
+   "target_mode": "self",
+   "power": 0,
+   "effect": {
+    "max": 2,
+    "per_turn": 1,
+    "type": "add_energy",
+    "gain": 1
+   }
+  },
+  "type": "spell"
+ },
+ {
+  "name": "",
+  "element": "",
+  "cost": null,
+  "hp": null,
+  "type": "creature"
+ },
+ {
+  "name": "Kratos of Fire",
+  "element": "Fire",
+  "cost": 3,
+  "hp": 120,
+  "passives": [
+   {
+    "name": "Mythologic Strenght",
+    "effect": {
+     "type": "todo",
+     "desc": "Extra attack next turn"
+    },
+    "trigger": "whendefeated"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Axe Slash",
+    "cost": "2",
+    "power": "N/A",
+    "effect": {
+     "type": "todo",
+     "desc": "Deals the PGDC of the ennemy attack damage/power to target."
+    }
+   }
+  ]
+ },
+ {
+  "name": "Whisperwind Sprite",
+  "element": "air",
+  "cost": 1,
+  "tag": "support",
+  "hp": 120,
+  "passives": [
+   {
+    "name": "Smokescreen",
+    "effect": {
+     "effect1": {
+      "new_state": "block",
+      "type": "state_change",
+      "for": 2
+     },
+     "type": "union",
+     "effect2": {
+      "new_target": "self",
+      "effect": {
+       "new_state": "invisible",
+       "type": "state_change",
+       "for": 2
+      },
+      "type": "target_change"
+     }
+    },
+    "trigger": "whenattack"
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Smokescreen ",
+    "cost": "",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
+ },
+ {
+  "name": "Felix Fyris",
+  "element": "fire",
+  "cost": 1,
+  "hp": 60,
+  "attack": [
+   {
+    "name": "Pyri Blitz",
+    "cost": 1,
+    "power": 50
+   }
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Pyro Blitz",
+    "cost": "1",
+    "power": "",
+    "effect": {
+     "type": "todo",
+     "desc": ""
+    }
+   }
+  ]
  }
-},
-{
- "type":"spell",
- "name":"Large Fireball",
- "element":"fire",
- "on_use":{
-  "name":"Throw",
-  "power":80,
-  "cost":2,
-  "target_mode":"target"
- }
-},
-{
- "type":"spell",
- "name":"Magic Scrolls of Himinnsøkva",
- "element":"air",
- "on_use":{
-  "name":"Read",
-  "power":0,
-  "cost":4,
-  "target_mode":"self",
-  "effect":{
-   "type":"add_energy",
-   "gain":1,
-   "max":2,
-   "per_turn":1
-  }
- }
-}
 ]
