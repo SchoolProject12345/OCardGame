@@ -37,8 +37,8 @@
    {
     "name": "Highly Energecity Ray",
     "cost": 20,
+    "target_mode": "target ",
     "power": 2,
-    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Increase energy per turn by 1 & does 50 damage over 3 turns."
@@ -56,8 +56,8 @@
    {
     "name": "Terrorising Screech",
     "cost": 2,
+    "target_mode": "random_foe",
     "power": 10,
-    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Confuses/hypnothizes 1 enemy (makes 1 enemy card yours)"
@@ -109,10 +109,18 @@
   "hp": 210,
   "passives": [
    {
-    "name": "Sun Channeling",
+    "name": "Sun Chanelling",
     "effect": {
      "type": "add_energy",
      "gain": 2
+    },
+    "trigger": "endofturn"
+   },
+   {
+    "name": "Sun Channeling",
+    "effect": {
+     "type": "todo",
+     "desc": "+2 raw energy"
     },
     "trigger": "endofturn"
    }
@@ -126,8 +134,8 @@
    {
     "name": "Radiant Aura",
     "cost": 2,
+    "target_mode": "allies",
     "power": 0,
-    "target": "allies",
     "effect": {
      "type": "todo",
      "desc": "Heals allies by 30"
@@ -169,8 +177,8 @@
    {
     "name": "Magic Taunt",
     "cost": 3,
+    "target_mode": "foes",
     "power": 0,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Force ennemies to attack this card for the next turn."
@@ -188,8 +196,8 @@
    {
     "name": "Infernal Fireball",
     "cost": 3,
+    "target_mode": "foes",
     "power": 40,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Does 40 fire loop damage to target."
@@ -224,8 +232,8 @@
    {
     "name": "Flare Fury",
     "cost": 2,
-    "power": null,
-    "target": "target "
+    "target_mode": "target ",
+    "power": null
    }
   ]
  },
@@ -262,8 +270,8 @@
    {
     "name": "Magmatic Separation",
     "cost": 1,
+    "target_mode": "self",
     "power": null,
-    "target": "self",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -346,8 +354,8 @@
    {
     "name": "Muscle Drain",
     "cost": 2,
+    "target_mode": "target ",
     "power": 90,
-    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Drain 50% of damage dealt."
@@ -375,8 +383,8 @@
    {
     "name": "Horn Drill",
     "cost": 2,
-    "power": 110,
-    "target": "target "
+    "target_mode": "target ",
+    "power": 110
    }
   ]
  },
@@ -434,8 +442,8 @@
    {
     "name": "Bloob",
     "cost": 1,
+    "target_mode": "foes",
     "power": null,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Explodes, killing itself but deals x damage to all foes"
@@ -487,8 +495,8 @@
    {
     "name": "Molten Breath",
     "cost": 2,
+    "target_mode": "foes",
     "power": null,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -550,8 +558,8 @@
    {
     "name": "Crystalisation",
     "cost": 3,
+    "target_mode": "target ",
     "power": 15,
-    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Block 1 enemy forever"
@@ -569,8 +577,8 @@
    {
     "name": "Hypnotic Gaze",
     "cost": 4,
+    "target_mode": "random_foe",
     "power": null,
-    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Reveals her true forms, blocks 1 enemy"
@@ -612,8 +620,8 @@
    {
     "name": "Tidal Surge",
     "cost": 3,
+    "target_mode": "foes",
     "power": 90,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Attack commander in addition of foes."
@@ -638,8 +646,8 @@
    {
     "name": "Thousand Jaws",
     "cost": 2,
+    "target_mode": "foes",
     "power": 30,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Does 30 DoT"
@@ -678,8 +686,8 @@
    {
     "name": "Summon Chaosling",
     "cost": 0,
+    "target_mode": "self",
     "power": 0,
-    "target": "self",
     "effect": {
      "type": "todo",
      "desc": "Summon a Chaosling."
@@ -697,8 +705,8 @@
    {
     "name": "Photosynthesis Slash",
     "cost": null,
-    "power": null,
-    "target": ""
+    "target_mode": "",
+    "power": null
    }
   ]
  },
@@ -712,8 +720,8 @@
    {
     "name": "Tentacle Torrent",
     "cost": 1,
-    "power": null,
-    "target": "target "
+    "target_mode": "target ",
+    "power": null
    }
   ]
  },
@@ -741,8 +749,8 @@
    {
     "name": "Brigade Charge",
     "cost": 2,
+    "target_mode": "random_foe",
     "power": 25,
-    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Repeat this attack 5 times."
@@ -760,8 +768,8 @@
    {
     "name": "Colourblast",
     "cost": 1,
+    "target_mode": "foes",
     "power": 20,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Blocks all super effective type multipliers from ennemy attacks for two turns "
@@ -845,8 +853,8 @@
    {
     "name": "Axe Slash",
     "cost": 2,
+    "target_mode": "foes",
     "power": null,
-    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Deals the PGDC of the ennemy attack damage/power to target."
@@ -888,8 +896,8 @@
    {
     "name": "Smokescreen ",
     "cost": null,
+    "target_mode": "",
     "power": null,
-    "target": "",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -902,20 +910,13 @@
   "element": "fire",
   "cost": 1,
   "hp": 60,
-  "attack": [
-   {
-    "name": "Pyri Blitz",
-    "cost": 1,
-    "power": 50
-   }
-  ],
   "type": "creature",
   "attacks": [
    {
     "name": "Pyro Blitz",
     "cost": 1,
+    "target_mode": "target ",
     "power": null,
-    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": ""
