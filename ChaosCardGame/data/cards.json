@@ -26,12 +26,6 @@
   "element": "Chaos",
   "cost": 3,
   "hp": 150,
-  "passives": [
-   {
-    "name": "None",
-    "trigger": ""
-   }
-  ],
   "type": "creature",
   "attacks": [
    {
@@ -364,7 +358,7 @@
   ]
  },
  {
-  "name": "The Mystical Pegasus",
+  "name": "The Mythical Pegasus",
   "element": "Air",
   "cost": 3,
   "hp": 140,
@@ -383,7 +377,7 @@
    {
     "name": "Horn Drill",
     "cost": 2,
-    "target_mode": "target ",
+    "target_mode": "target",
     "power": 110
    }
   ]
@@ -414,31 +408,19 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Splish-Splosh",
-    "cost": 0,
-    "tag": "useless",
-    "target_mode": "target",
-    "power": 10,
-    "effect": {
-     "amount": 10,
-     "type": "heal"
-    }
-   },
-   {
     "name": "Blobblast",
     "cost": 0,
     "target_mode": "foes",
     "power": 60,
     "effect": {
+     "type": "target_change",
      "new_target": "self",
      "tag": "lastresort",
      "effect": {
       "amount": 65535,
       "type": "damage"
-     },
-     "type": "target_change"
+     }
     }
-   },
    }
   ]
  },
@@ -539,7 +521,7 @@
    {
     "name": "Crystalisation",
     "cost": 3,
-    "target_mode": "target ",
+    "target_mode": "target",
     "power": 15,
     "effect": {
      "type": "todo",
@@ -558,7 +540,7 @@
    {
     "name": "Hypnotic Gaze",
     "cost": 4,
-    "target_mode": "random_foe",
+    "target_mode": "target",
     "power": 0,
     "effect": {
      "type": "todo",
@@ -580,13 +562,13 @@
     "target_mode": "target",
     "power": 100,
     "effect": {
-     "target_mode": "self",
+     "type": "target_change",
+     "new_target": "self",
      "effect": {
       "amount": 20,
       "type": "damage",
       "damage_mode": "indirect"
-     },
-     "type": "target_change"
+     }
     }
    }
   ]
@@ -599,39 +581,41 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Tidal Surge",
-    "cost": 3,
-    "target_mode": "foes",
-    "power": 90,
-    "effect": {
-     "type": "todo",
-     "desc": "Attack commander in addition of foes."
+    "name":"Tidal Surge",
+    "cost":3,
+    "target_mode":"foes",
+    "power":90,
+    "effect":{
+     "type":"target_change",
+     "new_target":"commander",
+     "effect":{"type":"damage","damage_mode":"direct","amount":90}
     }
    }
   ]
  },
  {
-  "name": "Tormented Warrior",
-  "element": "Chaos",
-  "cost": 1,
-  "hp": 120,
-  "type": "creature"
+  "name":"Tormented Warrior",
+  "element":"chaos",
+  "cost":1,
+  "hp":120,
+  "type":"creature"
  },
  {
-  "name": "The Thousand-Toothed",
-  "element": "Water",
-  "cost": 3,
-  "hp": 160,
-  "type": "creature",
-  "attacks": [
+  "name":"The Thousand-Toothed",
+  "element":"water",
+  "cost":3,
+  "hp":160,
+  "type":"creature",
+  "attacks":[
    {
-    "name": "Thousand Jaws",
-    "cost": 2,
-    "target_mode": "foes",
-    "power": 30,
-    "effect": {
-     "type": "todo",
-     "desc": "Does 30 DoT"
+    "name":"Thousand Jaws",
+    "cost":2,
+    "target_mode":"foes",
+    "power":30,
+    "effect":{
+     "type":"loop",
+     "infinite":false,
+     "effect":{"type":"damage","damage_mode":"direct","amount":30}
     }
    }
   ]
@@ -656,12 +640,6 @@
   "element": "Chaos",
   "cost": 2,
   "hp": 70,
-  "passives": [
-   {
-    "name": "None",
-    "trigger": ""
-   }
-  ],
   "type": "creature",
   "attacks": [
    {
@@ -707,18 +685,18 @@
   ]
  },
  {
-  "name": "Chaos Emperor",
-  "element": "Chaos",
-  "cost": 5,
-  "hp": 300,
-  "type": "creature"
+  "name":"Chaos Emperor",
+  "element":"Chaos",
+  "cost":5,
+  "hp":300,
+  "type":"creature"
  },
  {
-  "name": "The Skybound Serpent",
-  "element": "air",
-  "cost": 2,
-  "hp": 210,
-  "type": "creature"
+  "name":"The Skybound Serpent",
+  "element":"air",
+  "cost":2,
+  "hp":210,
+  "type":"creature"
  },
  {
   "name": "Chaos Brigade",
@@ -728,13 +706,14 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Brigade Charge",
-    "cost": 2,
-    "target_mode": "random_foe",
-    "power": 25,
-    "effect": {
-     "type": "todo",
-     "desc": "Repeat this attack 5 times."
+    "name":"Brigade Charge",
+    "cost":2,
+    "target_mode":"foes",
+    "power":0,
+    "effect":{
+     "type":"random_targets",
+     "sample":1,
+     "effect":{"type":"damage","damage_mode":"direct","amount":18}
     }
    }
   ]
