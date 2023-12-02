@@ -29,10 +29,6 @@
   "passives": [
    {
     "name": "None",
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    },
     "trigger": ""
    }
   ],
@@ -40,8 +36,9 @@
   "attacks": [
    {
     "name": "Highly Energecity Ray",
-    "cost": "20",
-    "power": "2",
+    "cost": 20,
+    "power": 2,
+    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Increase energy per turn by 1 & does 50 damage over 3 turns."
@@ -58,8 +55,9 @@
   "attacks": [
    {
     "name": "Terrorising Screech",
-    "cost": "2",
-    "power": "10",
+    "cost": 2,
+    "power": 10,
+    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Confuses/hypnothizes 1 enemy (makes 1 enemy card yours)"
@@ -72,7 +70,16 @@
   "element": "water",
   "cost": 2,
   "hp": 140,
-  "passives": [],
+  "passives": [
+   {
+    "name": "Hydra Myth",
+    "effect": {
+     "type": "todo",
+     "desc": "Separate into two Weakened Hydra if not affected by DOT or loop damages."
+    },
+    "trigger": "whendefeated"
+   }
+  ],
   "type": "creature",
   "attacks": [
    {
@@ -85,14 +92,6 @@
      "type": "damage",
      "damage_mode": "ignore_resist"
     }
-   },
-   {
-    "name": "Hydra Myth",
-    "effect": {
-     "type": "todo",
-     "desc": "Separate into two Weakened Hydra if not affected by DOT or loop damages."
-    },
-    "trigger": "whendefeated"
    }
   ]
  },
@@ -110,7 +109,7 @@
   "hp": 210,
   "passives": [
    {
-    "name": "Sun Chanelling",
+    "name": "Sun Channeling",
     "effect": {
      "type": "add_energy",
      "gain": 2
@@ -126,20 +125,13 @@
   "attacks": [
    {
     "name": "Radiant Aura",
-    "cost": "2",
-    "power": "0",
+    "cost": 2,
+    "power": 0,
+    "target": "allies",
     "effect": {
      "type": "todo",
      "desc": "Heals allies by 30"
     }
-   },
-   {
-    "name": "Sun Channeling",
-    "effect": {
-     "type": "todo",
-     "desc": "+2 raw energy"
-    },
-    "trigger": "endofturn"
    }
   ]
  },
@@ -176,8 +168,9 @@
   "attacks": [
    {
     "name": "Magic Taunt",
-    "cost": "3",
-    "power": "0",
+    "cost": 3,
+    "power": 0,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Force ennemies to attack this card for the next turn."
@@ -194,8 +187,9 @@
   "attacks": [
    {
     "name": "Infernal Fireball",
-    "cost": "3",
-    "power": "40",
+    "cost": 3,
+    "power": 40,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Does 40 fire loop damage to target."
@@ -229,12 +223,9 @@
   "attacks": [
    {
     "name": "Flare Fury",
-    "cost": "2",
-    "power": "",
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    }
+    "cost": 2,
+    "power": null,
+    "target": "target "
    }
   ]
  },
@@ -270,8 +261,9 @@
    },
    {
     "name": "Magmatic Separation",
-    "cost": "1",
-    "power": "",
+    "cost": 1,
+    "power": null,
+    "target": "self",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -353,8 +345,9 @@
   "attacks": [
    {
     "name": "Muscle Drain",
-    "cost": "2",
-    "power": "90",
+    "cost": 2,
+    "power": 90,
+    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Drain 50% of damage dealt."
@@ -381,12 +374,9 @@
   "attacks": [
    {
     "name": "Horn Drill",
-    "cost": "2",
-    "power": "110",
-    "effect": {
-     "type": "todo",
-     "desc": "N/A"
-    }
+    "cost": 2,
+    "power": 110,
+    "target": "target "
    }
   ]
  },
@@ -401,6 +391,14 @@
     "name": "Completely Useless",
     "effect": {
      "type": "null"
+    },
+    "trigger": "whenplaced"
+   },
+   {
+    "name": "Deep Sea Power",
+    "effect": {
+     "type": "todo",
+     "desc": "If turn is greater or equal than 10, change this card to Bob the Godfish."
     },
     "trigger": "whenplaced"
    }
@@ -435,20 +433,13 @@
    },
    {
     "name": "Bloob",
-    "cost": "1",
-    "power": "x",
+    "cost": 1,
+    "power": null,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Explodes, killing itself but deals x damage to all foes"
     }
-   },
-   {
-    "name": "Deep Sea Power",
-    "effect": {
-     "type": "todo",
-     "desc": "If turn is greater or equal than 10, change this card to Bob the Godfish."
-    },
-    "trigger": "whenplaced"
    }
   ]
  },
@@ -495,8 +486,9 @@
    },
    {
     "name": "Molten Breath",
-    "cost": "2",
-    "power": "",
+    "cost": 2,
+    "power": null,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -557,8 +549,9 @@
   "attacks": [
    {
     "name": "Crystalisation",
-    "cost": "3",
-    "power": "15",
+    "cost": 3,
+    "power": 15,
+    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": "Block 1 enemy forever"
@@ -575,8 +568,9 @@
   "attacks": [
    {
     "name": "Hypnotic Gaze",
-    "cost": "4",
-    "power": "",
+    "cost": 4,
+    "power": null,
+    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Reveals her true forms, blocks 1 enemy"
@@ -617,8 +611,9 @@
   "attacks": [
    {
     "name": "Tidal Surge",
-    "cost": "3",
-    "power": "90",
+    "cost": 3,
+    "power": 90,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Attack commander in addition of foes."
@@ -642,8 +637,9 @@
   "attacks": [
    {
     "name": "Thousand Jaws",
-    "cost": "2",
-    "power": "30",
+    "cost": 2,
+    "power": 30,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Does 30 DoT"
@@ -674,10 +670,6 @@
   "passives": [
    {
     "name": "None",
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    },
     "trigger": ""
    }
   ],
@@ -685,8 +677,9 @@
   "attacks": [
    {
     "name": "Summon Chaosling",
-    "cost": "0",
-    "power": "0",
+    "cost": 0,
+    "power": 0,
+    "target": "self",
     "effect": {
      "type": "todo",
      "desc": "Summon a Chaosling."
@@ -703,12 +696,9 @@
   "attacks": [
    {
     "name": "Photosynthesis Slash",
-    "cost": "",
-    "power": "",
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    }
+    "cost": null,
+    "power": null,
+    "target": ""
    }
   ]
  },
@@ -721,12 +711,9 @@
   "attacks": [
    {
     "name": "Tentacle Torrent",
-    "cost": "1",
-    "power": "",
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    }
+    "cost": 1,
+    "power": null,
+    "target": "target "
    }
   ]
  },
@@ -753,8 +740,9 @@
   "attacks": [
    {
     "name": "Brigade Charge",
-    "cost": "2",
-    "power": "25",
+    "cost": 2,
+    "power": 25,
+    "target": "random_foe",
     "effect": {
      "type": "todo",
      "desc": "Repeat this attack 5 times."
@@ -771,8 +759,9 @@
   "attacks": [
    {
     "name": "Colourblast",
-    "cost": "1",
-    "power": "20",
+    "cost": 1,
+    "power": 20,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Blocks all super effective type multipliers from ennemy attacks for two turns "
@@ -855,8 +844,9 @@
   "attacks": [
    {
     "name": "Axe Slash",
-    "cost": "2",
-    "power": "N/A",
+    "cost": 2,
+    "power": null,
+    "target": "foes",
     "effect": {
      "type": "todo",
      "desc": "Deals the PGDC of the ennemy attack damage/power to target."
@@ -897,8 +887,9 @@
   "attacks": [
    {
     "name": "Smokescreen ",
-    "cost": "",
-    "power": "",
+    "cost": null,
+    "power": null,
+    "target": "",
     "effect": {
      "type": "todo",
      "desc": ""
@@ -922,8 +913,9 @@
   "attacks": [
    {
     "name": "Pyro Blitz",
-    "cost": "1",
-    "power": "",
+    "cost": 1,
+    "power": null,
+    "target": "target ",
     "effect": {
      "type": "todo",
      "desc": ""
