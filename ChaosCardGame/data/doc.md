@@ -151,7 +151,7 @@ To select a (or multiple) random target among the target distribution, use the f
 ```js
 {
  "type":"random_targets",
- "sample":2 // number of targets sampled
+ "sample":2 // number of targets sampled, default to one.
  "effect":{/*effect object*/} // "effect" is applied on each target selected
 }
 ```
@@ -169,7 +169,7 @@ With possible values for field `"trigger"` being:
 - `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking (before damages).
 - `"whenplaced"`: applied on self when card is placed for the first time.
 - `"whendefeated"`: applied on attacker when defeated directly.
-(***upcoming***)
+- (***upcoming***)
 - `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
 - `"whendrawn"`: applied on allied commander when drawn.
 - `"whenattacked"`: applied on attack when attacked.
@@ -186,6 +186,14 @@ Effect union apply two effect, allowing to make attack with two completely indep
 }
 ```
 To combine 3 or more effect, one may use chain of nested unions.
+To combine any number of identical objects, use this syntax:
+```js
+{
+ "type":"repeat",
+ "effect":{/*effect object*/},
+ "n":1 // number of time to repeat the effect for.
+}
+```
 (***upcoming***) use the following syntax to form a chain of nested unions can be automatically created from an arbitrary amount of effect objects.
 ```js
 {
@@ -233,7 +241,6 @@ With possible values of field `"new_state"` being:
     `"block"` or `"blocked"`: cannot attack.
     `"invisible"`: cannot attack nor be targeted.
     `"unattacked"`: allow to attack one more time during turn, if already attacked before effect take place. This doesn't actually change the targets' states.
-    (unimplemented yet)
     `"damageless"`: cannot receive damage.
 
 ### HP Manipulation
@@ -285,6 +292,19 @@ Heal from a ratio of total damage dealt in sub-effects. This doesn't take end of
 }
 ```
 
+### Creature Maniplation
+Summon a creature card on the user's owner's board if possible
+```js
+{
+ "type":"summon",
+ "count":1, // number of creature to spawn; defaults to 1
+ "creature":{/*creature object*/}
+}
+```
+Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commander. It wouldn't work anyway.
+```
+{"type":"hypnotize"} // yeah that's it, no fields.
+```
 
 ###  Control:
 Apply either `"effect1"` or `"effect2"`, chosen at random, with `"probability"` of being `effect1`.
