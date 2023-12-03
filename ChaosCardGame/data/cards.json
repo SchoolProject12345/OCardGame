@@ -2,7 +2,7 @@
  {
   "name": "Monkey of the Skies",
   "element": "air",
-  "cost": 3,
+  "cost": 2,
   "tag": "support",
   "hp": 120,
   "type": "creature",
@@ -48,13 +48,17 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Terrorising Screech",
-    "cost": 2,
-    "target_mode": "random_foe",
-    "power": 10,
-    "effect": {
-     "type": "todo",
-     "desc": "Confuses/hypnothizes 1 enemy (makes 1 enemy card yours)"
+    "name":"Terrorising Screech",
+    "cost":2,
+    "target_mode":"foes",
+    "power":0,
+    "effect":{
+     "type":"random_target",
+     "effect":{
+      "type":"union",
+      "effect1":{"type":"damage","damage_mode":"indirect","amount":11},
+      "effect2":{"type":"hypnotize"}
+     }
     }
    }
   ]
