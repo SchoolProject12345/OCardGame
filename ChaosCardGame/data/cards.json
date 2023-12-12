@@ -34,8 +34,18 @@
     "target_mode": "target ",
     "power": 2,
     "effect": {
-     "type": "todo",
-     "desc": "Increase energy per turn by 1 & does 50 damage over 3 turns."
+     "type":"union",
+     "effect1":{
+      "type":"add_energy",
+      "energy":0, 
+      "max_energy":1, 
+      "energy_per_turn":0 
+     },
+    "effect2":{
+     "type":"dot",
+     "damage":50,
+     "time":3
+    },
     }
    }
   ]
@@ -101,6 +111,7 @@
   "type": "creature"
  },
  {
+  "type":"creature",
   "name": "Eternal Sunseeker",
   "element": "water",
   "cost": 2,
@@ -110,24 +121,19 @@
     "name": "Sun Chanelling",
     "effect": {
      "type": "add_energy",
-     "gain": 2
+     "energy": 2,
+     "max_energy":0,
+     "energy_per_turn":0,
     },
     "trigger": "endofturn"
    },
-   {
-    "name": "Sun Channeling",
-    "effect": {
-     "type": "todo",
-     "desc": "+2 raw energy"
-    },
-    "trigger": "endofturn"
    }
   ],
   "tags": [
    "support",
    "tank"
   ],
-  "type": "creature",
+  
   "attacks": [
    {
     "name": "Radiant Aura",
@@ -135,8 +141,13 @@
     "target_mode": "allies",
     "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Heals allies by 30"
+     "type":"target_change",
+     "new_target":"allies",
+     "effect":{
+      "type":"heals"
+      "amount":30
+     },
+     
     }
    }
   ]
