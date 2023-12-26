@@ -4,7 +4,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads, dumps
 import os
-os.chdir("D:/OmicronBot/OmyCG")
+os.chdir("")
 from convenience import * # makes code cleaner
 
 class Numeric:
@@ -704,7 +704,7 @@ class CreatureCard(AbstractCard):
     attacks: list[Attack] # list of Attack objects
     passives: list[Passive]
     cost: int
-    tags: tuple
+    tags: tuple[str]
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = [
@@ -887,7 +887,7 @@ class SpellCard(AbstractCard):
         return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
     def use(self, target: ActiveCard, board: Board):
         sim = ActiveCard(
-            CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[self.on_use], passives=[], cost=0),
+            CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[self.on_use], passives=[], cost=0, tags=("spell")),
             board.active_player,
             board
         )
