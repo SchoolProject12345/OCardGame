@@ -4,7 +4,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads, dumps
 import os
-os.chdir("")
+os.chdir("D:/OmicronBot/OmyCG")
 from convenience import * # makes code cleaner
 
 class Numeric:
@@ -924,14 +924,14 @@ class Arena(IntEnum):
 class Player:
     name: str
     commander: ActiveCard
-    deck: list # lists of `AbstractCard`s
+    deck: list[AbstractCard]
     discard: list[AbstractCard]
     hand: list[AbstractCard]
     energy: int
     max_energy: int
     energy_per_turn: int
     active: list[ActiveCard|None]
-    def __init__(self, name: str, commander: CommanderCard, deck: list = []):
+    def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard] = []):
         if len(deck) != Constants.default_deck_size:
             warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
             deck = Player.get_deck()
@@ -1021,7 +1021,8 @@ class Player:
                 self.discard.append(cards[i].card)
                 cards[i] = None
         return discards
-    def place(self, i: int, j: int, board: Board):
+    def place(self, i: int, j: int):
+        board: Board = self.commander.board
         "Place the `i`th card of hand onto the `j`th tile of board, activing it. Return `True` if sucessful, `False` otherwise."
         if not 0 <= i < len(self.hand):
             return False
