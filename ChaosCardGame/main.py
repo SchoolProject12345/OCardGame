@@ -7,6 +7,72 @@ import os
 os.chdir("")
 from convenience import * # makes code cleaner
 
+class Numeric:
+    def eval(self, **_) -> int:
+        return warn(f"Numeric value of type {type(self)} cannot be acessed.") and 0
+    def from_json(json: dict | int):
+        if type(json) == int:
+            return RawNumeric(json)
+        match json["type"].lower():
+            case "raw": return RawNumeric(json["value"])
+            case "hps": return HPList(TargetMode.from_str(json["target_mode"]))
+            case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
+            case "sum": return NumericSum(Numeric.from_json(json["sample"]))
+            case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
+            case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
+    def __str__(self) -> str:
+        return f"UNDEFINED ({type(self)})"
+@dataclass
+class RawNumeric(Numeric):
+    value: int
+    def eval(self, **_) -> int:
+        return self.value
+    def __str__(self):
+        return str(self.value)
+    def __iadd__(self, value: int):
+        self.value += value
+        return self
+    def __isub__(self, value: int):
+        self.value -= value
+        return self
+class NumericList(Numeric):
+    def eval(self, **_) -> list[int]:
+        return warn(f"Numeric values of type {type(self)} cannot be acessed.") and [0]
+@dataclass
+class HPList(NumericList): # To get HP from a single target, use `NumericSum(HPList(TargetMode.target))`
+    target_mode: any # slightly spagehtti but this will do for now
+    def eval(self, **kwargs) -> list[int]:
+        return show([card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))])
+    def __str__(self):
+        return f"the HP from {self.target_mode.to_str()}"
+@dataclass
+class GCDNumeric(Numeric):
+    "Return the GCD of all elements in the list returned by `eval`uation of the `NumericList`."
+    sample: NumericList
+    def eval(self, **kwargs) -> int:
+        return show(np.gcd.reduce(show(self.sample.eval(**kwargs)))) # please save me from Python
+    def __str__(self):
+        return f"the greatest common divisor of {str(self.sample)}"
+@dataclass
+class NumericSum(Numeric):
+    sample: NumericList
+    def eval(self, **kwargs) -> int:
+        return np.sum(self.sample.eval(**kwargs))
+    def __str__(self):
+        return f"the sum of {self.sample}"
+@dataclass
+class CountUnion(Numeric):
+    "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
+    target_mode: any
+    tags: tuple[str]
+    elements: list # a list of element IntEnum or Integers.
+    def eval(self, **kwargs) -> int:
+        i = 0
+        for creature in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode)):
+            if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
+                i += 1
+        return i
+
 class Constants: # to change variables quickly, easily and buglessly.
     default_max_energy = 4
     default_energy_per_turn = 3
@@ -138,8 +204,8 @@ class TargetMode(IntEnum):
     all = 8
     def from_str(name: str):
         match cleanstr(name):
-            case "random_chaos": return TargetMode.random_chaos
-            case "random_target_mode": return TargetMode.random_chaos
+            case "randomchaos": return TargetMode.random_chaos
+            case "randomtargetmode": return TargetMode.random_chaos
             case "randomlyselectedrandomtargets": return TargetMode.random_chaos
             case "foes": return TargetMode.foes
             case "target": return TargetMode.target
@@ -191,10 +257,11 @@ class DamageMode(IntEnum):
         return self == DamageMode.direct 
 class ReturnCode(IntEnum):
     ok = 200
-    wrong_turn = 400
+    cant = 400
     no_energy = 401
-    cant = 402
+    wrong_turn = 402
     no_target = 404
+    failed = 500
 @dataclass
 class EffectSurvey:
     "Contain all values returned by an attack."
@@ -204,13 +271,16 @@ class EffectSurvey:
     def __add__(self, other):
         return EffectSurvey(self.damage + other.damage, self.heal + other.heal, self.return_code)
     def __iadd__(self, other):
-        return self + other # please save me from this language; the more I discover the more I ask myself why python is used.
+        self.damage += other.damage
+        self.heal += other.heal
+        return self # please save me from this language; the more I discover the more I ask myself why python is used.
 class AbstractEffect:
     def __init__(self):
         warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
-    def execute(self, **kwargs):
+    def execute(self, **_) -> bool:
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
         warn(f"AbstractEffect of type {type(self)} has no execute method defined.")
+        return False
     def endturn(self, target) -> bool:
         "AbstractEffect.endturn is a method that is applied at the end of each turn to the creature affected by it, returning False if the effect ends on this turn."
         return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
@@ -259,6 +329,9 @@ class AbstractEffect:
             case "loop": return LoopEffect.from_json(json)
             case "randomtarget": return RandomTargets.from_json(json)
             case "randomtargets": return RandomTargets.from_json(json)
+            case "repeat": return warn("RepeatEffect may be deprecated soon.") and RepeatEffect.from_json(json)
+            case "hypnotize": return HypnotizeEffect.from_json(json) # .from_json is useless but it allows more flexibility if we want to add something
+            case "summon": return SummonEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect":  return NullEffect()
             case None: return NullEffect()
@@ -266,8 +339,8 @@ class AbstractEffect:
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
     def __init__(self): return
-    def execute(self, **kwargs):
-        return
+    def execute(self, **kwargs) -> bool:
+        return False
     def from_json():
         return NullEffect()
     def __str__(self) -> str:
@@ -276,9 +349,8 @@ class NullEffect(AbstractEffect):
 class EffectUnion(AbstractEffect):
     effect1: AbstractEffect # use two field rather than a list so that length is now at interpretation time (would be useful if Python was LLVM-compiled)
     effect2: AbstractEffect # I might change that later though, but for now use `Union(Union(effect1, effect2), effect3)` or similar for more than 2 effects.`
-    def execute(self, **kwargs):
-        self.effect1.execute(**kwargs)
-        self.effect2.execute(**kwargs)
+    def execute(self, **kwargs) -> bool:
+        return self.effect1.execute(**kwargs) | self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return EffectUnion(AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(json["effect2"]))
     def __str__(self) -> str:
@@ -288,10 +360,10 @@ class ChangeTarget(AbstractEffect):
     "Change targetting mode of sub-effects."
     effect: AbstractEffect
     new_target: TargetMode
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
         kwargs["target_mode"] = self.new_target
-        self.effect.execute(**kwargs)
+        return self.effect.execute(**kwargs)
     def from_json(json: dict):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
     def __str__(self) -> str:
@@ -300,29 +372,35 @@ class ChangeTarget(AbstractEffect):
 class RandomTargets(AbstractEffect):
     "Pick `sample` random targets from target distribution."
     effect: AbstractEffect
-    sample: int
-    def execute(self, **kwargs):
+    sample: Numeric
+    def execute(self, **kwargs) -> bool:
         targets = AbstractEffect.targeted_objects(**kwargs)
         rng.shuffle(targets) # maybe unefficient but it works.
-        while len(targets) > self.sample:
+        sample = self.sample.eval()
+        while len(targets) > sample:
             targets.pop()
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
-        for target in targets:
-            self.effect.execute(**withfield(kwargs, "main_target", target))
+        return np.any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
     def from_json(json: dict):
-        return RandomTargets(AbstractEffect.from_json(json["effect"]), getordef(json, "sample", 1))
+        return RandomTargets(AbstractEffect.from_json(json["effect"]), Numeric.from_json(getordef(json, "sample", 1)))
     def __str__(self):
         return f"{str(self.effect)} on up to {self.sample} random units among the targets."
 @dataclass
 class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
     new_state: State
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
+        has_worked: bool = False
         for card in AbstractEffect.targeted_objects(**kwargs):
             if self.new_state == State.unattacked:
-                card.attacked = False
+                if card.attacked:
+                    card.attacked = False
+                    has_worked = True
                 continue
+            if card.state != self.new_state:
+                has_worked = True
             card.state = self.new_state
+        return has_worked
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
@@ -333,35 +411,38 @@ class ChangeState(AbstractEffect):
 @dataclass
 class DamageEffect(AbstractEffect):
     "Does damage to the target(s), depending on DamageMode."
-    amount: int
+    amount: Numeric
     damage_mode: DamageMode = DamageMode.direct
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
         kwargs["damage_mode"] = self.damage_mode
         for card in AbstractEffect.targeted_objects(**kwargs):
-            kwargs["survey"].damage += card.damage(self.amount, **kwargs)
+            kwargs["survey"].damage += card.damage(self.amount.eval(**kwargs), **kwargs) # nobody answered so I'll consider it a feature.
+        return False
     def from_json(json: dict):
-        return DamageEffect(json["amount"], DamageMode.from_str(getordef(json, "damage_mode", "indirect")))
+        return DamageEffect(Numeric.from_json(json["amount"]), DamageMode.from_str(getordef(json, "damage_mode", "indirect")))
     def __str__(self) -> str:
         return f"{self.amount} {self.damage_mode.to_str()} damage"
 @dataclass
 class DOTEffect(AbstractEffect):
     "Affect the target(s) with Damage Over Time, dealing `self.damage` over the *total* duration of the effect."
-    damage: int
-    turn: int
-    def copy(self):
-        return DOTEffect(self.damage, self.turn)
+    damage: Numeric # evalued once.
+    turn: Numeric # evalued once.
+    def pcopy(self, **kwargs):
+        "Pseudo copy of self: evaluated fields with `kwargs` before copying."
+        return DOTEffect(RawNumeric(self.damage.eval(**kwargs)), RawNumeric(self.turn.eval(**kwargs)))
     def from_json(json: dict):
         return DOTEffect(int(json["damage"]),json["time"])
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
-            target.effects.append(self.copy())
+            target.effects.append(self.pcopy())
+        return True
     def endturn(self, target):
-        amount = self.damage // self.turn
-        self.damage -= amount
-        self.turn -= 1
+        amount = self.damage.value // self.turn.value
+        self.damage.value -= amount
+        self.turn.value -= 1
         target.indirectdamage(amount)
-        return self.turn > 0
+        return self.turn.value > 0
     def __str__(self) -> str:
         return f"{self.damage} damage over {self.turn} turns"
 @dataclass
@@ -374,9 +455,10 @@ class LoopEffect(AbstractEffect):
         return LoopEffect(self.effect, self.infinite, kwargs)
     def from_json(json: dict):
         return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {})
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
+        return True
     def endturn(self, target) -> bool:
         if (not self.infinite) and (self.kwargs["user"].state == State.discarded):
             return False
@@ -391,15 +473,16 @@ class LoopEffect(AbstractEffect):
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
-    time: int
+    time: int # doesn't support Numeric as it would be kinda useless.
     kwargs: dict
     def with_kwargs(self, kwargs: dict):
         return DelayEffect(self.effect, self.time, kwargs)
     def from_json(json: dict):
         return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {})
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
+        return True
     def endturn(self, target) -> bool:
         if self.time > 0:
             self.time -= 1
@@ -414,14 +497,15 @@ class DelayEffect(AbstractEffect):
 class DamageDrain(AbstractEffect):
     "Heal for a ratio (rational) of total damage (indirect/direct) "
     numerator: int
-    denominator: int
+    denominator: int # doesn't support numeric as Rational are quite too complex to be worked with.
     effect: AbstractEffect
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         alt_kwargs: dict = kwargs.copy() # could Python work correctly sometimes?
-        kwargs["survey"] = EffectSurvey()
-        self.effect.execute(**alt_kwargs)
+        alt_kwargs["survey"] = EffectSurvey()
+        has_worked = self.effect.execute(**alt_kwargs)
         alt_kwargs["survey"].heal += alt_kwargs["user"].heal(self.numerator * alt_kwargs["survey"].damage // self.denominator)
-        kwargs["survey"] = kwargs["survey"] + alt_kwargs["survey"]
+        kwargs["survey"] += alt_kwargs["survey"]
+        return has_worked
     def from_json(json: dict):
         return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -429,24 +513,26 @@ class DamageDrain(AbstractEffect):
 @dataclass
 class HealEffect(AbstractEffect):
     "Heal target(s) by amount."
-    amount: int
-    def execute(self, **kwargs):
+    amount: Numeric
+    def execute(self, **kwargs) -> bool:
+        amount = amount.eval(**kwargs) # eval once for every target.
         for card in AbstractEffect.targeted_objects(**kwargs):
-            kwargs["survey"].heal += card.heal(self.amount)
+            kwargs["survey"].heal += card.heal(amount)
+        return False # will use check from survey.
     def from_json(json: dict):
-        return HealEffect(json["amount"])
+        return HealEffect(Numeric.from_json(json["amount"]))
     def __str__(self):
         return f"a healing of {self.amount}"
 @dataclass
 class WithProbability(AbstractEffect):
     "Apply either `self.effect1` or `self.effect2` such that `self.effect1` has `self.probability` to happen."
-    probability: float
+    probability: float # no Numeric as Int only.
     effect1: AbstractEffect
     effect2: AbstractEffect = NullEffect()
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> bool:
         if rng.rand() < self.probability:
             return self.effect1.execute(**kwargs)
-        self.effect2.execute(**kwargs)
+        return self.effect2.execute(**kwargs)
     def from_json(json: dict):
         return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
     def __str__(self):
@@ -454,25 +540,92 @@ class WithProbability(AbstractEffect):
 @dataclass
 class EnergyEffect(AbstractEffect):
     "Adds (or remove) to the user's Player, energy, max_energy and energy_per_turn."
-    energy: int
-    max_energy: int
-    energy_per_turn: int
-    def execute(self, **kwargs):
-        kwargs["player"].max_energy += self.max_energy
-        kwargs["player"].energy_per_turn += self.energy_per_turn
-        kwargs["player"].add_energy(self.energy)
+    energy: Numeric
+    max_energy: Numeric
+    energy_per_turn: Numeric
+    def execute(self, **kwargs) -> bool:
+        Δmax_energy = max.max_energy.eval(**kwargs)
+        kwargs["player"].max_energy += Δmax_energy
+        Δenergy_per_turn = max.energy_per_turn.eval(**kwargs)
+        kwargs["player"].energy_per_turn += Δenergy_per_turn
+        return (kwargs["player"].add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
     def from_json(json: dict):
-        return EnergyEffect(getordef(json, "gain", 0), getordef(json, "max", 0), getordef(json, "per_turn", 0))
+        return EnergyEffect(
+            Numeric.from_json(getordef(json, "gain", 0)),
+            Numeric.from_json(getordef(json, "max", 0)),
+            Numeric.from_json(getordef(json, "per_turn", 0))
+        )
     def __str__(self):
         return f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn" # TODO: find prettier way to write this.
+@dataclass
+class SummonEffect(AbstractEffect):
+    "Summon up to `count` Creatures on random spots of the board, if possible."
+    count: int
+    summon: any # summon is creature card, I cannot annotate because Python. Why on earth do you have to annote type with a function though? Who had this terrible idea?
+    def execute(self, **kwargs) -> bool:
+        valids = [i for i in range(len(kwargs["player"].active)) if kwargs["player"].active[i] is None]
+        if len(valids) == 0:
+            return False
+        rng.shuffle(valids)
+        while len(valids) > self.count:
+            valids.pop()
+        for i in valids:
+            kwargs["player"].active[i] = ActiveCard(self.summon, kwargs["player"], kwargs["board"])
+        return True
+    def from_json(json: dict):
+        return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
+    def __str__(self):
+        return f"summoning of a {self.summon.name}"
+@dataclass
+class HypnotizeEffect(AbstractEffect):
+    "Change the target∙s teams to the user's owner, if possible."
+    def execute(self, **kwargs) -> bool:
+        valids = [i for i in range(len(kwargs["user"].owner.active)) if kwargs["user"].owner.active[i] is None]
+        if len(valids) == 0:
+            return False
+        rng.shuffle(valids)
+        for target in AbstractEffect.targeted_objects(**kwargs):
+            if len(valids) == 0:
+                break
+            i = -1
+            for j in range(len(target.owner.active)):
+                if target.owner.active[j] is target:
+                    i = j
+                    break
+            if i == -1:
+                return False and warn("Hypnotization couldn't find the index of the target.")
+            target.owner.active[j] = None
+            target.owner = kwargs["user"].owner # I could have just done kwargs["player"] but it seems safer this way.
+            kwargs["user"].owner.active[valids.pop()] = target
+        return True
+    def from_json(_):
+        return HypnotizeEffect()
+    def __str__(self):
+        return "hypnotizing target∙s"
+@dataclass
+class RepeatEffect(AbstractEffect):
+    "Repeat the effect `n` times, on the same targets. Simply more convenient than HUGE chain of union, but may be deleted later."
+    n: Numeric
+    effect: AbstractEffect
+    def execute(self, **kwargs) -> bool:
+        return np.any([self.effect.execute(**kwargs) for _ in range(self.n.eval(**kwargs))])
+    def from_json(json: dict):
+        return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
+    def __str__(self):
+        match self.n:
+            case 1: verbal = " once"
+            case 2: verbal = " twice"
+            case 3: verbal = " thrice"
+            case n: verbal = f" {n} times"
+        return str(self.effect) + verbal
 
 class PassiveTrigger(IntEnum):
     endofturn = 0 # main_target => self
     whenplaced = 1 # main_target => self
     whendefeated = 2 # main_target => attacker (must improve code first)
     whenattack = 3 # same kwargs as attack
+    whenattacked = 4 # main_target => atatcker / only work when defeated by attack (feature not bug)
     # Must improve code before implementing those:
-    whenattacked = 4 # main_target => atatcker
     whendiscarded = 5 # main_target => allied_commander
     whendrawn = 6 # main_target => allied_commander
     def from_str(name: str):
@@ -495,7 +648,7 @@ class Passive:
     trigger: PassiveTrigger
     effect: AbstractEffect
     def from_json(json: dict):
-        return Passive(getordef(json, "name", ""), PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(json["effect"]))
+        return Passive(getordef(json, "name", ""), PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})))
     def execute(self, **kwargs): return self.effect.execute(**kwargs)
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
@@ -551,17 +704,23 @@ class CreatureCard(AbstractCard):
     attacks: list[Attack] # list of Attack objects
     passives: list[Passive]
     cost: int
+    tags: tuple
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
-        args = (
+        args = [
             json["name"],
             id,
             Element.from_json(json),
-            json["hp"],
+            int(json["hp"]),
             [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7), TargetMode.target, ifelse(getordef(json, "commander", False), 1, 0), NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
             [Passive.from_json(passive) for passive in getordef(json, "passives", [])],
-            json["cost"]
-        )
+            json["cost"],
+            (*getordef(json, "tags", ()),)
+        ]
+        if "tag" in json:
+            args[7] = (*args[7], json["tag"])
+        if cleanstr(json["name"]) == "bobtheblobfish":
+            args[4][0] = Attack("Splish-Splosh", 0, TargetMode.self, 0, NullEffect(), ("useless"))
         if getordef(json, "commander", False): # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
             return CommanderCard(*args)
         if len(args[4]) == 1:
@@ -638,18 +797,21 @@ class ActiveCard:
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
+        for card in AbstractEffect.targeted_objects(**kwargs):
+            kwargs["survey"].damage += card.damage(attack.power, **kwargs)
+        if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
+            kwargs["survey"].return_code = ReturnCode.failed
+            if cleanstr(attack.name) != "splishsplosh":
+                return kwargs["survey"]
         for passive in self.card.passives:
             if passive.trigger != PassiveTrigger.whenattack:
                 continue
             passive.execute(**kwargs)
-        for card in AbstractEffect.targeted_objects(**kwargs):
-            kwargs["survey"].damage += card.damage(attack.power, **kwargs)
-        attack.effect.execute(**kwargs)
         self.owner.energy -= attack.cost
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             card.defeatedby(self) # must be improved to apply passive of card defeated by passives or other sources
         self.attacked = True
-        if DEV():
+        if DEV() and not self.owner.isai():
             self.board.devprint()
         return kwargs["survey"]
     def defeatedby(self, killer):
@@ -682,7 +844,7 @@ class ActiveCard:
         if self.state == State.damageless:
             return 0
         if DEV() and type(amount) != int:
-            warn(f"Card with name \"{self.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
+            warn(f"Card with name \"{self.card.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
         if amount > self.hp:
             amount = self.hp
@@ -791,6 +953,11 @@ class Player:
     def get_actives(self) -> list[ActiveCard]:
         return [card for card in self.active if card is not None]
     def isai(self) -> bool: return False
+    def card_id(name: str) -> int:
+        for card in getCARDS():
+            if cleanstr(card.name) == cleanstr(name):
+                return card.id
+        return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS()) # I'm way to lazy to check whether the returned value is valid, so I just return a valid value in case the card doesn't exist.
     def from_save(name: str):
         fname = cleanstr(name);
         io = open("data/players.json");
@@ -799,14 +966,14 @@ class Player:
             return None
         player = players[fname];
         io.close();
-        return Player(name, getCOMMANDERS()[player["commander"]], [getCARDS()[i] for i in player["deck"]])
+        return Player(name, getCOMMANDERS()[player["commander"]], [getCARDS()[Player.card_id(i)] for i in player["deck"]])
     def from_saves(name: str, saves: dict):
-        return Player(name, getCOMMANDERS()[saves[name]["commander"]], [getCARDS()[i] for i in saves[name]["deck"]])
+        return Player(name, getCOMMANDERS()[saves[name]["commander"]], [getCARDS()[Player.card_id(i)] for i in saves[name]["deck"]])
     def save(self):
         self.reset()
         io = open("data/players.json", "r+");
         players: dict = loads(io.read());
-        userdata: dict = {cleanstr(self.name):{"commander":cleanstr(self.commander.card.name),"deck":[card.id for card in self.deck]}};
+        userdata: dict = {cleanstr(self.name):{"commander":cleanstr(self.commander.card.name),"deck":[cleanstr(card.name) for card in self.deck]}};
         players.update(userdata);
         io.truncate(0);
         io.write(dumps(userdata, separators=(',',':')));
@@ -843,7 +1010,7 @@ class Player:
                 return self.handdiscard(i)
     def boarddiscard(self):
         "Discard every defeated cards, returning them."
-        discards = []
+        discards: list[ActiveCard] = []
         cards = self.active
         for i in range(len(cards)):
             if cards[i] is None:
@@ -907,6 +1074,7 @@ class Board:
     unactive_player: Player
     turn: int
     arena: Arena
+    autoplay: bool
     def rps_win(player1: str, player2: str): # no idea why this is a method
         "Return `0` if player1 win Rock Paper Scissor against player2, `1` if player2 wins and `-1` if it's a draw."
         player1, player2 = rps2int(player1), rps2int(player2)
@@ -915,7 +1083,7 @@ class Board:
         if (player1 - 1) % 3 == player2:
             return 1
         return -1
-    def __init__(self, player1: Player, player2: Player):
+    def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
         if DEV() and rng.random() < 0.5: # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
             player1, player2 = player2, player1
         player1.commander.board = self
@@ -937,8 +1105,9 @@ class Board:
         self.turn = 0
         player1.draw()
         player2.draw()
-        DEV() and self.devprint()
-        if self.active_player.isai():
+        self.autoplay = autoplay
+        DEV() and not self.active_player.isai() and self.devprint()
+        if autoplay and self.active_player.isai():
             self.active_player.auto_play(self)
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
@@ -961,8 +1130,8 @@ class Board:
                 print(f"The winner is {ret[4].name}")
                 return ret
             #print(ret)
-            self.devprint()
-        if self.active_player.isai() and ret[4] is None:
+            not self.active_player.isai() and self.devprint()
+        if self.autoplay and self.active_player.isai() and ret[4] is None:
             return self.active_player.auto_play(self)
         return ret
     def devprint(self):
@@ -998,7 +1167,7 @@ class AIPlayer(Player): # I hate OOP
         for active in self.get_actives():
             if not active.attacked:
                 return True
-        if not self.commander.attacked and self.energy >= 1:
+        if not self.commander.attacked and self.energy >= 1 and len(self.get_actives()) == 0:
             return True
         if not np.any([card is None for card in self.active]):
             return False
@@ -1026,7 +1195,7 @@ class NaiveAI(AIPlayer):
             return self.naive_target_heal(board)
         valids = board.unactive_player.get_actives()
         if len(valids) == 0 or rng.random() < 0.5:
-            return self.commander
+            return self.commander.board.unactive_player.commander
         return rng.choice(valids)
     def get_attackers(self) -> list[ActiveCard]:
         return [card for card in self.get_actives() if not card.attacked]
@@ -1062,8 +1231,8 @@ class NaiveAI(AIPlayer):
         i: int = 0
         while self.can_play() and self.energy > self.goal:
             i += 1
-            if i == 600:
-                warn("NaiveAI couldn't find a way to end its turn. Force ending.")
+            if i == 300:
+                warn(f"NaiveAI ({self.name}) couldn't find a way to end its turn. Force ending.")
                 return board.endturn()
             (rng.random() < 1.0 - len(self.get_actives())/len(self.active)) and self.try_place(board)
             self.try_attack()
