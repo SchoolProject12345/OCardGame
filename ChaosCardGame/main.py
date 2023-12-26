@@ -1210,7 +1210,7 @@ class NaiveAI(AIPlayer):
         i: int = rng.choice(valids)
         if type(self.hand[i]) == SpellCard:
             return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags), board)
-        self.place(i, rng.choice(placeable), board)
+        self.place(i, rng.choice(placeable))
     def try_attack(self):
         attackers = self.get_attackers()
         if len(attackers) == 0:
