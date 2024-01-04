@@ -333,3 +333,40 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
  "infinite":true // false is undefined
 }
 ```
+
+## Numeric Expressions
+In most cases, integers in effect objects can be replaced by other object which are evaluated to integers every time the effect is applied.
+
+### List of targets' HP
+Eval into a `list`, which must then be further processed into a `int`.
+```js
+{"type":"HPs", "target_mode":"{TargetMode string}"}
+```
+
+### GCD
+Return the GCD of all elements in the evaluation of sample.
+```js
+{
+ "type":"gcd",
+ "sample":{/*numeric expression returning a list (e.g. list of HP)*/}
+}
+```
+
+### Sum
+Return the sum of all elements in the evaluation of sample. This can be used with a single-valued list to obtain its first (and only) element.
+```js
+{
+ "type":"sum",
+ "sample":{/*numeric expression returning a list (e.g. list of HP)*/}
+}
+```
+
+### Count
+Return the number of targets matching either by any tag or by any element. Both `tags` and `elements` are optional arguments, defaulting to an empty set.
+```js
+{
+ "type":"count",
+ "tags":["...", /*...*/],
+ "elements":["{Element string}", /*...*/]
+}
+```
