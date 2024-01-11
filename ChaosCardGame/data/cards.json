@@ -8,7 +8,7 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Tornado Beam",
+    "name": "Cloud Channeling",
     "cost": 1,
     "tag": "disability",
     "target_mode": "target",
@@ -98,7 +98,7 @@
     "effect": {
      "amount": 130,
      "type": "damage",
-     "damage_mode": "ignore_resist"
+     "damage_mode": "ignore_resistance"
     }
    }
   ]
@@ -106,8 +106,8 @@
  {
   "name": "Gargoyle of the Void",
   "element": "Chaos",
-  "cost": 1,
-  "hp": 190,
+  "cost": 2,
+  "hp": 115,
   "type": "creature"
  },
  {
