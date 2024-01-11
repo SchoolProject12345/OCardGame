@@ -42,7 +42,7 @@ class NumericList(Numeric):
 class HPList(NumericList): # To get HP from a single target, use `NumericSum(HPList(TargetMode.target))`
     target_mode: any # slightly spagehtti but this will do for now
     def eval(self, **kwargs) -> list[int]:
-        return show([card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))])
+        return [card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))]
     def __str__(self):
         return f"the HP from {self.target_mode.to_str()}"
 @dataclass
@@ -50,7 +50,7 @@ class GCDNumeric(Numeric):
     "Return the GCD of all elements in the list returned by `eval`uation of the `NumericList`."
     sample: NumericList
     def eval(self, **kwargs) -> int:
-        return show(np.gcd.reduce(show(self.sample.eval(**kwargs)))) # please save me from Python
+        return np.gcd.reduce(self.sample.eval(**kwargs)) # please save me from Python
     def __str__(self):
         return f"the greatest common divisor of {str(self.sample)}"
 @dataclass
