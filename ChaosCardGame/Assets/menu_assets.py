@@ -105,7 +105,7 @@ def transform_card_files(path: str):
             pass
         else:
             index_big = path
-            raise ValueError(f"Not enough states. ({path})")
+            
     curated_list = [index_small, index_big]
     for path in curated_list:
         processed_list.append(pygame.image.load(path))
