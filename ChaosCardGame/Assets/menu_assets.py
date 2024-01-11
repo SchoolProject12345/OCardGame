@@ -88,6 +88,9 @@ def transform_toggle_files(path: str):
     return [small_toggle, big_toggle]
 
 
+graphics_path = os.path.join("ChaosCardGame","Assets","Graphics", "")
+
+
 @dataclass
 class MenuBackgrounds:
     """
@@ -96,7 +99,7 @@ class MenuBackgrounds:
     """
 
     # Background Images
-    bg_dir = os.path.join("Assets", "Graphics", "Backgrounds", "")
+    bg_dir = os.path.join(graphics_path, "Backgrounds", "")
 
     bg_main_menu_path = bg_dir + "main_menu_empty.png"
     bg_main_menu_image = pygame.image.load(bg_main_menu_path)
@@ -118,7 +121,7 @@ class MenuButtons:
 
     """
 
-    button_dir = os.path.join("Assets", "Graphics", "Buttons", "")
+    button_dir = os.path.join(graphics_path, "Buttons", "")
 
     # Play
     play_button_path = button_dir + "Play"
@@ -154,7 +157,7 @@ class CardsMenuToggles:
     """
     A class to represent all toggles in the game.
     """
-    toggle_dir = os.path.join("Assets", "Graphics", "Toggles", "")
+    toggle_dir = os.path.join(graphics_path, "Toggles", "")
 
     # Air
     air_toggle_path = toggle_dir + "AirToggle"
@@ -176,19 +179,20 @@ class CardsMenuToggles:
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
 
+
 @dataclass
 class Cards:
     """
     A class to represent all air cards in the game.
     """
-    air_cards_dir = os.path.join("Assets", "Graphics", "Cards", "AirCards", "")
-    chaos_cards_dir = os.path.join("Assets", "Graphics", "Cards", "ChaosCards", "")
-    earth_cards_dir = os.path.join("Assets", "Graphics", "Cards", "EarthCards", "")
-    fire_cards_dir = os.path.join("Assets", "Graphics", "Cards", "FireCards", "")
-    water_cards_dir = os.path.join("Assets", "Graphics", "Cards", "WaterCards", "")
+    air_cards_dir = os.path.join(graphics_path, "Cards", "Air", "")
+    chaos_cards_dir = os.path.join(graphics_path, "Cards", "Chaos", "")
+    earth_cards_dir = os.path.join(graphics_path, "Cards", "Earth", "")
+    fire_cards_dir = os.path.join(graphics_path, "Cards", "Fire", "")
+    water_cards_dir = os.path.join(graphics_path, "Cards", "Water", "")
 
 
-## Air
+# Air
     # Commander
     air_commander_path = air_cards_dir + "Commander"
     air_commander_image = transform_card_files(air_commander_path)
@@ -225,7 +229,7 @@ class Cards:
     whisperingsprite_path = air_cards_dir + "WhisperingSprite"
     whisperingsprite_image = transform_card_files(whisperingsprite_path)
 
-## Chaos
+# Chaos
     # Commander
     chaos_commander_path = chaos_cards_dir + "Commander"
     chaos_commander_image = transform_card_files(chaos_commander_path)
@@ -262,7 +266,7 @@ class Cards:
     voidultraray_path = chaos_cards_dir + "VoidUltraray"
     voidultraray_image = transform_card_files(voidultraray_path)
 
-## Earth
+# Earth
     # Commander
     earth_commander_path = earth_cards_dir + "Commander"
     earth_commander_image = transform_card_files(earth_commander_path)
@@ -275,7 +279,7 @@ class Cards:
     bulkcherry_path = earth_cards_dir + "BulkCherry"
     bulkcherry_image = transform_card_files(bulkcherry_path)
 
-    #Energy Cat
+    # Energy Cat
     energycat_path = earth_cards_dir + "EnergyCat"
     energycat_image = transform_card_files(energycat_path)
 
@@ -299,76 +303,7 @@ class Cards:
     wisegolem_path = earth_cards_dir + "WiseGolem"
     wisegolem_image = transform_card_files(wisegolem_path)
 
-## Fire
+# Fire
     # Commander
     fire_commander_path = fire_cards_dir + "Commander"
-    fire_commander_image = transform_card_files(fire_commander_path)
-
-    # Ashes Hand
-    ashes_hand_path = fire_cards_dir + "AshesHand"
-    ashes_hand_image = transform_card_files(ashes_hand_path)
-
-    # Everburn Wizard
-    everburn_wizard_path = fire_cards_dir + "EverburnWizard"
-    everburn_wizard_image = transform_card_files(everburn_wizard_path)
-
-    # Felix Fyris
-    felix_fyris_path = fire_cards_dir + "FelixFyris"
-    felix_fyris_image = transform_card_files(felix_fyris_path)
-
-    # Fiery Lion
-    fiery_lion_path = fire_cards_dir + "FieryLion"
-    fiery_lion_image = transform_card_files(fiery_lion_path)
-
-    # Fyyrönyr
-    fyyronyr_path = fire_cards_dir + "Fyyrönyr"
-    fyyronyr_image = transform_card_files(fyyronyr_path)
-
-    # Kratos
-    kratos_path  = fire_cards_dir + "Kratos"
-    kratos_image = transform_card_files(kratos_path)
-
-    # Magma Devil
-    magma_devil_path = fire_cards_dir + "MagmaDevil"
-    magma_devil_image = transform_card_files(magma_devil_path)
-
-    # Magma Golem
-    magma_golem_path = fire_cards_dir + "MagmaGolem"
-    magma_golem_image = transform_card_files(magma_golem_path)
-
-## Water
-    # Commander
-    water_commander_path = water_cards_dir + "Commander"
-    water_commander_image = transform_card_files(water_commander_path)
-
-    # Bob Blobfish
-    bob_blobfish_path = water_cards_dir + "BobBlobfish"
-    bob_blobfish_image = transform_card_files(bob_blobfish_path)
-
-    # Captain Octopus
-    captain_octopus_path = water_cards_dir + "CaptainOctopus"
-    captain_octopus_image = transform_card_files(captain_octopus_path)
-
-    # Eternal Sunseeker
-    eternal_sunseeker_path = water_cards_dir + "EternalSunseeker"
-    eternal_sunseeker_image = transform_card_files(eternal_sunseeker_path)
-
-    # Lamia
-    lamia_path = water_cards_dir + "Lamia"
-    lamia_image = transform_card_files(lamia_path)
-
-    # Sea Hydra
-    sea_hydra_path = water_cards_dir + "SeaHydra"
-    sea_hydra_image = transform_card_files(sea_hydra_path)
-
-    # Shiao
-    shiao_path = water_cards_dir + "Shiao"
-    shiao_image = transform_card_files(shiao_path)
-
-    # Terror Mermaid
-    terror_mermaid_path = water_cards_dir + "TerrorMermaid"
-    terror_mermaid_image = transform_card_files(terror_mermaid_path)
-
-    # Thousand Toothed
-    thousand_toothed_path = water_cards_dir + "ThousandToothed"
-    thousand_toothed_image = transform_card_files(thousand_toothed_path)
+    fire_commander_image = transform_toggle_files(fire_commander_path)
