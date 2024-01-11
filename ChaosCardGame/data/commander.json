@@ -29,7 +29,7 @@
  "hp":600,
  "element":"fire",
  "commander":true,
- "cost":0
+ "cost":0,
  "attacks":[
   {
    "name":"Fire Slash",
@@ -41,7 +41,7 @@
     "damage":50,
     "time":2
    }
-  },
+  }
  ]
 },
 {

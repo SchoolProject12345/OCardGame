@@ -45,7 +45,7 @@
      "type":"dot",
      "damage":50,
      "time":3
-    },
+    }
     }
    }
   ]
@@ -123,17 +123,15 @@
      "type": "add_energy",
      "energy": 2,
      "max_energy":0,
-     "energy_per_turn":0,
+     "energy_per_turn":0
     },
     "trigger": "endofturn"
-   },
    }
   ],
   "tags": [
    "support",
    "tank"
   ],
-  
   "attacks": [
    {
     "name": "Radiant Aura",
@@ -144,10 +142,9 @@
      "type":"target_change",
      "new_target":"allies",
      "effect":{
-      "type":"heals"
+      "type":"heals",
       "amount":30
-     },
-     
+     }
     }
    }
   ]
