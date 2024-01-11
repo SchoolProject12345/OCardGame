@@ -1,6 +1,6 @@
 import pygame
 from ChaosCardGame.UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from Framework.ocg_vision import State, ImageToggle, ToggleGridFour, ImageButton
+from OCG_Vision.ocg_vision import State, ImageToggle, ToggleGridFour, ImageButton
 from Assets.menu_assets import MenuBackgrounds, CardToggles, MenuButtons, alpha_converter
 
 

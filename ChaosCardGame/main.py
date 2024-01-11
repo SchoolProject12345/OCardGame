@@ -1,7 +1,7 @@
 import sys
 import pygame
 import os
-from ChaosCardGame.UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.MenuTemplates.main_menu_ui import MainMenu
 
 
