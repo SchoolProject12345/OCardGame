@@ -5,6 +5,7 @@ from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
+import network as hakoumatatata
 os.chdir("")
 
 
