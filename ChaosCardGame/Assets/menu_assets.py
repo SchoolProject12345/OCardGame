@@ -88,6 +88,9 @@ def transform_toggle_files(path: str):
     return [small_toggle, big_toggle]
 
 
+graphics_path = os.path.join("ChaosCardGame","Assets","Graphics", "")
+
+
 @dataclass
 class MenuBackgrounds:
     """
@@ -96,7 +99,7 @@ class MenuBackgrounds:
     """
 
     # Background Images
-    bg_dir = os.path.join("Assets", "Graphics", "Backgrounds", "")
+    bg_dir = os.path.join(graphics_path, "Backgrounds", "")
 
     bg_main_menu_path = bg_dir + "main_menu_empty.png"
     bg_main_menu_image = pygame.image.load(bg_main_menu_path)
@@ -118,7 +121,7 @@ class MenuButtons:
 
     """
 
-    button_dir = os.path.join("Assets", "Graphics", "Buttons", "")
+    button_dir = os.path.join(graphics_path, "Buttons", "")
 
     # Play
     play_button_path = button_dir + "Play"
@@ -154,7 +157,7 @@ class CardsMenuToggles:
     """
     A class to represent all toggles in the game.
     """
-    toggle_dir = os.path.join("Assets", "Graphics", "Toggles", "")
+    toggle_dir = os.path.join(graphics_path, "Toggles", "")
 
     # Air
     air_toggle_path = toggle_dir + "AirToggle"
@@ -176,19 +179,20 @@ class CardsMenuToggles:
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
 
+
 @dataclass
 class Cards:
     """
     A class to represent all air cards in the game.
     """
-    air_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Air", "")
-    chaos_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Chaos", "")
-    earth_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Earth", "")
-    fire_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Fire", "")
-    water_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Water", "")
+    air_cards_dir = os.path.join(graphics_path, "Cards", "Air", "")
+    chaos_cards_dir = os.path.join(graphics_path, "Cards", "Chaos", "")
+    earth_cards_dir = os.path.join(graphics_path, "Cards", "Earth", "")
+    fire_cards_dir = os.path.join(graphics_path, "Cards", "Fire", "")
+    water_cards_dir = os.path.join(graphics_path, "Cards", "Water", "")
 
 
-## Air
+# Air
     # Commander
     air_commander_path = air_cards_dir + "Commander"
     air_commander_image = transform_toggle_files(air_commander_path)
@@ -225,7 +229,7 @@ class Cards:
     whisperingsprite_path = air_cards_dir + "WhisperingSprite"
     whisperingsprite_image = transform_toggle_files(whisperingsprite_path)
 
-## Chaos
+# Chaos
     # Commander
     chaos_commander_path = chaos_cards_dir + "Commander"
     chaos_commander_image = transform_toggle_files(chaos_commander_path)
@@ -262,7 +266,7 @@ class Cards:
     voidultraray_path = chaos_cards_dir + "VoidUltraray"
     voidultraray_image = transform_toggle_files(voidultraray_path)
 
-## Earth
+# Earth
     # Commander
     earth_commander_path = earth_cards_dir + "Commander"
     earth_commander_image = transform_toggle_files(earth_commander_path)
@@ -275,7 +279,7 @@ class Cards:
     bulkcherry_path = earth_cards_dir + "BulkCherry"
     bulkcherry_image = transform_toggle_files(bulkcherry_path)
 
-    #Energy Cat
+    # Energy Cat
     energycat_path = earth_cards_dir + "EnergyCat"
     energycat_image = transform_toggle_files(energycat_path)
 
@@ -299,7 +303,7 @@ class Cards:
     wisegolem_path = earth_cards_dir + "WiseGolem"
     wisegolem_image = transform_toggle_files(wisegolem_path)
 
-## Fire
+# Fire
     # Commander
     fire_commander_path = fire_cards_dir + "Commander"
     fire_commander_image = transform_toggle_files(fire_commander_path)
