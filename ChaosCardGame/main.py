@@ -4,6 +4,7 @@ from numpy import random as rng # for shuffle function/rng effects
 import numpy as np # for gcd for Kratos card
 from json import loads, dumps
 import os
+import network as hakoumatatata
 os.chdir("")
 from convenience import * # makes code cleaner
 
