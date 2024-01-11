@@ -181,125 +181,194 @@ class Cards:
     """
     A class to represent all air cards in the game.
     """
-    air_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Air", "")
-    chaos_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Chaos", "")
-    earth_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Earth", "")
-    fire_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Fire", "")
-    water_cards_dir = os.path.join("Assets", "Graphics", "Cards", "Water", "")
+    air_cards_dir = os.path.join("Assets", "Graphics", "Cards", "AirCards", "")
+    chaos_cards_dir = os.path.join("Assets", "Graphics", "Cards", "ChaosCards", "")
+    earth_cards_dir = os.path.join("Assets", "Graphics", "Cards", "EarthCards", "")
+    fire_cards_dir = os.path.join("Assets", "Graphics", "Cards", "FireCards", "")
+    water_cards_dir = os.path.join("Assets", "Graphics", "Cards", "WaterCards", "")
 
 
 ## Air
     # Commander
     air_commander_path = air_cards_dir + "Commander"
-    air_commander_image = transform_toggle_files(air_commander_path)
+    air_commander_image = transform_card_files(air_commander_path)
 
     # Crystal Bat
     crystalbat_path = air_cards_dir + "CrystalBat"
-    crystalbat_image = transform_toggle_files(crystalbat_path)
+    crystalbat_image = transform_card_files(crystalbat_path)
 
     # Mystical Owl
     mysticalowl_path = air_cards_dir + "MysticalOwl"
-    mysticalowl_image = transform_toggle_files(mysticalowl_path)
+    mysticalowl_image = transform_card_files(mysticalowl_path)
 
     # Mythical Pegasus
     mythicalpegasus_path = air_cards_dir + "MythicalPegasus"
-    mythicalpegasus_image = transform_toggle_files(mythicalpegasus_path)
+    mythicalpegasus_image = transform_card_files(mythicalpegasus_path)
 
     # Rio o Colorido
     riocolorido_path = air_cards_dir + "RioColorido"
-    riocolorido_image = transform_toggle_files(riocolorido_path)
+    riocolorido_image = transform_card_files(riocolorido_path)
 
     # Silver Crow
     silvercrow_path = air_cards_dir + "SilverCrow"
-    silvercrow_image = transform_toggle_files(silvercrow_path)
+    silvercrow_image = transform_card_files(silvercrow_path)
 
     # Skybound Serpent
     skyboundserpent_path = air_cards_dir + "SkyboundSerpent"
-    skyboundserpent_image = transform_toggle_files(skyboundserpent_path)
+    skyboundserpent_image = transform_card_files(skyboundserpent_path)
 
     # Sky Monkey
     skymonkey_path = air_cards_dir + "SkyMonkey"
-    skymonkey_image = transform_toggle_files(skymonkey_path)
+    skymonkey_image = transform_card_files(skymonkey_path)
 
     # Whispering Sprite
     whisperingsprite_path = air_cards_dir + "WhisperingSprite"
-    whisperingsprite_image = transform_toggle_files(whisperingsprite_path)
+    whisperingsprite_image = transform_card_files(whisperingsprite_path)
 
 ## Chaos
     # Commander
     chaos_commander_path = chaos_cards_dir + "Commander"
-    chaos_commander_image = transform_toggle_files(chaos_commander_path)
+    chaos_commander_image = transform_card_files(chaos_commander_path)
 
     # Chaos Brigade
     chaosbrigade_path = chaos_cards_dir + "ChaosBrigade"
-    chaosbrigade_image = transform_toggle_files(chaosbrigade_path)
+    chaosbrigade_image = transform_card_files(chaosbrigade_path)
 
     # Chaos Emperor
     chaosemperor_path = chaos_cards_dir + "ChaosEmperor"
-    chaosemperor_image = transform_toggle_files(chaosbrigade_path)
+    chaosemperor_image = transform_card_files(chaosbrigade_path)
 
     # Consumed Werewolf
     consumedwerewolf_path = chaos_cards_dir + "ConsumedWerewolf"
-    consumedwerewolf_image = transform_toggle_files(consumedwerewolf_path)
+    consumedwerewolf_image = transform_card_files(consumedwerewolf_path)
 
     # Soulfire Demon
     soulfiredemon_path = chaos_cards_dir + "SoulfireDemon"
-    soulfiredemon_image = transform_toggle_files(soulfiredemon_path)
+    soulfiredemon_image = transform_card_files(soulfiredemon_path)
 
     # Tenebrous Mage
     tenebrousmage_path = chaos_cards_dir + "TenebrousMage"
-    tenebrousmage_image = transform_toggle_files(tenebrousmage_path)
+    tenebrousmage_image = transform_card_files(tenebrousmage_path)
 
     # Tormented Warrior
     tormentedwarrior_path = chaos_cards_dir + "TormentedWarrior"
-    tormentedwarrior_image = transform_toggle_files(tormentedwarrior_path)
+    tormentedwarrior_image = transform_card_files(tormentedwarrior_path)
 
     # Void Gargoyle
     voidgargoyle_path = chaos_cards_dir + "VoidGargoyle"
-    voidgargoyle_image = transform_toggle_files(voidgargoyle_path)
+    voidgargoyle_image = transform_card_files(voidgargoyle_path)
 
     # Void Ultraray
     voidultraray_path = chaos_cards_dir + "VoidUltraray"
-    voidultraray_image = transform_toggle_files(voidultraray_path)
+    voidultraray_image = transform_card_files(voidultraray_path)
 
 ## Earth
     # Commander
     earth_commander_path = earth_cards_dir + "Commander"
-    earth_commander_image = transform_toggle_files(earth_commander_path)
+    earth_commander_image = transform_card_files(earth_commander_path)
 
     # Blossom Sylph
     blossomsylph_path = earth_cards_dir + "BlossomSylph"
-    blossomsylph_image = transform_toggle_files(blossomsylph_path)
+    blossomsylph_image = transform_card_files(blossomsylph_path)
 
     # Bulk Cherry
     bulkcherry_path = earth_cards_dir + "BulkCherry"
-    bulkcherry_image = transform_toggle_files(bulkcherry_path)
+    bulkcherry_image = transform_card_files(bulkcherry_path)
 
     #Energy Cat
     energycat_path = earth_cards_dir + "EnergyCat"
-    energycat_image = transform_toggle_files(energycat_path)
+    energycat_image = transform_card_files(energycat_path)
 
     # Everstone Symbiote
     everstonesymbiote_path = earth_cards_dir + "EverstoneSymbiote"
-    everstonesymbiote_image = transform_toggle_files(everstonesymbiote_path)
+    everstonesymbiote_image = transform_card_files(everstonesymbiote_path)
 
     # Fern Goat
     ferngoat_path = earth_cards_dir + "FernGoat"
-    ferngoat_image = transform_toggle_files(ferngoat_path)
+    ferngoat_image = transform_card_files(ferngoat_path)
 
     # Shokubutsu
     shokubutsu_path = earth_cards_dir + "Shokubutsu"
-    shokubutsu_image = transform_toggle_files(shokubutsu_path)
+    shokubutsu_image = transform_card_files(shokubutsu_path)
 
     # Vine Serpent
     vineserpent_path = earth_cards_dir + "VineSerpent"
-    vineserpent_image = transform_toggle_files(vineserpent_path)
+    vineserpent_image = transform_card_files(vineserpent_path)
 
     # Wise Golem
     wisegolem_path = earth_cards_dir + "WiseGolem"
-    wisegolem_image = transform_toggle_files(wisegolem_path)
+    wisegolem_image = transform_card_files(wisegolem_path)
 
 ## Fire
     # Commander
     fire_commander_path = fire_cards_dir + "Commander"
-    fire_commander_image = transform_toggle_files(fire_commander_path)
+    fire_commander_image = transform_card_files(fire_commander_path)
+
+    # Ashes Hand
+    ashes_hand_path = fire_cards_dir + "AshesHand"
+    ashes_hand_image = transform_card_files(ashes_hand_path)
+
+    # Everburn Wizard
+    everburn_wizard_path = fire_cards_dir + "EverburnWizard"
+    everburn_wizard_image = transform_card_files(everburn_wizard_path)
+
+    # Felix Fyris
+    felix_fyris_path = fire_cards_dir + "FelixFyris"
+    felix_fyris_image = transform_card_files(felix_fyris_path)
+
+    # Fiery Lion
+    fiery_lion_path = fire_cards_dir + "FieryLion"
+    fiery_lion_image = transform_card_files(fiery_lion_path)
+
+    # Fyyrönyr
+    fyyronyr_path = fire_cards_dir + "Fyyrönyr"
+    fyyronyr_image = transform_card_files(fyyronyr_path)
+
+    # Kratos
+    kratos_path  = fire_cards_dir + "Kratos"
+    kratos_image = transform_card_files(kratos_path)
+
+    # Magma Devil
+    magma_devil_path = fire_cards_dir + "MagmaDevil"
+    magma_devil_image = transform_card_files(magma_devil_path)
+
+    # Magma Golem
+    magma_golem_path = fire_cards_dir + "MagmaGolem"
+    magma_golem_image = transform_card_files(magma_golem_path)
+
+## Water
+    # Commander
+    water_commander_path = water_cards_dir + "Commander"
+    water_commander_image = transform_card_files(water_commander_path)
+
+    # Bob Blobfish
+    bob_blobfish_path = water_cards_dir + "BobBlobfish"
+    bob_blobfish_image = transform_card_files(bob_blobfish_path)
+
+    # Captain Octopus
+    captain_octopus_path = water_cards_dir + "CaptainOctopus"
+    captain_octopus_image = transform_card_files(captain_octopus_path)
+
+    # Eternal Sunseeker
+    eternal_sunseeker_path = water_cards_dir + "EternalSunseeker"
+    eternal_sunseeker_image = transform_card_files(eternal_sunseeker_path)
+
+    # Lamia
+    lamia_path = water_cards_dir + "Lamia"
+    lamia_image = transform_card_files(lamia_path)
+
+    # Sea Hydra
+    sea_hydra_path = water_cards_dir + "SeaHydra"
+    sea_hydra_image = transform_card_files(sea_hydra_path)
+
+    # Shiao
+    shiao_path = water_cards_dir + "Shiao"
+    shiao_image = transform_card_files(shiao_path)
+
+    # Terror Mermaid
+    terror_mermaid_path = water_cards_dir + "TerrorMermaid"
+    terror_mermaid_image = transform_card_files(terror_mermaid_path)
+
+    # Thousand Toothed
+    thousand_toothed_path = water_cards_dir + "ThousandToothed"
+    thousand_toothed_image = transform_card_files(thousand_toothed_path)
