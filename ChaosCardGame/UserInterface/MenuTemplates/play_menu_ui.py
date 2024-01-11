@@ -28,7 +28,7 @@ class PlayMenu(State):
         self.join_button.render()
         self.host_button.render()
         self.exit_button.render()
-        
+
         if self.exit_button.answer():
             self.revert_state()
 

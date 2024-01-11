@@ -1,4 +1,6 @@
 def DEV() -> bool: return True
+
+
 def getordef(d: dict, key, default):
     """    
     Get value at `key` from `dict` if it exists, returns `default` otherwise.
@@ -14,6 +16,7 @@ def getordef(d: dict, key, default):
     if key not in d:
         return default
     return d.get(key)
+
 
 def getorset(d: dict, key, default):
     """
@@ -35,7 +38,8 @@ def getorset(d: dict, key, default):
         return default
     return d.get(key)
 
-def warn(*args, dev = DEV(), **kwargs) -> bool:
+
+def warn(*args, dev=DEV(), **kwargs) -> bool:
     """
     Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
 
@@ -47,15 +51,18 @@ def warn(*args, dev = DEV(), **kwargs) -> bool:
     do something here
     ```
     """
-    if dev: # hard check to avoid mistakes
-        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs); # might not work in every terminal, but should in VS Code
-    return True # this is definitevely not spaghetti code.
+    if dev:  # hard check to avoid mistakes
+        # might not work in every terminal, but should in VS Code
+        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs)
+    return True  # this is definitevely not spaghetti code.
+
 
 def ifelse(cond: bool, a, b):
     "Return `a` if `cond` is `True`, return `b` otherwise. Used to replace the lack of expression in Python."
     if cond:
         return a
     return b
+
 
 def cleanstr(s: str) -> str:
     """
@@ -68,19 +75,20 @@ def cleanstr(s: str) -> str:
     ```
     """
     return "".join(filter(str.isalnum, s)).lower().translate(str.maketrans({
-    'ø':'o',
-    'ö':'o',
-    'ó':'o',
-    'ä':'a',
-    'å':'a',
-    'ÿ':'y',
-    'ý':'y',
-    'í':'i',
-    "ü":'u',
-    'ú':'u',
-    'æ':"ae",
-    'þ':"th"
-    })) # fix bugs with Fyyrönir
+        'ø': 'o',
+        'ö': 'o',
+        'ó': 'o',
+        'ä': 'a',
+        'å': 'a',
+        'ÿ': 'y',
+        'ý': 'y',
+        'í': 'i',
+        "ü": 'u',
+        'ú': 'u',
+        'æ': "ae",
+        'þ': "th"
+    }))  # fix bugs with Fyyrönir
+
 
 def withfield(d: dict, key, value):
     """
@@ -98,6 +106,7 @@ def withfield(d: dict, key, value):
     d = d.copy()
     d[key] = value
     return d
+
 
 def hasany(A: list, B: list) -> bool:
     for a in A:

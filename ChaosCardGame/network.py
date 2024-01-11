@@ -1,4 +1,7 @@
-import socket, json, threading, shutil
+import socket
+import json
+import threading
+import shutil
 
 
 def data_handler(action: str, path: str, data: str):
@@ -23,9 +26,8 @@ def data_handler(action: str, path: str, data: str):
     except:
         pass
 
-    with open('./public/data.json', 'r') as file:   
+    with open('./public/data.json', 'r') as file:
         loaded_data = json.load(file)
-
 
     keys = path.split('/')
     # Navigate the JSON structure based on the path
@@ -39,9 +41,9 @@ def data_handler(action: str, path: str, data: str):
                 current_node[key] = {}
                 current_node = current_node[key]
             else:
-                print(f"Key '{key}' not found in the JSON data at path '{path}'.")
+                print(
+                    f"Key '{key}' not found in the JSON data at path '{path}'.")
                 return
-
 
     last_key = keys[-1]
     if action == 'append':
@@ -63,14 +65,14 @@ def data_handler(action: str, path: str, data: str):
         else:
             print(f"Key '{last_key}' not found in the JSON data.")
             return
-        
+
     elif action == 'replace':
         if last_key in current_node:
             current_node[last_key] = data
         else:
             print(f"Key '{last_key}' not found in the JSON data.")
             return
-        
+
     else:
         print("Invalid action. Supported actions: 'append', 'remove', 'replace'")
         return
@@ -78,6 +80,7 @@ def data_handler(action: str, path: str, data: str):
     # Write the modified data back to the file
     with open("./public/data.json", 'w') as file:
         json.dump(loaded_data, file, indent=2)
+
 
 def get_ip():
     """
@@ -88,6 +91,7 @@ def get_ip():
     host = clapped.getsockname()[0]
     clapped.close()
     return host
+
 
 def send(client_socket: socket.socket, action: str, path: str, data: str):
     """
@@ -108,7 +112,7 @@ def listen(client_socket: socket.socket):
     while True:
         data = client_socket.recv(1024).decode("utf-8")  # 1 kb of data
 
-        if not data: # if empty byte string (socket was closed)
+        if not data:  # if empty byte string (socket was closed)
             client_socket.close()
             break
 
@@ -117,8 +121,6 @@ def listen(client_socket: socket.socket):
         path = data[1]
         data = data[2]
         data_handler(action, path, data)
-
-
 
 
 ## ======================= SET UP CONNECTION ======================= ##
@@ -131,10 +133,10 @@ def listen_for_connection(ip: str, port: str):
     listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listening_socket.bind((ip, port))
     listening_socket.listen(5)
-    
+
     print(f"Listening for connection on {ip}:{port}")
 
-    client_socket, addr = listening_socket.accept() # one connection max
+    client_socket, addr = listening_socket.accept()  # one connection max
     print(f"Accepted connection from {addr}")
 
     network_thread = threading.Thread(target=listen, args=(client_socket,))
@@ -143,14 +145,15 @@ def listen_for_connection(ip: str, port: str):
     return client_socket
 
 
-def start_peer_to_peer(action, target_ip: str=""):
+def start_peer_to_peer(action, target_ip: str = ""):
     """
     start_peer_to_peer() is the starting point of the network program.
     The user will choose to join or to host a party.
     """
     ip = get_ip()
-    
-    shutil.copyfile('template.json', './public/data.json') # reset the data.json file
+
+    # reset the data.json file
+    shutil.copyfile('template.json', './public/data.json')
     # host = socket.gethostname()
     port = 12345  # You can choose any available port
     print("IP: ", ip)
@@ -160,8 +163,9 @@ def start_peer_to_peer(action, target_ip: str=""):
         return client_socket
     else:
         target_port = 12345
-        
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # sock_stream for TCP
+
+        client_socket = socket.socket(
+            socket.AF_INET, socket.SOCK_STREAM)  # sock_stream for TCP
         client_socket.settimeout(5)
 
         try:
