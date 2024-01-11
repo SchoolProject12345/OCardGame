@@ -93,20 +93,25 @@ def transform_card_files(path: str):
 
     """
     o_dir = path
+    print(o_dir)
     curated_list = []
     processed_list = []
     for object in os.listdir(o_dir):
         if os.path.isfile(os.path.join(o_dir, object)):
             curated_list.append(os.path.join(o_dir, object))
+    print(curated_list)
     for path in curated_list:
-        if "s_" in path:
+        processed_path = path.split("/")[-1]
+        # print(path)
+        if processed_path.startswith("s_"):
             index_small = path
-        elif ".DS" in path:
+            print(path[-1])
+        elif processed_path.endswith(".DS"):
             pass
         else:
             index_big = path
-            
     curated_list = [index_small, index_big]
+    print(curated_list)
     for path in curated_list:
         processed_list.append(pygame.image.load(path))
     return processed_list
