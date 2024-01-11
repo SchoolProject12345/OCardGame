@@ -1,11 +1,11 @@
-from convenience import *  # makes code cleaner
+from ChaosCardGame.Core.convenience import *  # makes code cleaner
 from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
-import network as hakoumatatata
+import ChaosCardGame.Network.network as hakoumatatata
 os.chdir("")
 
 
