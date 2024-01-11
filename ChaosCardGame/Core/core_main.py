@@ -1,11 +1,16 @@
-from ChaosCardGame.Core.convenience import *  # makes code cleaner
+from convenience import *  # makes code cleaner
 from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
-import ChaosCardGame.Network.network as hakoumatatata
+
+import socket # socket is only used for docs
+import json
+import network as net
+from network import send
+
 os.chdir("")
 
 
@@ -1550,3 +1555,57 @@ class NaiveAI(AIPlayer):
             attack: Attack = rng.choice(valids)
             card.attack(attack, board.unactive_player.commander)
         return board.endturn()
+
+
+#a mettre dans une classe?, je sais pas faire
+# a changer pour envoyer de linformation au lieu de "1"
+    
+def main(client_socket: socket.socket):
+    """
+    main represents the thread on which the game is running.
+    """
+    try:
+        while True:
+            x = str(input("Enter 1 to send smth: \n"))
+            if x == "1":
+                send(client_socket, "append", "Player0/deck/1", "1010101010") ## example 1 of append
+                send(client_socket, "append", "Player0/deck", json.dumps({"2": "202020202"})) ## example 2 of append
+                # tested 'replace' method, 100% functionality
+                # tested 'append' method, 100% functionality
+                # tested 'remove' method, 100% functionality
+            try:
+                # check if socket is closed
+                # this method will not work with the POC input(), but will work in the game
+                client_socket.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+            except:
+                break
+    except Exception as e:
+        print(e)
+        print("main thread error/closing")
+    finally:
+        client_socket.close()
+
+
+if __name__ == "__main__":
+    """
+    The idea is we set up the listening function on thread 1, 
+
+    then return the socket on thread 0 (this is thread 0),
+
+    then start the game loop using the socket,
+    """
+    action = "join"
+    target_ip = ""
+    if input("Start party or join a party? ").lower() == "start":
+        action = "start"
+    else:
+        target_ip = input("Enter the target peer's IP address (or 'exit' to quit): ")
+    
+    client_socket = net.start_peer_to_peer(action, target_ip)
+
+    if client_socket:
+        main(client_socket)
+#        mainThread = threading.Thread(target=main, args=(client_socket,))
+#        mainThread.start()
+    else:
+        print("Error with connection (Most likely timed out)")
