@@ -1,7 +1,7 @@
 import pygame
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, CardToggles, alpha_converter
 from Framework.ocg_vision import State, ImageButton, ImageToggle
-from settings import SCREEN_CENTER
+from ChaosCardGame.UserInterface.ui_settings import SCREEN_CENTER
 from MenuTemplates.credits_menu_ui import CreditsMenu
 from MenuTemplates.play_menu_ui import PlayMenu
 from MenuTemplates.cards_menu_ui import CardsMenu
