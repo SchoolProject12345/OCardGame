@@ -1,6 +1,6 @@
 from Framework.ocg_vision import State, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from settings import SCREEN_CENTER
+from ChaosCardGame.UserInterface.ui_settings import SCREEN_CENTER
 
 
 class CreditsMenu(State):
