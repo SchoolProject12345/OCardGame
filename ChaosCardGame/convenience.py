@@ -1,3 +1,4 @@
+def DEV() -> bool: return True
 def getordef(d: dict, key, default):
     """    
     Get value at `key` from `dict` if it exists, returns `default` otherwise.
@@ -97,3 +98,9 @@ def withfield(d: dict, key, value):
     d = d.copy()
     d[key] = value
     return d
+
+def hasany(A: list, B: list) -> bool:
+    for a in A:
+        if a in B:
+            return True
+    return False
