@@ -1,7 +1,7 @@
 import pygame
-from OCG_Vision.ocg_vision import State, ImageButton
+from UserInterface.OCG_Vision.ocg_vision import State, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from ChaosCardGame.UserInterface.ui_settings import SCREEN_CENTER
+from UserInterface.ui_settings import SCREEN_CENTER
 
 
 class PlayMenu(State):
@@ -15,10 +15,10 @@ class PlayMenu(State):
         self.bg_play_menu_rect = self.bg_play_menu_image.get_rect()
 
         self.join_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.join_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 2))
+            MenuButtons.join_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 102))
 
         self.host_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 102))
+            MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 2))
 
         self.exit_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.exit_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))

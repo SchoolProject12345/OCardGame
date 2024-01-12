@@ -1,10 +1,10 @@
 import pygame
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from OCG_Vision.ocg_vision import State, ImageButton
-from ChaosCardGame.UserInterface.ui_settings import SCREEN_CENTER
-from MenuTemplates.credits_menu_ui import CreditsMenu
-from MenuTemplates.play_menu_ui import PlayMenu
-from MenuTemplates.cards_menu_ui import CardsMenu
+from UserInterface.OCG_Vision.ocg_vision import State, ImageButton
+from UserInterface.ui_settings import SCREEN_CENTER
+from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
+from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
+from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 
 
 class MainMenu(State):

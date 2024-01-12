@@ -1,14 +1,14 @@
 import pygame
-from ChaosCardGame.UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from OCG_Vision.ocg_vision import State, ImageToggle, ToggleGridFour, ImageButton
-from Assets.menu_assets import MenuBackgrounds, CardToggles, MenuButtons, alpha_converter
+from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from UserInterface.OCG_Vision.ocg_vision import State, ImageToggle, ToggleGridFour, ImageButton
+from Assets.menu_assets import MenuBackgrounds, CardsMenuToggles, MenuButtons, alpha_converter
 
 
 class EarthCards():
     def __init__(self, screen):
         self.screen = screen
-        self.image = pygame.image.load("Assets/Group 50.png").convert_alpha()
-        self.image_2 = pygame.image.load("Assets/Group 53.png").convert_alpha()
+        self.image = pygame.image.load("ChaosCardGame/Assets/Group 50.png").convert_alpha()
+        self.image_2 = pygame.image.load("ChaosCardGame/Assets/Group 53.png").convert_alpha()
         self.total = [[self.image], [self.image_2]]
         self.total_2 = [[self.image], [self.image_2]]
         self.left_side = ToggleGridFour(
@@ -34,7 +34,7 @@ class CardsMenu(State):
             self.screen, True, image=MenuButtons.exit_arrow_button_image, position_type="topleft", position=(25, 25))
         # Toggle Grids
         padding = 25
-        object_width = CardToggles.air_toggle_image[0][0].get_width()
+        object_width = CardsMenuToggles.air_toggle_image[0][0].get_width()
         number_of_toggles = 5
         total_width = SCREEN_WIDTH - 2 * padding - object_width * number_of_toggles
         gap_width = total_width / (number_of_toggles-1)
@@ -43,15 +43,15 @@ class CardsMenu(State):
         # Toggles
         self.element_toggles = [
             ImageToggle(
-                self.screen, "AirToggle", image=alpha_converter(CardToggles.air_toggle_image), position=(toggle_xpos[0], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "AirToggle", image=alpha_converter(CardsMenuToggles.air_toggle_image), position=(toggle_xpos[0], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "ChaosToggle", image=alpha_converter(CardToggles.chaos_toggle_image), position=(toggle_xpos[1], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "ChaosToggle", image=alpha_converter(CardsMenuToggles.chaos_toggle_image), position=(toggle_xpos[1], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "EarthToggle", is_toggled=True, image=alpha_converter(CardToggles.earth_toggle_image), position=(toggle_xpos[2], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "EarthToggle", is_toggled=True, image=alpha_converter(CardsMenuToggles.earth_toggle_image), position=(toggle_xpos[2], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "WaterToggle", image=alpha_converter(CardToggles.water_toggle_image), position=(toggle_xpos[3], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "WaterToggle", image=alpha_converter(CardsMenuToggles.water_toggle_image), position=(toggle_xpos[3], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "FireToggle", image=alpha_converter(CardToggles.fire_toggle_image), position=(toggle_xpos[4], SCREEN_HEIGHT-20), position_type="midbottom")
+                self.screen, "FireToggle", image=alpha_converter(CardsMenuToggles.fire_toggle_image), position=(toggle_xpos[4], SCREEN_HEIGHT-20), position_type="midbottom")
         ]
         self.active_toggle = -1
         self.new_toggle = None

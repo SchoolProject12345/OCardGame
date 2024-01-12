@@ -93,7 +93,6 @@ def transform_card_files(path: str):
 
     """
     o_dir = path
-    print(o_dir)
     curated_list = []
     processed_list = []
     for object in os.listdir(o_dir):
@@ -102,10 +101,8 @@ def transform_card_files(path: str):
     print(curated_list)
     for path in curated_list:
         processed_path = path.split("/")[-1]
-        # print(path)
         if processed_path.startswith("s_"):
             index_small = path
-            print(path[-1])
         elif processed_path.endswith(".DS"):
             pass
         else:
