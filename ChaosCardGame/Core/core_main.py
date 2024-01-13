@@ -6,14 +6,6 @@ from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
 
-import socket # socket is only used for docs
-import json
-import network as net
-from network import send
-
-os.chdir("")
-
-
 class Numeric:
     def eval(self, **_) -> int:
         return warn(f"Numeric value of type {type(self)} cannot be acessed.") and 0
