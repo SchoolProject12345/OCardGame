@@ -1,6 +1,6 @@
 import pygame
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from UserInterface.OCG_Vision.ocg_vision import State, ImageButton
+from UserInterface.OCG_Vision.ocg_vision import State, ImageButton, DualBar
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
@@ -14,8 +14,7 @@ class MainMenu(State):
         )
 
         self.bg_main_menu_image = MenuBackgrounds.bg_main_menu_image.convert_alpha()
-        self.bg_main_menu_rect = self.bg_main_menu_image.get_rect(
-            topleft=(0, 0))
+        self.bg_main_menu_rect = self.bg_main_menu_image.get_rect(topleft=(0, 0))
 
         self.quit_event = pygame.event.Event(pygame.QUIT)
 

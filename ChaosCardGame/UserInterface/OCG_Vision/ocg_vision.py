@@ -242,7 +242,7 @@ class ImageToggle:
     def render(self): -> None
         Renders the button on the screen.
     def answer(self): -> None
-        Returns the call_back based on toggle state.    
+        Returns the call_back based on toggle state.
 
     """
 
@@ -265,8 +265,7 @@ class ImageToggle:
 
         # Core Attributes for toggled state
         self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[1])
-        self.position_type_T = kwargs.get(
-            "position_type_T", self.position_type)
+        self.position_type_T = kwargs.get("position_type_T", self.position_type)
         self.position_T = kwargs.get("position_T", self.position)
 
         # Image processing
@@ -278,9 +277,11 @@ class ImageToggle:
 
         # Position processing
         self.toggle_rect = self.toggle_image[0].get_rect(
-            **{self.position_type: self.position})
+            **{self.position_type: self.position}
+        )
         self.toggle_rect_T = self.toggle_image_T[0].get_rect(
-            **{self.position_type_T: self.position_T})
+            **{self.position_type_T: self.position_T}
+        )
 
     def render(self):
         self.previous_state = self.state
@@ -301,7 +302,6 @@ class ImageToggle:
             self.screen.blit(self.toggle_image[2], self.toggle_rect)
 
     def check_state(self):
-
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_click = pygame.mouse.get_pressed()
 
@@ -341,7 +341,7 @@ class ImageToggle:
             self.is_toggled = True
 
 
-class ToggleGridFour():
+class ToggleGridFour:
     """
     Aligns 4 toggles in a 2x2 grid.
 
@@ -368,7 +368,16 @@ class ToggleGridFour():
         Renders the grid.
     """
 
-    def __init__(self, mother_surface, images, grid_width, grid_height, initial_pos, factor=1, factor_T=1):
+    def __init__(
+        self,
+        mother_surface,
+        images,
+        grid_width,
+        grid_height,
+        initial_pos,
+        factor=1,
+        factor_T=1,
+    ):
         self.mother_surface = mother_surface
         self.width = grid_width
         self.height = grid_height
@@ -377,30 +386,45 @@ class ToggleGridFour():
         for i_1, toggle in enumerate(self.all_images):
             for i_2, image_type in enumerate(toggle):
                 match i_2:
-                    case 0: local_factor = factor
-                    case 1: local_factor = factor_T
+                    case 0:
+                        local_factor = factor
+                    case 1:
+                        local_factor = factor_T
                 self.all_images[i_1][i_2] = smoothscale_converter(
-                    image_type, local_factor)
+                    image_type, local_factor
+                )
         self.card_width = self.all_images[0][0][0].get_width()
         self.card_height = self.all_images[0][0][0].get_height()
         self.initial_pos = initial_pos
         self.top_left = self.initial_pos
         self.top_right = (
-            self.initial_pos[0] + self.width/2 + self.card_width, self.initial_pos[1])
+            self.initial_pos[0] + self.width / 2 + self.card_width,
+            self.initial_pos[1],
+        )
         self.bottom_left = (
-            self.initial_pos[0], self.initial_pos[1] + self.height/2 + self.card_height)
+            self.initial_pos[0],
+            self.initial_pos[1] + self.height / 2 + self.card_height,
+        )
         self.bottom_right = (
-            self.initial_pos[0] + self.width/2 + self.card_height, self.initial_pos[1] + self.height/2 + self.card_height)
+            self.initial_pos[0] + self.width / 2 + self.card_height,
+            self.initial_pos[1] + self.height / 2 + self.card_height,
+        )
         self.positions = [
             ["topleft", self.initial_pos],
             ["topright", self.top_right],
             ["bottomleft", self.bottom_left],
-            ["bottomright", self.bottom_right]
+            ["bottomright", self.bottom_right],
         ]
         for index, image in enumerate(self.all_images):
-            self.toggles.append(ImageToggle(
-                self.mother_surface, True, image=image, position_type=self.positions[index][0], position=self.positions[index][1]
-            ))
+            self.toggles.append(
+                ImageToggle(
+                    self.mother_surface,
+                    True,
+                    image=image,
+                    position_type=self.positions[index][0],
+                    position=self.positions[index][1],
+                )
+            )
 
     def render(self):
         self.priority = None
@@ -413,3 +437,75 @@ class ToggleGridFour():
         if self.priority != None:
             self.priority.render()
             self.priority.answer()
+
+
+class DualBar:
+    """
+    Creates a dual bar to display two values.
+
+    Args:
+        screen: `pygame.Surface`
+            The screen to render the bar on.
+        position: `tuple`
+            The position of the bar.
+        position_type: `str`
+            The position type of the bar.
+        width: `int`
+            The width of the bar.
+        height: `int`
+            The height of the bar.
+        color_bg: `pygame.Color`
+            The background color of the bar.
+        color_fg: `pygame.Color`
+            The foreground color of the bar.
+        max_value: `int`
+            The maximum value of the bar.
+    """
+
+    def __init__(
+        self,
+        screen: pygame.Surface,
+        position: tuple,
+        position_type: str,
+        width: int,
+        height: int,
+        color_bg: pygame.Color | tuple,
+        color_fg: pygame.Color | tuple,
+        max_health: int,
+        **kwargs,
+    ) -> None:
+        self.screen = screen
+        self.position = position
+        self.position_type = position_type
+        self.width = width
+        self.height = height
+        self.color_bg = color_bg
+        self.color_fg = color_fg
+        self.border_radius = kwargs.get("border_radius", 0)
+        self.max_health = max_health
+        self.health = self.max_health
+
+    def update(self, health: int) -> None:
+        self.health = health
+        self.health_percent = self.health / self.max_health
+        self.health_width = self.health_percent * self.width
+
+    def render(self, health: int):
+        """Renders and maintains the bar.
+
+        Args:
+            health (int): The current health of the bar.
+        """
+        self.update(health)
+        pygame.draw.rect(
+            self.screen,
+            self.color_bg,
+            (self.position[0], self.position[1], self.width, self.height),
+            border_radius=self.border_radius,
+        )
+        pygame.draw.rect(
+            self.screen,
+            self.color_fg,
+            (self.position[0], self.position[1], self.health_width, self.height),
+            border_radius=self.border_radius,
+        )
