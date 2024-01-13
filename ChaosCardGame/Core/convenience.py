@@ -109,7 +109,23 @@ def withfield(d: dict, key, value):
 
 
 def hasany(A: list, B: list) -> bool:
+    """
+    Returns `True` if `B` contains any element of `A`, `False` otherwise.
+
+    # Examples
+    ```py
+    >>> hasany([1,2,3], [3,4,5])
+    True
+    >>> hasany([1,2,3], [4,5,6])
+    False
+    ```
+    """
     for a in A:
-        if a in B:
-            return True
+        if a in B: return True
     return False
+
+
+def show(arg):
+    "Debug function returning its argument after printing it on the terminal."
+    print(arg)
+    return arg
