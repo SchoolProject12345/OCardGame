@@ -5,7 +5,7 @@ import threading
 def get_data(loaded_data = {}):
     if bool(loaded_data):
         return loaded_data
-    with open('template.json') as file:
+    with open('Network/template.json') as file:
         try:
             loaded_data.update(json.load(file))
         finally:
@@ -93,7 +93,6 @@ def get_ip():
     clapped.close()
     return host
 
-
 def send(client_socket: socket.socket, action: str, path: str, data: str):
     """
     `send` updates both the local and peer's JSON file.
@@ -154,6 +153,7 @@ def join_connection(target_ip: str, port: int):
     try:
         client_socket.connect((target_ip, port))
         client_socket.settimeout(None)
+        return client_socket
     except socket.error as e:
         print(f"Error connecting to {target_ip}:{port}: {str(e)}")
         return
