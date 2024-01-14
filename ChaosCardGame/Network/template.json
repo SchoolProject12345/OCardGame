@@ -1,0 +1,16 @@
+{
+ "server":{
+  "deck_length":15,
+  "board":[],
+  "discard":[],
+  "log":[]
+ },
+ "client":{
+  "deck_length":15,
+  "hand":[],
+  "board":[],
+  "discard":[],
+  "action_queue":[]
+ },
+ "server_turn":true
+}
