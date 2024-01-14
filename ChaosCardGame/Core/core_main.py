@@ -1183,9 +1183,9 @@ class Board:
             return 1
         return -1
     def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
-        active_player, unactive_player = player1, player2
+        self.active_player, self.unactive_player = player1, player2
         if DEV() and rng.random() < 0.5:  # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
-            active_player, unactive_player = unactive_player, active_player
+            self.active_player, self.unactive_player = self.unactive_player, self.active_player
         player1.commander.board = self
         player2.commander.board = self
         self.arena = Arena(rng.randint(5))
@@ -1200,8 +1200,6 @@ class Board:
             1, 7) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
-        self.active_player = player1  # player1 start
-        self.unactive_player = player2
         self.unactive_player.energy += 1  # To compensate disadvantage
         self.turn = 0
         player1.draw()
@@ -1237,10 +1235,10 @@ class Board:
             return self.active_player.auto_play(self)
         return ret
     def devprint(self):
-        you = self.active_player
-        them = self.unactive_player
+        you = self.player1
+        them = self.player2
         print(self.turn)
-        print(f"Them: {them.energy}/{them.max_energy} energies.")
+        print(f"{them.name}: {them.energy}/{them.max_energy} energies.")
         print(them.commander.card.name,
               f"({them.commander.hp}/{them.commander.card.max_hp})")
         for card in them.active:
@@ -1249,7 +1247,7 @@ class Board:
                 continue
             print(cleanstr(card.card.name),
                   f"({card.hp}/{card.card.max_hp}) ", end="")
-        print(f"\n\nYou : {you.energy}/{you.max_energy} energies")
+        print(f"\n\n{you.name}: {you.energy}/{you.max_energy} energies")
         print(you.commander.card.name,
               f"({you.commander.hp}/{you.commander.card.max_hp})")
         for card in you.active:
