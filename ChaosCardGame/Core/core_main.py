@@ -590,9 +590,9 @@ class EnergyEffect(AbstractEffect):
     max_energy: Numeric
     energy_per_turn: Numeric
     def execute(self, **kwargs) -> bool:
-        Δmax_energy = max.max_energy.eval(**kwargs)
+        Δmax_energy = self.max_energy.eval(**kwargs)
         kwargs["player"].max_energy += Δmax_energy
-        Δenergy_per_turn = max.energy_per_turn.eval(**kwargs)
+        Δenergy_per_turn = self.energy_per_turn.eval(**kwargs)
         kwargs["player"].energy_per_turn += Δenergy_per_turn
         return (kwargs["player"].add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
     def from_json(json: dict):
@@ -1229,7 +1229,6 @@ class Board:
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
                 return ret
-            # print(ret)
             not self.active_player.isai() and self.devprint()
         if self.autoplay and self.active_player.isai() and ret[4] is None:
             return self.active_player.auto_play(self)
