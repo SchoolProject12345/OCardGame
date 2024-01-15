@@ -239,7 +239,7 @@
      "type":"count",
      "tags":["foes"],
      "elements":[]
-    }*10
+    }
    }
   }]
  },
@@ -280,7 +280,7 @@
  {
   "name": "Magma Golem",
   "element": "fire",
-  "cost": 2,
+  "cost": 1,
   "hp": 100,
   "type": "creature",
   "attacks": [
@@ -338,7 +338,7 @@
     "cost": 1,
     "tag": "dot",
     "target_mode": "target",
-    "power": 85,
+    "power": 40,
     "effect": {
      "infinite": true,
      "effect": {
@@ -363,7 +363,7 @@
     "name": "Root Pierce",
     "cost": 1,
     "target_mode": "target",
-    "power": 0,
+    "power": 60,
     "effect": {
      "den": 3,
      "num": 1,
