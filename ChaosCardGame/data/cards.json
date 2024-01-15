@@ -237,9 +237,9 @@
     "type":"heal",
     "amount":{
      "type":"count",
-     "tags":["foes",],
-     "elements":[,]
-    }
+     "tags":["foes"],
+     "elements":[]
+    }*10
    }
   }]
  },
@@ -247,13 +247,14 @@
   "name": "Fiery Lion",
   "element": "Fire",
   "cost": 2,
-  "hp": 120,
+  "hp": 110,
   "passives": [
    {
     "name": "Roar",
     "effect": {
-     "type": "todo",
-     "desc": "Blocks one enemy"
+     "type": "state_change",
+     "new_state":"block",
+     "for":1
     },
     "trigger": "whenplaced"
    }
@@ -264,7 +265,15 @@
     "name": "Flare Fury",
     "cost": 2,
     "target_mode": "target ",
-    "power": 1
+    "power": 120
+    "effect":{
+     "type":"target_change",
+     "new_target":"allies",
+     "effect":{
+      "type":"damaged",
+      "amount":13
+     }
+    }
    }
   ]
  },
