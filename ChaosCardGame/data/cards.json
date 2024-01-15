@@ -324,7 +324,13 @@
   "element": "Chaos",
   "cost": 3,
   "hp": 180,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+   "name":"Chaos rampage",
+   "cost":2,
+   "target_mode":"foes"
+   "power":60
+  }]
  },
  {
   "name": "Vine serpent",
