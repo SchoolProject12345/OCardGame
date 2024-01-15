@@ -1,7 +1,7 @@
+import time
+import re
 import Network.network as net
 import Core.core_main as core
-import re
-import time
 
 @core.dataclass
 class PseudoActiveCard:
