@@ -10,19 +10,22 @@ class PseudoActiveCard:
     max_hp: int
     element: core.Element
     card: core.AbstractCard
-    def __init__(self, name: str):
-        self.name = name
+    def from_name(name: str):
         card: core.AbstractCard = core.getCARDS()[core.Player.card_id(name)]
         if not isinstance(card, core.CreatureCard):
-            self.hp = 1j
-            self.max_hp = 1j
-            self.element = core.Element.elementless
-            self.card = card
-            return
-        self.hp = card.max_hp
-        self.max_hp = card.max_hp
-        self.element = card.element
-        self.card = card
+            return PseudoActiveCard(name, 1j, 1j, core.Element.elementless, card)
+        return PseudoActiveCard(name, card.max_hp, card.max_hp, card.element, card)
+    def commander(name: str):
+        if name in core.getCOMMANDERS():
+            card: core.CommanderCard = core.getCOMMANDERS()[name]
+            return PseudoActiveCard(name, card.max_hp, card.max_hp, card.element, card)
+        return PseudoActiveCard(
+            name, 600, 600, core.Element.elementless,
+            core.CommanderCard(
+                name, 1j, core.Element.elementless, 600,
+                [], [], 0, ()
+            )
+        )
 
 @core.dataclass
 class PartialGameState:
@@ -30,10 +33,10 @@ class PartialGameState:
     canplay: bool
     foe_name: str
     foes: list[PseudoActiveCard | None]
-    enemy_commander: core.ActiveCard
+    enemy_commander: PseudoActiveCard
     ally_name: str
     allies: list[PseudoActiveCard | None]
-    ally_commander: core.ActiveCard
+    ally_commander: PseudoActiveCard
     turn: int
     arena: core.Arena
     hand: list[str]
@@ -47,11 +50,17 @@ class PartialGameState:
         print(self.foe_name + "'s side:")
         print(self.enemy_commander.card.name + f" ({self.enemy_commander.hp}/{self.enemy_commander.card.max_hp})")
         for card in self.foes:
+            if card is None:
+                print("none ", end="")
+                continue
             print(core.cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp})", end = " ")
         print("\n")
         print(self.foe_name + "'s side:")
         print(self.ally_commander.card.name + f" ({self.ally_commander.hp}/{self.ally_commander.card.max_hp})")
         for card in self.allies:
+            if card is None:
+                print("none ", end="")
+                continue
             print(core.cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp})", end = " ")
         print(self.deck_size, "cards in deck.")
         print("\n")
@@ -128,10 +137,10 @@ def join(username: str, target_ip: str, port: int = 12345):
         canplay,
         foe_name,
         [None for _ in range(board_size)],
-        enemy_commander,
+        PseudoActiveCard.commander(enemy_commander),
         username,
         [None for _ in range(board_size)],
-        user["commander"],
+        PseudoActiveCard.commander(user["commander"]),
         0,
         arena,
         hand,
@@ -278,6 +287,8 @@ def server_dev(board: core.Board, client_socket: net.socket.socket):
                 client_socket.close()
                 return
             run_action(board, client_socket, *data.split('|'))
+            if len(data.split('|')) != 0 and core.cleanstr(data.split('|')[0]) == "endturn":
+                break
         action = input()
         head = action.split('|')[0]
         if head in ["doc", "help", "showboard", "dochand"]:
@@ -312,7 +323,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 logs += log_draw(None, card.name) + "\n"
             else:
                 devlog(f"You have drawn a {card.name}.")
-        logs += log_endturn(None, board.unactive_player,
+        logs += log_endturn(None, board.unactive_player.name,
                     board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
         sendblock(client_socket, logs.encode())
         return
@@ -322,10 +333,10 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Missing arguments in attack request.".encode())
             return devlog("Warning: Missing arguments in attack request.")
         user = str2target(board, args[0])
-        if len(args[0]) < 3 or (args[:2] not in ["all"]) or (user is None):
+        if len(args[0]) < 3 or (args[0][:3] not in ["all"]) or (user is None):
             if isclientturn:
-                client_socket.send("error|Wrong target in attack request.".encode())
-            return devlog("Warning: Wrong target in attack request.")
+                client_socket.send("error|Wrong user in attack request.".encode())
+            return devlog("Warning: user target in attack request.")
         try:
             attack = user.card.attacks[int(args[1])]
         except:
@@ -338,7 +349,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
         survey = user.attack(attack, target)
-        logs = log_attack(None, user.name, target.name,
+        logs = log_attack(None, user.card.name, target.card.name,
                           attack.name, str(attack.cost),
                           str(survey.return_code.value),
                           str(survey.damage), str(survey.heal))
@@ -425,7 +436,7 @@ def logplay(game: PartialGameState | None, log: str):
 #       case "heal": log_heal(*args)
         case "defeat": log_defeat(*args)
         case "win": log_win(*args)
-        case "endturn": log_endturn(*args)
+        case "endturn": core.show(log); log_endturn(*core.show(args))
         case "draw": log_draw(*args)
         case "discard": log_discard(*args)
         case "place": log_place(*args)
@@ -461,10 +472,10 @@ def log_place(game: PartialGameState | None, cardname: str, index: str, cardcost
     if game is not None:
         if game.canplay:
             game.energies[0] -= int(cardcost)
-            game.allies[int(index)] = PseudoActiveCard(cardname)
+            game.allies[int(index)] = PseudoActiveCard.from_name(cardname)
         else:
             game.opponent_energies[0] -= int(cardcost)
-            game.foes[int(index)] = PseudoActiveCard(cardname)
+            game.foes[int(index)] = PseudoActiveCard.from_name(cardname)
     return f"place|{cardname}|{index}|{cardcost}"
 
 def log_draw(game: PartialGameState | None, card_drawn: str):
