@@ -215,8 +215,22 @@
   "name": "Fern Goat",
   "element": "Earth",
   "cost": 2,
-  "hp": 200,
-  "type": "creature"
+  "hp": 150,
+  "type": "creature",
+  "attack":[{
+   "name":"Grazing",
+   "cost":1,
+   "target_mode":"allied commander",
+   "power":0,
+   "effect":{
+    "type":"heal",
+    "amount":{
+     "type":"count",
+     "tags":["foes",],
+     "elements":[,]
+    }
+   }
+  }]
  },
  {
   "name": "Fiery Lion",
