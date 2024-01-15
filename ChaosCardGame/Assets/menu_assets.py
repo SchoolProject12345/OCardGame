@@ -1,8 +1,7 @@
 import pygame
 import os
+from DEV_debug import load_cards
 from dataclasses import dataclass
-
-load_cards = False
 
 
 def alpha_converter(objects: list[pygame.Surface] | list[list]):
