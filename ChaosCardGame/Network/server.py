@@ -218,7 +218,7 @@ def client_dev(game: PartialGameState):
         if head not in ["help", "attack", "place", "spell", "discard", "endturn", "chat"]:
             print("Invalid action. Write `help` to get a list of valid actions.")
             continue
-        game.server.send(action.encode())
+        sendblock(game.server, action.encode())
         logplay(game, game.server.recv(512).decode())
 
 def clientside_action(board: core.Board | PartialGameState, action: str, *args):
@@ -226,8 +226,8 @@ def clientside_action(board: core.Board | PartialGameState, action: str, *args):
         if len(args) == 0:
             return devlog("Missing `card name` argument.")
         cardname = core.cleanstr(args[0])
+        card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
-            card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
             fname = card.element.to_str() + "-" + cardname
             with open("textsprites.json") as io:
                 try:
