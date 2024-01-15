@@ -1,6 +1,6 @@
 import pygame
 import os
-from DEV_debug import load_cards
+from Debug.DEV_debug import load_cards
 from dataclasses import dataclass
 
 
