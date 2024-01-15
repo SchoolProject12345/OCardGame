@@ -1,4 +1,4 @@
-from UserInterface.OCG_Vision.ocg_vision import State, ImageButton
+from UserInterface.OCG_Vision.vision_main import State, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER
 
