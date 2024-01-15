@@ -108,7 +108,18 @@
   "element": "Chaos",
   "cost": 2,
   "hp": 115,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+   "name":"Shadow realm",
+   "cost":3,
+   "power":0,
+   "target_mode":"random_chaos",
+   "sample":1
+   "effect":{
+    "amount": 65535,
+    "type": "damage"
+   }
+  }]
  },
  {
   "type":"creature",
