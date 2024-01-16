@@ -480,6 +480,16 @@
   "element": "Earth",
   "cost": 1,
   "hp": 60,
+  "attacks":[{
+   "name":"Fertilizer",
+   "target_mode":"allies",
+   "cost":2,
+   "power":0,
+   "effect":{
+    "type":"todo",
+    "desc":"heals 8 hp for each enrgy stored by the user's owner"
+   }
+  }],
   "passives": [
    {
     "name": "Energizing",
