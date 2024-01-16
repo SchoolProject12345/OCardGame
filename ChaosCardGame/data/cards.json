@@ -238,24 +238,25 @@
   "cost": 2,
   "hp": 150,
   "type": "creature",
-  "attack":[{
+  "attacks":[
+   {
    "name":"Grazing",
    "cost":1,
    "target_mode":"allied commander",
    "power":0,
    "effect":{
-    {
     "type":"loop",
     "effect":{
     "type":"heal",
      "amount":{
-      "type":"count",
-      "tags":["any"],
-      "elements":[]
+       "type":"count",
+       "tags":["any"],
+       "elements":[]
+      }
      }
     }
    }
-  }]
+  ]
  },
  {
   "name": "Fiery Lion",
@@ -287,7 +288,7 @@
     "name": "Flare Fury",
     "cost": 2,
     "target_mode": "target ",
-    "power": 120
+    "power": 120,
     "effect":{
      "type":"target_change",
      "new_target":"allies",
@@ -327,7 +328,7 @@
   "attacks":[{
    "name":"Chaos rampage",
    "cost":2,
-   "target_mode":"foes"
+   "target_mode":"foes",
    "power":60
   }]
  },
@@ -605,7 +606,7 @@
     "power": 0,
     "effect": {
      "type": "random_targets",
-     "sample":1
+     "sample":1,
      "effect":{"type":"state_change","new_state":"block"}
     }
    }
@@ -724,9 +725,11 @@
    }
   ],
   "passives":[
-   "name":"Energy Hold",
-   "trigger":"whenplaced",
-   "effect":{"type":"add_energy","max_energy":1}
+   {
+    "name":"Energy Hold",
+    "trigger":"whenplaced",
+    "effect":{"type":"add_energy","max_energy":1}
+   }
   ]
  },
  {
@@ -774,7 +777,7 @@
     "name": "Tentacle Torrent",
     "cost": 1,
     "target_mode": "foes",
-    "power":0
+    "power":0,
     "effect":{
      "type":"repeat",
      "n":3,
@@ -975,7 +978,7 @@
     "name": "Pyro Blitz",
     "cost": 1,
     "target_mode": "target ",
-    "power": 50,
+    "power": 50
    }
   ]
  }
