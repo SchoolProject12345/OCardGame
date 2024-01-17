@@ -18,6 +18,9 @@ class Numeric:
             case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
+            case "energy": return EnergyCount(json["type"])
+            case "mult": return MultNumeric(Numeric.from_json(json["numeric"]))
+            case "func": return FuncNumeric.from_json(json)
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
@@ -80,6 +83,44 @@ class CountUnion(Numeric):
             if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
                 i += 1
         return i
+
+@dataclass
+class EnergyCount(Numeric):
+    """Return the energy of the user's owner (either "max", "current" or "perturn")"""
+    type: str
+    def eval(self, **kwargs) -> int:
+        owner = kwargs["user"].owner
+        match cleanstr(self.type):
+            "max": return owner.max_energy
+            "current": return owner.energy
+            "perturn": return owner.energy_per_turn
+            "turn": return owner.energy_per_turn # match "/turn"
+
+@datclass
+class MultNumeric(Numeric):
+    "Evaluate the product of a numeric with a rational."
+    numeric: Numeric
+    den: int
+    num: int
+    def eval(self, **kwargs) -> int:
+        return self.numeric.eval(**kwargs) * self.den // self.num
+
+@dataclass
+class FuncNumeric(Numeric):
+    f: any
+    numeric: Numeric
+    def eval(self, **kwargs) -> int:
+        return int(self.f(self.numeric.eval(**kwargs)))
+    def from_json(json: dict):
+        match cleanstr(json["f"]):
+            case "log2": f = np.log2
+            case "exp": f = np.exp
+            case "square": f = lambda x: x**2
+        return FuncNumeric(
+            f,
+            Numeric.from_json(json["numeric"])
+        )
+
 
 class Constants:  # to change variables quickly, easily and buglessly.
     default_max_energy = 4
@@ -190,12 +231,14 @@ class Element(IntEnum):
         return self.effectiveness(other)
 
 class State(IntEnum):
-    default = 0  # placeholder
-    blocked = 1  # can't attack
+    discarded = 127  # for GUI
+    damageless = 5  # can't take direct damage
+    blocked = 4  # can't attack
+    cloudy = 3 # single targeted only, -20% dmg, random targeted.
     invisible = 2  # can't attack; can't be targeted
-    discarded = 3  # for GUI
-    damageless = 4  # can't take direct damage
-    unattacked = 5  # set target.attacked to False without affecting self.state
+    monotonous = 1 # no SE multiplier
+    unattacked = 0  # set target.attacked to False without affecting self.state
+    default = -128  # placeholder
     def from_str(name: str):
         match cleanstr(name):
             case "default": return State.default
@@ -204,6 +247,8 @@ class State(IntEnum):
             case "invisible": return State.invisible
             case "damageless": return State.damageless
             case "unattacked": return State.unattacked
+            case "cloudy": return State.cloudy
+            case "monotonous": return State.monotonous
             case _: return (warn("Tried to form State from an non-recognized string; returing State.default instead.") and State.default)
 
 class TargetMode(IntEnum):
@@ -255,12 +300,14 @@ class DamageMode(IntEnum):
     direct = 0
     indirect = 1
     ignore_resist = 2
+    ignore_se = 3
     def from_str(name: str):
         match cleanstr(name):
             case "direct": return DamageMode.direct
             case "indirect": return DamageMode.indirect
             case "ignoreresist": return DamageMode.ignore_resist
             case "resistanceignoring": return DamageMode.ignore_resist
+            case "ignorese": return DamageMode.ignore_se
             case _: return warn(f"Tried to form DamageMode from {name}, returning DamageMode.direct instead.") and DamageMode.direct
     def to_str(self) -> str:
         match self:
@@ -268,9 +315,9 @@ class DamageMode(IntEnum):
             case DamageMode.indirect: return "indirect"
             case DamageMode.ignore_resist: return "resistance-ignoring"
     def can_strong(self) -> bool:
-        return self != DamageMode.indirect
+        return self not in [DamageMode.indirect, DamageMode.ignore_se]
     def can_weak(self) -> bool:
-        return self == DamageMode.direct
+        return self in [DamageMode.direct, DamgeMode.ignore_se]
 
 class ReturnCode(IntEnum):
     ok = 200
@@ -291,7 +338,6 @@ class EffectSurvey:
     def __iadd__(self, other):
         self.damage += other.damage
         self.heal += other.heal
-        # please save me from this language; the more I discover the more I ask myself why python is used.
         return self
 
 class AbstractEffect:
@@ -363,6 +409,7 @@ class AbstractEffect:
             case "formechange": return FormeChange.from_json(json)
             case "formchange": return FormeChange.from_json(json)
             case "taunt": return TauntTargets.from_json(json)
+            case "cleanse": return CleanseEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -436,14 +483,14 @@ class ChangeState(AbstractEffect):
                     card.attacked = False
                     has_worked = True
                 continue
-            if card.state != self.new_state:
+            if card.state.value < self.new_state.value: # stronger `State`s cannot be overriden by weaker `State`s
                 has_worked = True
-            card.state = self.new_state
+                card.state = self.new_state
         return has_worked
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
-            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {}))
+            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {})) # feature not bug
         return effect
     def __str__(self) -> str:
         return f"a change of state of the target⋅s to {self.new_state.name}"
@@ -488,6 +535,7 @@ class DOTEffect(AbstractEffect):
         return self.turn.value > 0
     def __str__(self) -> str:
         return f"{self.damage} damage over {self.turn} turns"
+    def get_tags(self): return ("-")
 
 @dataclass
 class LoopEffect(AbstractEffect):
@@ -495,10 +543,11 @@ class LoopEffect(AbstractEffect):
     effect: AbstractEffect
     infinite: bool
     kwargs: dict
+    tags: tuple
     def with_kwargs(self, kwargs: dict):
-        return LoopEffect(self.effect, self.infinite, kwargs)
+        return LoopEffect(self.effect, self.infinite, kwargs, self.tags)
     def from_json(json: dict):
-        return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {})
+        return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {}, getordef(json, "tags", ("+-")))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -514,16 +563,18 @@ class LoopEffect(AbstractEffect):
         if self.infinite:
             return f"{str(self.effect)} at the end of each turn, until the target dies out"
         return f"{str(self.effect)} at the end of each turn, until the user dies out"
+    def get_tags(self): return self.tags
 
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
     time: int  # doesn't support Numeric as it would be kinda useless.
     kwargs: dict
+    tags: tuple
     def with_kwargs(self, kwargs: dict):
         return DelayEffect(self.effect, self.time, kwargs)
     def from_json(json: dict):
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {})
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-")))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -538,6 +589,24 @@ class DelayEffect(AbstractEffect):
         return False
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
+
+@dataclass
+class CleanseEffect(AbstractEffect):
+    by_tags: tuple
+    def execute(self, **kwargs):
+        for target in AbstractEffect.targeted_objects(**kwargs):
+            if "+" in self.by_tags and target.state in [State.damageless]:
+                target.state = State.default
+            if "-" in self.by_tags and target.state in [State.blocked, State.cloudy, State.monotonous]:
+                target.state = State.default
+            if "+-" in self.by_tags and target.state in [State.invisible]:
+                target.state = State.default
+            target.effects = [effect for effect in target.effects if hasany(effect.get_tags(), self.by_tags)]
+        return True
+    def from_json(json: dict):
+        return CleanseEffect(getordef(json, "by_tags", ("+", "-", "+-")))
+    def __str__(self):
+        return f"cleanse effects tagged {self.by_tags}"
 
 @dataclass
 class DamageDrain(AbstractEffect):
@@ -694,7 +763,22 @@ class FormeChange(AbstractEffect):
 
 @dataclass
 class TauntTargets:
-    pass
+    "Force the target(s) to attack a random creature among the `new_targets` distribution during `duration` turns."
+    new_targets: TargetMode
+    duration: Numeric
+    def execute(self, **kwargs) -> bool:
+        new_targets = AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", self.new_targets))
+        if len(new_targets) == 0:
+            return False
+        targets = AbstractEffect.targeted_objects(**kwargs)
+        for target in targets:
+            target.taunt = rng.choice(targets)
+            target.taunt_dur = self.duration
+        return True
+    def from_json(json: dict):
+        return TauntTargets(TargetMode.from_str(json["new_targets"]), json["duration"])
+    def __str__(self):
+        return f"taunt the targets for {self.duration} turns"
 
 class PassiveTrigger(IntEnum):
     endofturn = 0  # main_target => self
@@ -855,6 +939,7 @@ class ActiveCard:
     attacked: bool
     state: State
     taunt: None | any
+    taunt_dur: int
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
@@ -865,6 +950,7 @@ class ActiveCard:
         self.attacked = False
         self.state = State.default
         self.taunt = None
+        self.taunt_dur = 0
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
@@ -889,14 +975,22 @@ class ActiveCard:
         getorset(kwargs, "board", self.board)
         getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
-        getorset(kwargs, "damage_mode", DamageMode.direct)
+        getorset(kwargs, "damage_mode", ifelse(self.state == State.monotonous, DamageMode.ignore_se, DamageMode.direct))
         getorset(kwargs, "user", self)
         if self.taunt is not None:
-            if self.taunt.hp <= 0:
+            if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
             else:
                 # Note that AOE attack are mostly unchanged.
                 kwargs["main_target"] = self.taunt
+                self.taunt_dur -= 1
+        if self.state == State.cloudy: # overrides taunt
+            if len(AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode.foes))) == 0:
+                kwargs["target_mode"] = TargetMode.commander
+                kwargs["main_target"] = kwargs["board"].unactive_player.commander
+            else:
+                kwargs["target_mode"] = TargetMode.target
+                kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode.foes)))
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
