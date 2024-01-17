@@ -358,6 +358,11 @@ class AbstractEffect:
             # .from_json is useless but it allows more flexibility if we want to add something
             case "hypnotize": return HypnotizeEffect.from_json(json)
             case "summon": return SummonEffect.from_json(json)
+            case "changeforme": return FormeChange.from_json(json)
+            case "changeform": return FormeChange.from_json(json)
+            case "formechange": return FormeChange.from_json(json)
+            case "formchange": return FormeChange.from_json(json)
+            case "taunt": return TauntTargets.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -673,12 +678,30 @@ class RepeatEffect(AbstractEffect):
             case n: verbal = f" {n} times"
         return str(self.effect) + verbal
 
+@dataclass
+class FormeChange(AbstractEffect):
+    "Change the target(s)'s card to a new CreatureCard object." 
+    new_forme: any
+    def execute(self, **kwargs) -> bool:
+        actives = AbstractEffect.targeted_objects(**kwargs)
+        for active in actives:
+            active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+        return len(actives) != 0
+    def from_json(json: dict):
+        return FormeChange(CreatureCard.from_json(json["new_forme"]))
+    def __str__(self):
+        return f"change the target(s) forme to {new_forme.name}"
+
+@dataclass
+class TauntTargets:
+    pass
+
 class PassiveTrigger(IntEnum):
     endofturn = 0  # main_target => self
     whenplaced = 1  # main_target => self
-    whendefeated = 2  # main_target => attacker (must improve code first)
+    whendefeated = 2  # main_target => attacker / only work when defeated by attack (feature not bug)
     whenattack = 3  # same kwargs as attack
-    # main_target => atatcker / only work when defeated by attack (feature not bug)
+    # main_target => atatcker
     whenattacked = 4
     # Must improve code before implementing those:
     whendiscarded = 5  # main_target => allied_commander
@@ -829,8 +852,9 @@ class ActiveCard:
     owner: Player
     board: Board
     effects: list[AbstractEffect]
-    attacked: bool = False
-    state: State = State.default
+    attacked: bool
+    state: State
+    taunt: None | any
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
         self.hp = card.max_hp
@@ -840,6 +864,7 @@ class ActiveCard:
         self.effects = []
         self.attacked = False
         self.state = State.default
+        self.taunt = None
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
@@ -866,6 +891,12 @@ class ActiveCard:
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "damage_mode", DamageMode.direct)
         getorset(kwargs, "user", self)
+        if self.taunt is not None:
+            if self.taunt.hp <= 0:
+                self.taunt = None
+            else:
+                # Note that AOE attack are mostly unchanged.
+                kwargs["main_target"] = self.taunt
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
