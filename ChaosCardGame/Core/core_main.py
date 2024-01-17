@@ -21,9 +21,17 @@ class Numeric:
             case "energy": return EnergyCount(json["type"])
             case "mul": return MultNumeric(Numeric.from_json(json["numeric"]))
             case "func": return FuncNumeric.from_json(json)
+            case "turn": return TurnNumeric()
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
+
+@dataclass
+class TurnNumeric(Numeric):
+    def eval(self, **kwargs):
+        return kwargs["board"].turn
+    def __str__(self):
+        return "current turn"
 
 @dataclass
 class RawNumeric(Numeric):
