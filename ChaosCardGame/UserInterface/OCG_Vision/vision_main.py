@@ -265,7 +265,8 @@ class ImageToggle:
 
         # Core Attributes for toggled state
         self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[1])
-        self.position_type_T = kwargs.get("position_type_T", self.position_type)
+        self.position_type_T = kwargs.get(
+            "position_type_T", self.position_type)
         self.position_T = kwargs.get("position_T", self.position)
 
         # Image processing
@@ -439,9 +440,9 @@ class ToggleGridFour:
             self.priority.answer()
 
 
-class DualBar:
+class DualBarHori:
     """
-    Creates a dual bar to display two values.
+    Creates a horizontal dual bar to display two values.
 
     Args:
         screen: `pygame.Surface`
@@ -506,6 +507,81 @@ class DualBar:
         pygame.draw.rect(
             self.screen,
             self.color_fg,
-            (self.position[0], self.position[1], self.health_width, self.height),
+            (self.position[0], self.position[1],
+             self.health_width, self.height),
+            border_radius=self.border_radius,
+        )
+
+
+class DualBarVerti:
+    """
+    Creates a horizontal dual bar to display two values.
+
+    Args:
+        screen: `pygame.Surface`
+            The screen to render the bar on.
+        position: `tuple`
+            The position of the bar.
+        position_type: `str`
+            The position type of the bar.
+        width: `int`
+            The width of the bar.
+        height: `int`
+            The height of the bar.
+        color_bg: `pygame.Color`
+            The background color of the bar.
+        color_fg: `pygame.Color`
+            The foreground color of the bar.
+        max_value: `int`
+            The maximum value of the bar.
+    """
+
+    def __init__(
+        self,
+        screen: pygame.Surface,
+        position: tuple,
+        position_type: str,
+        width: int,
+        height: int,
+        color_bg: pygame.Color | tuple,
+        color_fg: pygame.Color | tuple,
+        max_health: int,
+        **kwargs,
+    ) -> None:
+        self.screen = screen
+        self.position = position
+        self.position_type = position_type
+        self.width = width
+        self.height = height
+        self.color_bg = color_bg
+        self.color_fg = color_fg
+        self.border_radius = kwargs.get("border_radius", 0)
+        self.max_health = max_health
+        self.health = self.max_health
+
+    def update(self, health: int) -> None:
+        self.health = health
+        self.health_percent = self.health / self.max_health
+        self.health_height = int(self.health_percent * self.height)
+
+    def render(self, health: int):
+        """Renders and maintains the bar.
+
+        Args:
+            health (int): The current health of the bar.
+        """
+
+        self.update(health)
+        pygame.draw.rect(
+            self.screen,
+            self.color_bg,
+            (self.position[0], self.position[1], self.width, self.height),
+            border_radius=self.border_radius,
+        )
+        pygame.draw.rect(
+            self.screen,
+            self.color_fg,
+            (self.position[0], self.position[1]+(self.height-self.health_height),
+             self.width, self.height-(self.height-self.health_height)),
             border_radius=self.border_radius,
         )

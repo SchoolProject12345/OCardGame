@@ -29,7 +29,7 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Highly Energecity Ray",
+    "name": "Highly Energetic Ray",
     "cost": 20,
     "target_mode": "target ",
     "power": 2,
@@ -82,8 +82,22 @@
    {
     "name": "Hydra Myth",
     "effect": {
-     "type": "todo",
-     "desc": "Separate into two Weakened Hydra if not affected by DOT or loop damages."
+     "type": "summon",
+     "count": 2,
+     "creature":{
+      "name":"Weakened Hydra",
+      "element":"water",
+      "cost":1,
+      "hp":40,
+      "attacks":[
+       {
+        "name":"Water Jet",
+        "cost":1,
+        "power":0,
+        "effect":{"type":"damage","amount":25,"damage_mode":"ignore_resistance"}
+       }
+      ]
+     }
     },
     "trigger": "whendefeated"
    }
@@ -108,7 +122,17 @@
   "element": "Chaos",
   "cost": 2,
   "hp": 115,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+   "name":"Shadow realm",
+   "cost":3,
+   "power":0,
+   "effect":{
+    "type":"random_targets",
+    "sample":1,
+    "effect":{"type":"damage","amount":65535}
+   }
+  }]
  },
  {
   "type":"creature",
@@ -139,12 +163,8 @@
     "target_mode": "allies",
     "power": 0,
     "effect": {
-     "type":"target_change",
-     "new_target":"allies",
-     "effect":{
-      "type":"heals",
-      "amount":30
-     }
+     "type":"heal",
+     "amount":30
     }
    }
   ]
@@ -161,12 +181,12 @@
     "effect": {
      "new_target": "allies",
      "effect": {
-      "amount": 3,
+      "amount": 15,
       "type": "heal"
      },
      "type": "target_change"
     },
-    "trigger": "whenplaced"
+    "trigger": "endofturn"
    },
    {
     "name": "First Turn Invincibility",
@@ -195,18 +215,19 @@
  {
   "name": "Wizard of Everburn",
   "element": "Fire",
-  "cost": 3,
-  "hp": 90,
+  "cost": 2,
+  "hp": 100,
   "type": "creature",
   "attacks": [
    {
     "name": "Infernal Fireball",
     "cost": 3,
-    "target_mode": "foes",
+    "target_mode": "target",
     "power": 40,
     "effect": {
-     "type": "todo",
-     "desc": "Does 40 fire loop damage to target."
+     "type": "loop",
+     "infinite":true,
+     "effect":{"type":"damage","amount":40}
     }
    }
   ]
@@ -215,20 +236,48 @@
   "name": "Fern Goat",
   "element": "Earth",
   "cost": 2,
-  "hp": 200,
-  "type": "creature"
+  "hp": 150,
+  "type": "creature",
+  "attacks":[
+   {
+   "name":"Grazing",
+   "cost":1,
+   "target_mode":"allied commander",
+   "power":0,
+   "effect":{
+    "type":"loop",
+    "effect":{
+    "type":"heal",
+     "amount":{
+       "type":"count",
+       "tags":["any"],
+       "elements":[]
+      }
+     }
+    }
+   }
+  ]
  },
  {
   "name": "Fiery Lion",
   "element": "Fire",
   "cost": 2,
-  "hp": 120,
+  "hp": 110,
   "passives": [
    {
     "name": "Roar",
     "effect": {
-     "type": "todo",
-     "desc": "Blocks one enemy"
+     "type":"target_change",
+     "new_target":"foes",
+     "effect":{
+      "type":"random_targets",
+      "sample":1,
+      "effect":{
+       "type": "state_change",
+       "new_state":"block",
+       "for":1
+      }
+     }
     },
     "trigger": "whenplaced"
    }
@@ -239,45 +288,30 @@
     "name": "Flare Fury",
     "cost": 2,
     "target_mode": "target ",
-    "power": 1
+    "power": 120,
+    "effect":{
+     "type":"target_change",
+     "new_target":"allies",
+     "effect":{
+      "type":"damaged",
+      "amount":13
+     }
+    }
    }
   ]
  },
  {
   "name": "Magma Golem",
   "element": "fire",
-  "cost": 2,
+  "cost": 1,
   "hp": 100,
   "type": "creature",
   "attacks": [
    {
-    "name": "Lava Pulse",
-    "cost": 1,
-    "tag": "dot",
-    "target_mode": "target",
-    "power": 70,
-    "effect": {
-     "effect1": {
-      "new_target": "self",
-      "effect": {
-       "amount": 30,
-       "type": "damage"
-      },
-      "type": "target_change"
-     },
-     "type": "union",
-     "effect2": {
-      "time": 3,
-      "type": "dot",
-      "damage": 80
-     }
-    }
-   },
-   {
     "name": "Magmatic Separation",
     "cost": 1,
-    "target_mode": "self",
-    "power": 30,
+    "target_mode": "foes",
+    "power": 66,
     "effect": {
      "type": "todo",
      "desc": ""
@@ -290,7 +324,13 @@
   "element": "Chaos",
   "cost": 3,
   "hp": 180,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+   "name":"Chaos rampage",
+   "cost":2,
+   "target_mode":"foes",
+   "power":60
+  }]
  },
  {
   "name": "Vine serpent",
@@ -304,7 +344,7 @@
     "cost": 1,
     "tag": "dot",
     "target_mode": "target",
-    "power": 85,
+    "power": 40,
     "effect": {
      "infinite": true,
      "effect": {
@@ -441,12 +481,22 @@
   "element": "Earth",
   "cost": 1,
   "hp": 60,
+  "attacks":[{
+   "name":"Fertilizer",
+   "target_mode":"allies",
+   "cost":2,
+   "power":0,
+   "effect":{
+    "type":"todo",
+    "desc":"heals 8 hp for each enrgy stored by the user's owner"
+   }
+  }],
   "passives": [
    {
     "name": "Energizing",
     "effect": {
-     "type": "todo",
-     "desc": "Increase max energy by 2"
+     "type": "add_energy",
+     "max_energy":2
     },
     "trigger": "whenplaced"
    }
@@ -522,8 +572,8 @@
    {
     "name": "Energizing",
     "effect": {
-     "type": "todo",
-     "desc": "Increase max energy by 2"
+     "type": "add_energy",
+     "mas_energy":2
     },
     "trigger": "whenplaced"
    }
@@ -536,8 +586,8 @@
     "target_mode": "target",
     "power": 15,
     "effect": {
-     "type": "todo",
-     "desc": "Block 1 enemy forever"
+     "type": "change_state",
+     "new_state":"block"
     }
    }
   ]
@@ -551,15 +601,21 @@
   "attacks": [
    {
     "name": "Hypnotic Gaze",
-    "cost": 4,
+    "cost": 2,
     "target_mode": "target",
     "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Reveals her true forms, blocks 1 enemy"
+     "type": "random_targets",
+     "sample":1,
+     "effect":{"type":"state_change","new_state":"block"}
     }
    }
-  ]
+  ],
+  "passives":{
+   "name":"Tide Respite",
+   "effect":{"type":"heal","amount":20},
+   "trigger":"endofturn"
+  }
  },
  {
   "name": "Everstone Symbiote",
@@ -630,13 +686,35 @@
      "effect":{"type":"damage","damage_mode":"direct","amount":30}
     }
    }
+  ],
+  "passives":[
+   {
+    "name":"Reef's Calling",
+    "trigger":"endofturn",
+    "effect":{
+     "type":"target_change",
+     "new_target":"allies",
+     "effect":{
+      "type":"repeat",
+      "n":{"type":"count","tags":["any"]},
+      "effect":{
+       "type":"target_change",
+       "new_target":"foes",
+       "effect":{
+        "type":"random_target",
+        "effect":{"type":"damage","amount":10,"damage_mode":"indirect"}
+       }
+      }
+     }
+    }
+   }
   ]
  },
  {
   "name": "Hand of Ashes",
   "element": "fire",
   "cost": 1,
-  "hp": 30,
+  "hp": 40,
   "type": "creature",
   "attacks": [
    {
@@ -644,6 +722,13 @@
     "cost": 1,
     "target_mode": "target",
     "power": 30
+   }
+  ],
+  "passives":[
+   {
+    "name":"Energy Hold",
+    "trigger":"whenplaced",
+    "effect":{"type":"add_energy","max_energy":1}
    }
   ]
  },
@@ -691,8 +776,13 @@
    {
     "name": "Tentacle Torrent",
     "cost": 1,
-    "target_mode": "target ",
-    "power": 30
+    "target_mode": "foes",
+    "power":0,
+    "effect":{
+     "type":"repeat",
+     "n":3,
+     "effect":{"type":"damage","amount":25,"damage_mode":"direct"}
+    }
    }
   ]
  },
@@ -772,14 +862,32 @@
      "type": "loop"
     }
    }
+  ],
+  "passives":[
+   {
+    "name":"Last-Blast",
+    "effect":{
+     "type":"target_change",
+     "new_target":"foes",
+     "effect":{"type":"damage","amount":10,"damage_mode":"resistance_ignoring"}
+    }
+   }
   ]
  },
  {
   "name": "The Silver Crow",
   "element": "Air",
   "cost": 1,
-  "hp": 150,
-  "type": "creature"
+  "hp": 130,
+  "type": "creature",
+  "attacks":[
+   {
+    "name":"Instant Dash",
+    "target":"target",
+    "power":0,
+    "effect":{"type":"damage","amount":80,"damage_mode":"indirect"}
+   }
+  ]
  },
  {
   "name": "Magic Scrolls of Himinnsøkva",
@@ -821,8 +929,9 @@
     "target_mode": "foes",
     "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Deals the PGDC of the ennemy attack damage/power to target."
+     "type":"damage",
+     "damage_mode":"indirect",
+     "amount":{"type":"gcd","sample":{"type":"HPs","target_mode":"foes"}}
     }
    }
   ]
@@ -862,18 +971,14 @@
   "name": "Felix Fyris",
   "element": "fire",
   "cost": 1,
-  "hp": 60,
+  "hp": 70,
   "type": "creature",
   "attacks": [
    {
     "name": "Pyro Blitz",
     "cost": 1,
     "target_mode": "target ",
-    "power": 50,
-    "effect": {
-     "type": "todo",
-     "desc": ""
-    }
+    "power": 50
    }
   ]
  },

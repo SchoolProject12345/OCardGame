@@ -1,6 +1,6 @@
 import pygame
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from UserInterface.OCG_Vision.ocg_vision import State, ImageToggle, ToggleGridFour, ImageButton
+from UserInterface.OCG_Vision.vision_main import State, ImageToggle, ToggleGridFour, ImageButton
 from Assets.menu_assets import MenuBackgrounds, CardsMenuToggles, MenuButtons, alpha_converter
 
 

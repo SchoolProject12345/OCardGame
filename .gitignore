@@ -1,9 +1,13 @@
+# Custom
+.venv/
+.DS_Store
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-.venv/
-.DS_Store
+
 
 # C extensions
 *.so

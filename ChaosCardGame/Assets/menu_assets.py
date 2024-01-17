@@ -1,8 +1,7 @@
 import pygame
 import os
+from Debug.DEV_debug import load_cards
 from dataclasses import dataclass
-
-load_cards = False
 
 
 def alpha_converter(objects: list[pygame.Surface] | list[list]):
@@ -89,6 +88,7 @@ def transform_toggle_files(path: str):
         big_toggle[i] = pygame.image.load(big_toggle[i])
     return [small_toggle, big_toggle]
 
+
 def transform_card_files(path: str):
     """
     Returns a list containing the surfaces to all elements in a directory.
@@ -114,7 +114,7 @@ def transform_card_files(path: str):
     return processed_list
 
 
-graphics_path = os.path.join("ChaosCardGame","Assets","Graphics", "")
+graphics_path = os.path.join("ChaosCardGame", "Assets", "Graphics", "")
 
 
 @dataclass
@@ -205,6 +205,7 @@ class CardsMenuToggles:
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
 
+
 if load_cards:
     @dataclass
     class Cards:
@@ -212,11 +213,13 @@ if load_cards:
         A class to represent all air cards in the game.
         """
         air_cards_dir = os.path.join(graphics_path, "Cards", "air_cards", "")
-        chaos_cards_dir = os.path.join(graphics_path, "Cards", "chaos_cards", "")
-        earth_cards_dir = os.path.join(graphics_path, "Cards", "earth_cards", "")
+        chaos_cards_dir = os.path.join(
+            graphics_path, "Cards", "chaos_cards", "")
+        earth_cards_dir = os.path.join(
+            graphics_path, "Cards", "earth_cards", "")
         fire_cards_dir = os.path.join(graphics_path, "Cards", "fire_cards", "")
-        water_cards_dir = os.path.join(graphics_path, "Cards", "water_cards", "")
-
+        water_cards_dir = os.path.join(
+            graphics_path, "Cards", "water_cards", "")
 
     # Air
         # Commander
@@ -362,7 +365,7 @@ if load_cards:
         magma_golem_path = fire_cards_dir + "magmagolem"
         magma_golem_image = transform_card_files(magma_golem_path)
 
-    ## Water
+    # Water
         # Commander
         water_commander_path = water_cards_dir + "commander"
         water_commander_image = transform_card_files(water_commander_path)

@@ -23,13 +23,12 @@ class App:
         """
         pygame.init()
         self.logo = pygame.image.load(os.path.join(
-           "ChaosCardGame","Assets","Graphics", "Icons", "app_icon.png",))
+            "ChaosCardGame", "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
         self.screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         pygame.display.set_caption("OCG")
         self.clock = pygame.time.Clock()
-
         self.MainMenu = MainMenu(self.screen)
 
     def start(self):
