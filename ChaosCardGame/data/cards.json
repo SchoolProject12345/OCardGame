@@ -981,5 +981,20 @@
     "power": 50
    }
   ]
+ },
+ {
+  "name":"Terry Davis",
+  "element":"chaos",
+  "cost":3,
+  "hp":200,
+  "type":"creature",
+  "attacks":[
+   {
+    "name":"Run over Glowie",
+    "cost":0,
+    "target_mode":"random_chaos",
+    "power":65535
+   }
+  ]
  }
 ]
