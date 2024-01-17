@@ -19,7 +19,7 @@ class Numeric:
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
             case "energy": return EnergyCount(json["type"])
-            case "mult": return MultNumeric(Numeric.from_json(json["numeric"]))
+            case "mul": return MultNumeric(Numeric.from_json(json["numeric"]))
             case "func": return FuncNumeric.from_json(json)
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
     def __str__(self) -> str:
@@ -378,6 +378,8 @@ class AbstractEffect:
                 ]
             case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(9))))
             case _: return []
+    def get_tags(self):
+        return warn(f"Tried to get tags from a {type(self)}") and ()
     def from_json(json: dict):
         type = cleanstr(getordef(json, "type", "undefined"))
         match type:
@@ -410,6 +412,8 @@ class AbstractEffect:
             case "formchange": return FormeChange.from_json(json)
             case "taunt": return TauntTargets.from_json(json)
             case "cleanse": return CleanseEffect.from_json(json)
+            case "redirect": return DamageRedirect.from_json(json)
+            case "if": return IfEffect.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -425,6 +429,45 @@ class NullEffect(AbstractEffect):
     def __str__(self) -> str:
         return "nothing"
 
+@dataclass
+class IfEffect(AbstractEffect):
+    "Evaluate `effect` only if `value` is non-zero"
+    effect: AbstractEffect
+    value: Numeric
+    def execute(self, **kwargs) -> bool:
+        if not self.value.eval(**kwargs):
+            return effect.execute(**kwargs)
+        return False
+    def from_json():
+        return IfEffect(AbstractEffect.from_json(json["effect"]), Numeric.from_json(json["value"]))
+    def __str__(self):
+        return f"{self.effect} if {self.value} is non-zero."
+
+@dataclass
+class DamageRedirect(AbstractEffect):
+    "Redirect `amount` damages from `from_` distribution to targets."
+    from_: TargetMode
+    amount: Numeric
+    def execute(self, **kwargs) -> bool:
+        amount = self.amount.eval(**kwargs)
+        targets = AbstractEffect.targeted_objects(**kwargs)
+        from_ = AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", self.from_))
+        if amount == 0 or len(targets) == 0 or len(from_) == 0:$
+            return False
+        while amount > 0 and len(targets) > 0 and len(from_) > 0:
+            target = targets.pop()
+            try_amount = min(amount // (len(targets) + 1), target.hp)
+            sources = from_.copy()
+            while len(sources) != 0:
+                source = sources.pop()
+                redirected = min(source.card.max_hp - source.hp, try_amount // (len(sources) + 1))
+                source.hp += redirected
+                target.hp -= redirected
+        return True
+    def from_json(json: Dict):
+        return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
+    def __str__(self):
+        return f"redirect {self.amount} damages from {self.from_} to the target(s)"
 
 @dataclass
 class EffectUnion(AbstractEffect):
