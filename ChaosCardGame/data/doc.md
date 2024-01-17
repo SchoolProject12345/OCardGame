@@ -151,7 +151,7 @@ To select a (or multiple) random target among the target distribution, use the f
 ```js
 {
  "type":"random_targets",
- "sample":2 // number of targets sampled, default to one.
+ "sample":2 // number of targets sampled, defaults to one.
  "effect":{/*effect object*/} // "effect" is applied on each target selected
 }
 ```
@@ -194,13 +194,6 @@ To combine any number of identical objects, use this syntax:
  "n":1 // number of time to repeat the effect for.
 }
 ```
-(***upcoming***) use the following syntax to form a chain of nested unions can be automatically created from an arbitrary amount of effect objects.
-```js
-{
- "type":"union_chain",
- "effects":[{/*effect object*/}, /*...*/]
-}
-```
 
 ### Target Change:
 Change the target of every sub-effects to a new target_mode.
@@ -208,14 +201,6 @@ Change the target of every sub-effects to a new target_mode.
 {
  "type":"target_change",
  "new_target":"{TargetMode string}",
- "effect":{/*effect object*/}
-}
-```
-(***upcoming***) use the following syntax to use independant targets for the same effect. Overlaping units are affected multiple times (e.g. `"new_targets":["foes","massivedestruction","random_foe"]` would apply once the effect to the allies and commanders, twice to most active foes except one who would receive them thrice).
-```js
-{
- "type":"target_union",
- "new_targets":["{TargetMode string}", /*...*/]
  "effect":{/*effect object*/}
 }
 ```
@@ -241,7 +226,9 @@ With possible values of field `"new_state"` being:
     `"block"` or `"blocked"`: cannot attack.
     `"invisible"`: cannot attack nor be targeted.
     `"unattacked"`: allow to attack one more time during turn, if already attacked before effect take place. This doesn't actually change the targets' states.
-    `"damageless"`: cannot receive damage.
+    `"damageless"`: cannot receive damage nor new State.
+    `"cloudy"`: -20% damages, all attacks are single-random-targeted.
+    `"monotonous"`: damages are not affected by weaknesses.
 
 ### HP Manipulation
 Inflict damages to target(s), which depend on mode.
@@ -301,9 +288,16 @@ Summon a creature card on the user's owner's board if possible
  "creature":{/*creature object*/}
 }
 ```
-Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commander. It wouldn't work anyway.
+Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commanders. It wouldn't work anyway.
 ```
 {"type":"hypnotize"} // yeah that's it, no fields.
+```
+Change the target's own card to `new_forme`. Please note that when the card is discarded, only the new forme will be avaible to redraw, so one might want to add a passive with trigger "whenplaced" to revert to the base forme.
+```
+{
+ "type":"changeforme",
+ "new_forme":{/*creature card object*/}
+}
 ```
 
 ###  Control:
@@ -322,7 +316,8 @@ Apply `"effect"` after `"delay"` turns of delay.
 {
  "type":"delay",
  "effect":{/*effect object*/},
- "delay":1
+ "delay":1,
+ "tags":[]
 }
 ```
 Apply `effect` at the end of every turn, until the user is defeated if `"infinite"` is set to `false` (default value).
@@ -330,7 +325,8 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
 {
  "type":"loop",
  "effect":{/*effect object*/},
- "infinite":true // false is undefined
+ "infinite":true
+ "tags":[]
 }
 ```
 
@@ -368,5 +364,25 @@ Return the number of targets matching either by any tag or by any element. Both 
  "type":"count",
  "tags":["...", /*...*/],
  "elements":["{Element string}", /*...*/]
+}
+```
+
+### Energy Count
+Return the number of energy by type. Type can be either "max", "current" or "per_turn".
+```js
+{
+ "type":"energy",
+ "type":"current"
+}
+```
+
+### Multiplication
+Multiply evaluate numeric by rational.
+```js
+{
+ "type":"mul",
+ "numeric":{/*numeric expr*/},
+ "num":2,
+ "den":1
 }
 ```
