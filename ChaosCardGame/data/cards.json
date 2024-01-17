@@ -438,7 +438,6 @@
   "name": "Bob the Blobfish",
   "element": "water",
   "cost": 2,
-  "tag": "useless",
   "hp": 120,
   "passives": [
    {
@@ -451,8 +450,54 @@
    {
     "name": "Deep Sea Power",
     "effect": {
-     "type": "todo",
-     "desc": "If turn is greater or equal than 10, change this card to Bob the Godfish."
+     "type": "if",
+     "value":{"type":"mul","num":1,"den":12,"times":{"type":"turn"}}
+     "effect":{
+      "type":"changeforme",
+      "new_forme":{
+       "name":"Bob the Godfish",
+       "element":"water",
+       "cost":2,
+       "hp":360,
+       "attacks":[
+        {
+         "name":"Super Blobblast",
+         "cost":2,
+         "power":105,
+         "target_mode":"foes",
+         "effect":{
+          "type":"union",
+          "effect1":{
+           "type":"target_change",
+           "new_target":"commander",
+           "effect":{"type":"damage","amount":105}
+          }
+          "effect2":{
+           "type":"changeforme",
+           "new_forme":{
+            "name":"Useless Blobfish",
+            "cost":1,
+            "hp":120,
+            "attacks":[
+             {
+              "name":"Bloob",
+              "cost":1,
+              "power":60,
+              "target_mode":"all",
+              "effect":{
+               "type":"target_change",
+               "new_target":"self",
+               "effect":{"type":"damage","amount":65535}
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ]
+      }
+     }
     },
     "trigger": "whenplaced"
    }
