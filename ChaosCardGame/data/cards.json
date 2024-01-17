@@ -463,14 +463,23 @@
         {
          "name":"Super Blobblast",
          "cost":2,
-         "power":105,
+         "power":0,
          "target_mode":"foes",
          "effect":{
           "type":"union",
           "effect1":{
-           "type":"target_change",
-           "new_target":"commander",
-           "effect":{"type":"damage","amount":105}
+           "type":"drain",
+           "num":-1,
+           "den":3,
+           "effect":{
+            "type":"union",
+            "effect1":{"type":"damage","amount":105},
+            "effect2":{
+             "type":"change_targe",
+             "new_target":"commander",
+             "effect":{"type":"damage","amount":105}
+            }
+           }
           }
           "effect2":{
            "type":"changeforme",
