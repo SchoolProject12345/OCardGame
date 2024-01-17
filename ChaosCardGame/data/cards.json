@@ -2,9 +2,9 @@
  {
   "name": "Monkey of the Skies",
   "element": "air",
-  "cost": 2,
+  "cost": 1,
   "tag": "support",
-  "hp": 120,
+  "hp": 90,
   "type": "creature",
   "attacks": [
    {
@@ -12,9 +12,9 @@
     "cost": 1,
     "tag": "disability",
     "target_mode": "target",
-    "power": 60,
+    "power": 30,
     "effect": {
-     "new_state": "blocked",
+     "new_state": "cloudy",
      "type": "state_change",
      "for": 2
     }
