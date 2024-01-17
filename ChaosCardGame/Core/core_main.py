@@ -446,7 +446,13 @@ class ChangeTarget(AbstractEffect):
     new_target: TargetMode
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
-        kwargs["target_mode"] = self.new_target
+        if kwargs["user"].state == State.cloudy:
+            if self.new_target in [TargetMode.allies, TargetMode.self, TargetMode.allied_commander]:
+                kwargs["target_mode"] = TargetMode.self
+            else:
+                kwargs["target_mode"] = TargetMode.target
+        else:
+            kwargs["target_mode"] = self.new_target
         return self.effect.execute(**kwargs)
     def from_json(json: dict):
         return ChangeTarget(AbstractEffect.from_json(json["effect"]), TargetMode.from_str(json["new_target"]))
@@ -502,11 +508,13 @@ class DamageEffect(AbstractEffect):
     damage_mode: DamageMode = DamageMode.direct
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
-        kwargs["damage_mode"] = self.damage_mode
+        if user.state != State.monotonous:
+            kwargs["damage_mode"] = self.damage_mode
         for card in AbstractEffect.targeted_objects(**kwargs):
             # nobody answered so I'll consider it a feature.
             kwargs["survey"].damage += card.damage(
-                self.amount.eval(**kwargs), **kwargs)
+                self.amount.eval(**kwargs) * 10 // ifelse(kwargs["user"].state == State.cloudy, 12, 10),
+            **kwargs)
         return False
     def from_json(json: dict):
         return DamageEffect(Numeric.from_json(json["amount"]), DamageMode.from_str(getordef(json, "damage_mode", "indirect")))
