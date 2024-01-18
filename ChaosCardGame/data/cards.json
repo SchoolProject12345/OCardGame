@@ -94,7 +94,8 @@
         "name":"Water Jet",
         "cost":1,
         "power":0,
-        "effect":{"type":"damage","amount":25,"damage_mode":"ignore_resistance"}
+        "target_mode":"target",
+        "effect":{"type":"damage","amount":25,"damage_mode":"ignore_resist"}
        }
       ]
      }
@@ -124,9 +125,10 @@
   "hp": 115,
   "type": "creature",
   "attacks":[{
-   "name":"Shadow realm",
+   "name":"Shadow Realm",
    "cost":3,
    "power":0,
+   "target_mode":"foes",
    "effect":{
     "type":"random_targets",
     "sample":1,
@@ -250,6 +252,7 @@
     "type":"heal",
      "amount":{
        "type":"count",
+       "target_mode":"foes",
        "tags":["any"],
        "elements":[]
       }
@@ -750,7 +753,7 @@
      "new_target":"allies",
      "effect":{
       "type":"repeat",
-      "n":{"type":"count","tags":["any"]},
+      "n":{"type":"count","tags":["any"],"target_mode":"allies"},
       "effect":{
        "type":"target_change",
        "new_target":"foes",
@@ -937,7 +940,7 @@
   "attacks":[
    {
     "name":"Instant Dash",
-    "target":"target",
+    "target_mode":"target",
     "power":0,
     "effect":{"type":"damage","amount":80,"damage_mode":"indirect"}
    }
