@@ -149,6 +149,7 @@ def getCARDS(CARDS=[]) -> list:
             CARDS += [AbstractCard.from_json(card, (id := id + 1))]
         except:
             warn("Got an error with card named:", card["name"])
+            id -= 1
     return CARDS
 
 def getCOMMANDERS(COMMANDERS={}) -> dict:
