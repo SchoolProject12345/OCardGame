@@ -17,7 +17,7 @@ class GameMenu(State):
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
         
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_ESCAPE]:
             self.revert_state()
 
     def state_manager_hook(self):
