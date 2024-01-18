@@ -451,7 +451,7 @@
     "name": "Deep Sea Power",
     "effect": {
      "type": "if",
-     "value":{"type":"mul","num":1,"den":12,"times":{"type":"turn"}}
+     "value":{"type":"mul","num":1,"den":12,"times":{"type":"turn"}},
      "effect":{
       "type":"changeforme",
       "new_forme":{
@@ -480,7 +480,7 @@
              "effect":{"type":"damage","amount":105}
             }
            }
-          }
+          },
           "effect2":{
            "type":"changeforme",
            "new_forme":{
