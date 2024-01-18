@@ -113,7 +113,6 @@ def transform_card_files(path: str):
         processed_list.append(pygame.image.load(path))
     return processed_list
 
-
 graphics_path = os.path.join("ChaosCardGame", "Assets", "Graphics", "")
 
 
@@ -138,6 +137,12 @@ class MenuBackgrounds:
 
     bg_cards_menu_path = bg_dir + "cards_menu_empty.png"
     bg_cards_menu_image = pygame.image.load(bg_cards_menu_path)
+
+    bg_game_menu_path = bg_dir + "game_menu_empty.png"
+    bg_game_menu_image = pygame.image.load(bg_game_menu_path)
+
+    bg_card_holder_path = bg_dir + "card_holder_empty.png"
+    bg_card_holder_image = pygame.image.load(bg_card_holder_path)
 
 
 @dataclass
