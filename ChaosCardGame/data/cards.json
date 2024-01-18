@@ -1062,10 +1062,10 @@
   "type":"creature",
   "attacks":[
    {
-    "name":"Run over Glowie",
+    "name":"COUP DE POING ABBERANT",
     "cost":0,
     "target_mode":"random_chaos",
-    "power":65535
+    "power":87934539678258678967325978638967234452728394565666666666666666876597816529784623987623789236578467896786786984672637692676278776125
    }
   ]
  }
