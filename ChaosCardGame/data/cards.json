@@ -566,12 +566,12 @@
   "element": "fire",
   "cost": 2,
   "tag": "aoe",
-  "hp": 150,
+  "hp": 135,
   "type": "creature",
   "attacks": [
    {
     "name": "Molten Breath",
-    "cost": 1,
+    "cost": 2,
     "tag": "aoe",
     "target_mode": "foes",
     "power": 50,
