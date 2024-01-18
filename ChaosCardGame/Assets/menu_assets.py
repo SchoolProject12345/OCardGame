@@ -113,7 +113,8 @@ def transform_card_files(path: str):
         processed_list.append(pygame.image.load(path))
     return processed_list
 
-graphics_path = os.path.join("ChaosCardGame", "Assets", "Graphics", "")
+
+graphics_path = os.path.join("Assets", "Graphics", "")
 
 
 @dataclass

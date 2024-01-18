@@ -566,12 +566,12 @@
   "element": "fire",
   "cost": 2,
   "tag": "aoe",
-  "hp": 150,
+  "hp": 135,
   "type": "creature",
   "attacks": [
    {
     "name": "Molten Breath",
-    "cost": 1,
+    "cost": 2,
     "tag": "aoe",
     "target_mode": "foes",
     "power": 50,
@@ -805,8 +805,9 @@
     "target_mode": "self",
     "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Summon a Chaosling."
+     "type": "summon",
+     "count":1,
+     "creature":{"name":"Chaosling"}
     }
    }
   ]
@@ -851,7 +852,18 @@
   "element":"Chaos",
   "cost":5,
   "hp":300,
-  "type":"creature"
+  "type":"creature",
+  "attacks":[{
+   "name":"The Emperor's Call",
+   "cost":3,
+   "target_mode":"allies",
+   "power":70,
+   "effect":{
+    "type":"summon",
+    "count":2,
+    "creature":{"name":"Chaosling"}
+   }
+  }]
  },
  {
   "name":"The Skybound Serpent",
@@ -1001,30 +1013,28 @@
   "element": "air",
   "cost": 1,
   "tag": "support",
-  "hp": 120,
-  "passives": [
-   {
-    "name": "Smokescreen",
-    "effect": {
-     "effect1": {
-      "new_state": "block",
-      "type": "state_change",
-      "for": 2
-     },
-     "type": "union",
-     "effect2": {
-      "new_target": "self",
-      "effect": {
-       "new_state": "invisible",
-       "type": "state_change",
-       "for": 2
-      },
-      "type": "target_change"
-     }
-    },
-    "trigger": "whenattack"
+  "hp": 70,
+  "attacks":[{
+   "name":"Litoff",
+   "cost":2,
+   "Target_mode":"target",
+   "power":0,
+   "effect":{
+    "type":"state_change",
+     "new_state":"a crée"
+     "for":3,
    }
-  ],
+  }],
+  "passives": [{
+   "name":"smokescreen",
+   "trigger":"whenattack",
+   "effect":{
+    "type":"state_change",
+    "state_change":"invisble",
+    "for":2
+    
+   }
+  }],
   "type": "creature"
  },
  {
@@ -1050,10 +1060,10 @@
   "type":"creature",
   "attacks":[
    {
-    "name":"Run over Glowie",
+    "name":"COUP DE POING ABBERANT",
     "cost":0,
     "target_mode":"random_chaos",
-    "power":65535
+    "power":87934539678258678967325978638967234452728394565666666666666666876597816529784623987623789236578467896786786984672637692676278776125,
    }
   ]
  }

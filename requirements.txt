@@ -1,3 +1,5 @@
 pygame
 pygame_widgets
 numpy
+os
+shutil
