@@ -19,7 +19,7 @@ class Numeric:
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
             case "energy": return EnergyCount(json["type"])
-            case "mul": return MultNumeric(Numeric.from_json(json["numeric"]))
+            case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
@@ -108,10 +108,10 @@ class EnergyCount(Numeric):
 class MultNumeric(Numeric):
     "Evaluate the product of a numeric with a rational."
     numeric: Numeric
-    den: int
     num: int
+    den: int
     def eval(self, **kwargs) -> int:
-        return self.numeric.eval(**kwargs) * self.den // self.num
+        return self.numeric.eval(**kwargs) * self.num // self.den
 
 @dataclass
 class FuncNumeric(Numeric):
@@ -144,7 +144,11 @@ def getCARDS(CARDS=[]) -> list:
     json = loads(io.read())
     io.close()
     id = -1  # starts at -1 + 1 = 0
-    CARDS += [AbstractCard.from_json(card, (id := id + 1)) for card in json]
+    for card in json:
+        try:
+            CARDS += [AbstractCard.from_json(card, (id := id + 1))]
+        except:
+            warn("Got an error with card named:", card["name"])
     return CARDS
 
 def getCOMMANDERS(COMMANDERS={}) -> dict:
@@ -547,7 +551,7 @@ class ChangeState(AbstractEffect):
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
-            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {})) # feature not bug
+            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {}, (*getordef(json, "tags", ("+-")),))) # feature not bug
         return effect
     def __str__(self) -> str:
         return f"a change of state of the target⋅s to {self.new_state.name}"
@@ -816,7 +820,7 @@ class FormeChange(AbstractEffect):
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
         return len(actives) != 0
     def from_json(json: dict):
-        return FormeChange(CreatureCard.from_json(json["new_forme"]))
+        return FormeChange(CreatureCard.from_json(json["new_forme"], 1j))
     def __str__(self):
         return f"change the target(s) forme to {self.new_forme.name}"
 
@@ -869,7 +873,13 @@ class Passive:
     trigger: PassiveTrigger
     effect: AbstractEffect
     def from_json(json: dict):
-        return Passive(getordef(json, "name", ""), PassiveTrigger.from_str(json["trigger"]), AbstractEffect.from_json(getordef(json, "effect", {"type": "null"})))
+        if not isinstance(json, dict):
+            warn(json)
+        return Passive(
+                       getordef(json, "name", ""),
+                       PassiveTrigger.from_str(json["trigger"]),
+                       AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
+        )
     def execute(self, **kwargs): return self.effect.execute(**kwargs)
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
@@ -884,6 +894,8 @@ class Attack:
     effect: AbstractEffect  # use EffectUnion for multiple Effects
     tags: tuple = ()
     def from_json(json: dict):
+        if "target_mode" not in json:
+            warn(f"{json['name']} has no target mode.")
         return Attack(
             getordef(json, "name", ""),
             int(json["power"]),  # no float in power
@@ -997,7 +1009,7 @@ class ActiveCard:
     effects: list[AbstractEffect]
     attacked: bool
     state: State
-    taunt: None | any
+    taunt: None # or ActiveCard but I can't annotate thanks to Python
     taunt_dur: int
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
