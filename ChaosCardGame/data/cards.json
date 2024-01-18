@@ -1060,10 +1060,10 @@
   "type":"creature",
   "attacks":[
    {
-    "name":"COUP DE POING ABBERANT",
+    "name":"Temple OS' Choice",
     "cost":0,
     "target_mode":"random_chaos",
-    "power":87934539678258678967325978638967234452728394565666666666666666876597816529784623987623789236578467896786786984672637692676278776125
+    "power":65535
    }
   ]
  }
