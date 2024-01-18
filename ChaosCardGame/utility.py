@@ -1,3 +1,2 @@
 import os
-def SetDirectory():
-    os.chdir(os.path.dirname(__file__))
+cwd_path = os.path.dirname(os.path.abspath(__file__))

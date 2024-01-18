@@ -1,3 +1,4 @@
+import utility
 import pygame
 import os
 from Debug.DEV_debug import load_cards
@@ -114,7 +115,7 @@ def transform_card_files(path: str):
     return processed_list
 
 
-graphics_path = os.path.join("Assets", "Graphics", "")
+graphics_path = os.path.join(utility.cwd_path, "Assets", "Graphics", "")
 
 
 @dataclass
