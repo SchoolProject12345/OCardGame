@@ -113,7 +113,7 @@
     "effect": {
      "amount": 130,
      "type": "damage",
-     "damage_mode": "ignore_resistance"
+     "damage_mode": "ignore_resist"
     }
    }
   ]
@@ -488,6 +488,7 @@
            "type":"changeforme",
            "new_forme":{
             "name":"Useless Blobfish",
+            "element":"water",
             "cost":1,
             "hp":120,
             "attacks":[
@@ -668,11 +669,13 @@
     }
    }
   ],
-  "passives":{
-   "name":"Tide Respite",
-   "effect":{"type":"heal","amount":20},
-   "trigger":"endofturn"
-  }
+  "passives":[
+   {
+    "name":"Tide Respite",
+    "effect":{"type":"heal","amount":20},
+    "trigger":"endofturn"
+   }
+  ]
  },
  {
   "name": "Everstone Symbiote",
