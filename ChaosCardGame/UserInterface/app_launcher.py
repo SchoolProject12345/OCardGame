@@ -1,7 +1,6 @@
 import sys
 import pygame
 import os
-import  utility
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.MenuTemplates.main_menu_ui import MainMenu
 
@@ -52,8 +51,3 @@ class App:
         self.running = False
         pygame.quit()
         sys.exit
-
-
-if __name__ == "__main__":
-    app = App()
-    app.start()
