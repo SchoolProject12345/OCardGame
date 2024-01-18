@@ -114,7 +114,7 @@ def transform_card_files(path: str):
     return processed_list
 
 
-graphics_path = os.path.join("ChaosCardGame", "Assets", "Graphics", "")
+graphics_path = os.path.join("Assets", "Graphics", "")
 
 
 @dataclass

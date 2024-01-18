@@ -1,6 +1,7 @@
 import sys
 import pygame
 import os
+import  utility
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.MenuTemplates.main_menu_ui import MainMenu
 
@@ -23,7 +24,7 @@ class App:
         """
         pygame.init()
         self.logo = pygame.image.load(os.path.join(
-            "ChaosCardGame", "Assets", "Graphics", "Icons", "app_icon.png",))
+            "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
         self.screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
