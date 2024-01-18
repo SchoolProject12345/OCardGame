@@ -805,8 +805,9 @@
     "target_mode": "self",
     "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Summon a Chaosling."
+     "type": "summon",
+     "count":1,
+     "creature":{"Chaosling"}
     }
    }
   ]
@@ -851,7 +852,18 @@
   "element":"Chaos",
   "cost":5,
   "hp":300,
-  "type":"creature"
+  "type":"creature",
+  "attacks":[{
+   "name":"The Emperor's Call",
+   "cost":3,
+   "target_mode":"allies",
+   "power":70,
+   "effect":{
+    "type":"summon",
+    "count":2,
+    "creature":{"Chaosling"}
+   }
+  }]
  },
  {
   "name":"The Skybound Serpent",
