@@ -7,8 +7,8 @@ from Assets.menu_assets import MenuBackgrounds, CardsMenuToggles, MenuButtons, a
 class EarthCards():
     def __init__(self, screen):
         self.screen = screen
-        self.image = pygame.image.load("ChaosCardGame/Assets/Group 50.png").convert_alpha()
-        self.image_2 = pygame.image.load("ChaosCardGame/Assets/Group 53.png").convert_alpha()
+        self.image = pygame.image.load("Assets/Group 50.png").convert_alpha()
+        self.image_2 = pygame.image.load("Assets/Group 53.png").convert_alpha()
         self.total = [[self.image], [self.image_2]]
         self.total_2 = [[self.image], [self.image_2]]
         self.left_side = ToggleGridFour(
