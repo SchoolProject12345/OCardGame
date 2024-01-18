@@ -99,12 +99,12 @@ class EnergyCount(Numeric):
     def eval(self, **kwargs) -> int:
         owner = kwargs["user"].owner
         match cleanstr(self.type):
-            "max": return owner.max_energy
-            "current": return owner.energy
-            "perturn": return owner.energy_per_turn
-            "turn": return owner.energy_per_turn # match "/turn"
+            case "max": return owner.max_energy
+            case "current": return owner.energy
+            case "perturn": return owner.energy_per_turn
+            case "turn": return owner.energy_per_turn # match "/turn"
 
-@datclass
+@dataclass
 class MultNumeric(Numeric):
     "Evaluate the product of a numeric with a rational."
     numeric: Numeric
@@ -325,7 +325,7 @@ class DamageMode(IntEnum):
     def can_strong(self) -> bool:
         return self not in [DamageMode.indirect, DamageMode.ignore_se]
     def can_weak(self) -> bool:
-        return self in [DamageMode.direct, DamgeMode.ignore_se]
+        return self in [DamageMode.direct, DamageMode.ignore_se]
 
 class ReturnCode(IntEnum):
     ok = 200
@@ -444,9 +444,9 @@ class IfEffect(AbstractEffect):
     value: Numeric
     def execute(self, **kwargs) -> bool:
         if not self.value.eval(**kwargs):
-            return effect.execute(**kwargs)
+            return self.effect.execute(**kwargs)
         return False
-    def from_json():
+    def from_json(json: dict):
         return IfEffect(AbstractEffect.from_json(json["effect"]), Numeric.from_json(json["value"]))
     def __str__(self):
         return f"{self.effect} if {self.value} is non-zero."
@@ -459,8 +459,8 @@ class DamageRedirect(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         amount = self.amount.eval(**kwargs)
         targets = AbstractEffect.targeted_objects(**kwargs)
-        from_ = AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", self.from_))
-        if amount == 0 or len(targets) == 0 or len(from_) == 0:$
+        from_ = AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.from_))
+        if amount == 0 or len(targets) == 0 or len(from_) == 0:
             return False
         while amount > 0 and len(targets) > 0 and len(from_) > 0:
             target = targets.pop()
@@ -472,7 +472,7 @@ class DamageRedirect(AbstractEffect):
                 source.hp += redirected
                 target.hp -= redirected
         return True
-    def from_json(json: Dict):
+    def from_json(json: dict):
         return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
     def __str__(self):
         return f"redirect {self.amount} damages from {self.from_} to the target(s)"
@@ -559,7 +559,7 @@ class DamageEffect(AbstractEffect):
     damage_mode: DamageMode = DamageMode.direct
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
-        if user.state != State.monotonous:
+        if kwargs["user"].state != State.monotonous:
             kwargs["damage_mode"] = self.damage_mode
         for card in AbstractEffect.targeted_objects(**kwargs):
             # nobody answered so I'll consider it a feature.
@@ -818,7 +818,7 @@ class FormeChange(AbstractEffect):
     def from_json(json: dict):
         return FormeChange(CreatureCard.from_json(json["new_forme"]))
     def __str__(self):
-        return f"change the target(s) forme to {new_forme.name}"
+        return f"change the target(s) forme to {self.new_forme.name}"
 
 @dataclass
 class TauntTargets:
@@ -826,7 +826,7 @@ class TauntTargets:
     new_targets: TargetMode
     duration: Numeric
     def execute(self, **kwargs) -> bool:
-        new_targets = AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", self.new_targets))
+        new_targets = AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.new_targets))
         if len(new_targets) == 0:
             return False
         targets = AbstractEffect.targeted_objects(**kwargs)
@@ -1044,12 +1044,12 @@ class ActiveCard:
                 kwargs["main_target"] = self.taunt
                 self.taunt_dur -= 1
         if self.state == State.cloudy: # overrides taunt
-            if len(AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode.foes))) == 0:
+            if len(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes))) == 0:
                 kwargs["target_mode"] = TargetMode.commander
                 kwargs["main_target"] = kwargs["board"].unactive_player.commander
             else:
                 kwargs["target_mode"] = TargetMode.target
-                kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**with_field(kwargs, "target_mode", TargetMode.foes)))
+                kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
