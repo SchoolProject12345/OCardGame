@@ -1,5 +1,3 @@
-import time
-import re
 import Network.network as net
 import Core.core_main as core
 import re
@@ -220,7 +218,7 @@ def client_dev(game: PartialGameState):
         if head not in ["help", "attack", "place", "spell", "discard", "endturn", "chat"]:
             print("Invalid action. Write `help` to get a list of valid actions.")
             continue
-        sendblock(game.server, action.encode())
+        game.server.send(action.encode())
         logplay(game, game.server.recv(512).decode())
 
 def clientside_action(board: core.Board | PartialGameState, action: str, *args):
@@ -335,10 +333,10 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Missing arguments in attack request.".encode())
             return devlog("Warning: Missing arguments in attack request.")
         user = str2target(board, args[0])
-        if len(args[0]) < 3 or (args[0][:3] not in ["all"]) or (user is None):
+        if (user is None) or (user.owner == board.unactive_player):
             if isclientturn:
                 client_socket.send("error|Wrong user in attack request.".encode())
-            return devlog("Warning: user target in attack request.")
+            return devlog("Warning: Wrong user target in attack request.")
         try:
             attack = user.card.attacks[int(args[1])]
         except:
