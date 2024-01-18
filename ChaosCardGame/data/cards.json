@@ -807,7 +807,7 @@
     "effect": {
      "type": "summon",
      "count":1,
-     "creature":{"Chaosling"}
+     "creature":{"name":"Chaosling"}
     }
    }
   ]
@@ -861,7 +861,7 @@
    "effect":{
     "type":"summon",
     "count":2,
-    "creature":{"Chaosling"}
+    "creature":{"name":"Chaosling"}
    }
   }]
  },
