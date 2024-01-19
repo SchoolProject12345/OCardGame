@@ -4,7 +4,14 @@ from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
-import os
+import os, utility
+
+class Constants:  # to change variables quickly, easily and buglessly.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = 15
+    path = utility.cwd_path
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -129,18 +136,13 @@ class FuncNumeric(Numeric):
             Numeric.from_json(json["numeric"])
         )
 
-
-class Constants:  # to change variables quickly, easily and buglessly.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = 15
-
 def getCARDS(CARDS=[]) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(CARDS) != 0:
         return CARDS
-    io = open("data/cards.json", encoding="utf-8")
+    io = open(
+        os.path.join(Constants.path, "data/cards.json"),
+    encoding="utf-8")
     json = loads(io.read())
     io.close()
     id = -1  # starts at -1 + 1 = 0
@@ -156,7 +158,9 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
     "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(COMMANDERS) != 0:
         return COMMANDERS
-    io = open("data/commanders.json", encoding="utf-8")
+    io = open(
+        os.path.join(Constants.path, "data/commanders.json"),
+    encoding="utf-8")
     json = loads(io.read())
     io.close()
     id = -1
@@ -1248,7 +1252,7 @@ class Player:
     def get_save_json(name: str) -> dict | None:
         "Try to fetch & return a player witht he same name from `data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
-        io = open("data/players.json")
+        io = open(os.path.join(Constants.path, "data/players.json"))
         players: dict = loads(io.read())
         io.close()
         if fname not in players:
@@ -1266,7 +1270,7 @@ class Player:
         return Player.from_json(name, saves[name])
     def save(self):
         self.reset()
-        io = open("data/players.json", "r+")
+        io = open(os.path.join(Constants.path, "data/players.json"), "r+")
         players: dict = loads(io.read())
         userdata: dict = {cleanstr(self.name): {
             "commander": cleanstr(self.commander.card.name),
