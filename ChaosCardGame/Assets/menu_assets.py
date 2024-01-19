@@ -184,6 +184,18 @@ class MenuButtons:
     exit_button_path = button_dir + "Exit"
     exit_button_image = transform_button_files(exit_button_path)
 
+    # Back
+    back_button_path = button_dir + "Back"
+    back_button_image = transform_button_files(back_button_path)
+
+    # Settings
+    settings_button_path = button_dir + "Settings"
+    settings_button_image = transform_button_files(settings_button_path)
+
+    # Surrender
+    surrender_button_path = button_dir + "Surrender"
+    surrender_button_image = transform_button_files(surrender_button_path)
+
 
 @dataclass
 class CardsMenuToggles:
