@@ -65,7 +65,7 @@ class CardsMenu(State):
     def cards_menu(self):
         self.screen.blit(self.bg_cards_menu_image, self.bg_cards_menu_rect)
         self.exit_button.render()
-        if self.exit_button.answer():
+        if self.exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.revert_state()
         # Toggle selector
         for index, toggle in enumerate(self.element_toggles):
