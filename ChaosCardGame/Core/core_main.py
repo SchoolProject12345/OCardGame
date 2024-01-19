@@ -4,7 +4,14 @@ from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
-import os
+import os, utility
+
+class Constants:  # to change variables quickly, easily and buglessly.
+    default_max_energy = 4
+    default_energy_per_turn = 3
+    default_hand_size = 5
+    default_deck_size = 15
+    path = utility.cwd_path
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -129,18 +136,13 @@ class FuncNumeric(Numeric):
             Numeric.from_json(json["numeric"])
         )
 
-
-class Constants:  # to change variables quickly, easily and buglessly.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = 15
-
 def getCARDS(CARDS=[]) -> list:
     "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(CARDS) != 0:
         return CARDS
-    io = open("data/cards.json", encoding="utf-8")
+    io = open(
+        os.path.join(Constants.path, "data/cards.json"),
+    encoding="utf-8")
     json = loads(io.read())
     io.close()
     id = -1  # starts at -1 + 1 = 0
@@ -156,7 +158,9 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
     "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(COMMANDERS) != 0:
         return COMMANDERS
-    io = open("data/commanders.json", encoding="utf-8")
+    io = open(
+        os.path.join(Constants.path, "data/commanders.json"),
+    encoding="utf-8")
     json = loads(io.read())
     io.close()
     id = -1
@@ -1040,7 +1044,10 @@ class ActiveCard:
         if (not self.can_attack()) or target.state in [State.invisible, State.damageless]:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
-        if self.owner.energy < attack.cost:
+        if "ultimate" in attack.tags and self.owner.commander_charges < attack.cost:
+            kwargs["survey"].return_code = ReturnCode.no_energy
+            return kwargs["survey"]
+        elif self.owner.energy < attack.cost:
             kwargs["survey"].return_code = ReturnCode.no_energy
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
@@ -1076,7 +1083,11 @@ class ActiveCard:
             if passive.trigger != PassiveTrigger.whenattack:
                 continue
             passive.execute(**kwargs)
-        self.owner.energy -= attack.cost
+        if "ultimate" in attack.tags:
+            self.owner.commander_charges -= attack.cost
+        else:
+            self.owner.energy -= attack.cost
+            self.owner.commander_charges += kwargs["survey"].damage
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
@@ -1206,22 +1217,24 @@ class Player:
     max_energy: int
     energy_per_turn: int
     active: list[ActiveCard | None]
+    commander_charges: int
     def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard] = []):
-        if len(deck) != Constants.default_deck_size:
-            warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
-            deck = Player.get_deck()
+        #if len(deck) != Constants.default_deck_size:
+        #    warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
+        #    deck = Player.get_deck()
         self.name = name
         self.commander = ActiveCard(commander, self, None)
         # avoid sharing, notably if deck is left to default in DEV() mode, as Python is a terrible language
+        # this also helps to reset the deck in case of summon/forme change
         self.deck = deck.copy()
         rng.shuffle(self.deck)
         self.discard = []  # is not shared
         self.hand = []
-        # self.draw()
         self.energy = Constants.default_energy_per_turn
         self.max_energy = Constants.default_max_energy
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
+        self.commander_charges = 0
     def get_commander(*_) -> CommanderCard:
         # yes, it's ugly, it's Python
         return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])]
@@ -1239,7 +1252,7 @@ class Player:
     def get_save_json(name: str) -> dict | None:
         "Try to fetch & return a player witht he same name from `data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
-        io = open("data/players.json")
+        io = open(os.path.join(Constants.path, "data/players.json"))
         players: dict = loads(io.read())
         io.close()
         if fname not in players:
@@ -1257,7 +1270,7 @@ class Player:
         return Player.from_json(name, saves[name])
     def save(self):
         self.reset()
-        io = open("data/players.json", "r+")
+        io = open(os.path.join(Constants.path, "data/players.json"), "r+")
         players: dict = loads(io.read())
         userdata: dict = {cleanstr(self.name): {
             "commander": cleanstr(self.commander.card.name),
@@ -1399,6 +1412,12 @@ class Board:
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1  # To compensate disadvantage
         self.turn = 0
+        if len(player1.deck) != Constants.default_deck_size:
+            warn(f"player1 ({player1.name})'s deck is not valid, giving random one instead.")
+            player1.deck = Player.get_deck()
+        if len(player2.deck) != Constants.default_deck_size:
+            warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
+            player2.deck = Player.get_deck()
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
