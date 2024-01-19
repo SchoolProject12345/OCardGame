@@ -1,5 +1,5 @@
-from UserInterface.ocg_launcher import App
+from UserInterface.ocg_launcher import OcgGame
 
 if __name__ == "__main__":
-    app = App()
+    app = OcgGame()
     app.start()
