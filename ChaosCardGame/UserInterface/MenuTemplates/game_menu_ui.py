@@ -15,7 +15,7 @@ class GameMenu(State):
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect()
 
         self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
-        self.bg_pause_menu_rect = self.bg_game_menu_image.get_rect(center=SCREEN_CENTER)
+        self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(center=SCREEN_CENTER)
         
 
     def game_menu(self):
