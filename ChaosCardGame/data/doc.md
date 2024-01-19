@@ -229,6 +229,13 @@ With possible values of field `"new_state"` being:
     `"damageless"`: cannot receive damage nor new State.
     `"cloudy"`: -20% damages, all attacks are single-random-targeted.
     `"monotonous"`: damages are not affected by weaknesses.
+Cleanse effects and tags by tags. `by_tags` defaults to `["+", "-", "+-"]`. Default supported tags are #`+` (positive state/effect), #`-` (negative state/effect) & #`+-` (positive with drawback state/effect). All effects than can be tagged should be tagged (i.e. loop & delay) for this to work properly.
+```
+{
+ "type":"cleanse",
+ "by_tags":["+", "-", "+-"]
+}
+```
 
 ### HP Manipulation
 Inflict damages to target(s), which depend on mode.
@@ -268,6 +275,14 @@ Heal from a ratio of total damage dealt in sub-effects. This doesn't take end of
  "effect":{/*effect object*/}
 }
 ```
+Redirect `amount` damages from `from` distribution to targets.
+```js
+{
+ "type":"direct",
+ "from":"{TargetMode string}",
+ "amount":0
+}
+```
 
 ### Energy Manipulation
 ```js
@@ -292,11 +307,19 @@ Change the target∙s owner to user's owner, changing their place on the field. 
 ```
 {"type":"hypnotize"} // yeah that's it, no fields.
 ```
-Change the target's own card to `new_forme`. Please note that when the card is discarded, only the new forme will be avaible to redraw, so one might want to add a passive with trigger "whenplaced" to revert to the base forme.
+Change the target's own card to `new_forme`. Please note that when the card is discarded, only the new forme will be avaible to redraw, so one might want to add a passive with trigger "whenplaced" to revert to the base forme. Cost of the `new_forme` is also necessary for this same reason.
 ```
 {
  "type":"changeforme",
  "new_forme":{/*creature card object*/}
+}
+```
+Taunt the targets to a random target from the `new_targets` distribution for `duration` (set to -1 or 65535 for infinite taunt). A taunted creature's target automatically changed to its taunter whenever it attacks. `duration` is in number of attacks rather than number of turns.
+```
+{
+ "type":"taunt",
+ "new_targets":"{TargetMode string}",
+ "duration":1
 }
 ```
 
@@ -327,6 +350,14 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
  "effect":{/*effect object*/},
  "infinite":true
  "tags":[]
+}
+```
+Evaluate expression if `value` is evalutated to non-zero.
+```
+{
+ "type":"if",
+ "value":{/*Numeric expr*/},
+ "effect":{/*effect object*/}
 }
 ```
 
@@ -385,4 +416,9 @@ Multiply evaluate numeric by rational.
  "num":2,
  "den":1
 }
+```
+
+### Current turn
+```js
+{"type":"turn"}
 ```
