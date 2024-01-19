@@ -1,11 +1,12 @@
 import socket
 import json
 import threading
+import utility
 
 def get_data(loaded_data = {}):
     if bool(loaded_data):
         return loaded_data
-    with open('Network/template.json') as file:
+    with open(utility.os.path.join(utility.cwd_path, 'Network/template.json')) as file:
         try:
             loaded_data.update(json.load(file))
         finally:
