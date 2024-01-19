@@ -14,11 +14,16 @@ class GameMenu(State):
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect()
 
+        self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
+        self.bg_pause_menu_rect = self.bg_game_menu_image.get_rect(center=SCREEN_CENTER)
+        
+
     def game_menu(self):
-        self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
+        self.screen.blit(self.bg_game_menu_image,self.bg_game_menu_rect)
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-            self.revert_state()
+            self.screen.blit(self.bg_pause_menu_image,self.bg_pause_menu_rect)
+            
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:

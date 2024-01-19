@@ -146,6 +146,9 @@ class MenuBackgrounds:
     bg_card_holder_path = bg_dir + "card_holder_empty.png"
     bg_card_holder_image = pygame.image.load(bg_card_holder_path)
 
+    bg_pause_menu_path = bg_dir + "pause_menu_empty.png"
+    bg_pause_menu_image = pygame.image.load(bg_pause_menu_path)
+
 
 @dataclass
 class MenuButtons:
