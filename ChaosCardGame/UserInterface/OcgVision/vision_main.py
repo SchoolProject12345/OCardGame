@@ -3,12 +3,6 @@ import inspect
 from Assets.menu_assets import smoothscale_converter
 
 
-def get_max_delta(image_idle, image_toggle):
-    delta_width = abs(image_toggle.get_width() - image_idle.get_width())
-    delta_height = abs(image_toggle.get_height() - image_idle.get_height())
-    return (delta_width, delta_height)
-
-
 class State:
     """
     A class to represent a state.
