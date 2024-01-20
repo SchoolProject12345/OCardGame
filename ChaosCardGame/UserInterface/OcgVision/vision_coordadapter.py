@@ -30,8 +30,10 @@ def bottomright2topleft(coord, width, height):
     return (coord[0]-width, coord[1]-height)
 
 
-def coordconverter(position_type, coord, width=0, height=0):
+def coord_converter(position_type, coord, width=0, height=0):
     match position_type:
+        case "topleft":
+            return coord
         case "midleft":
             return midleft2topleft(coord, height)
         case "bottomleft":
@@ -48,3 +50,5 @@ def coordconverter(position_type, coord, width=0, height=0):
             return midright2topleft(coord, width)
         case "bottomright":
             return bottomright2topleft(coord, width, height)
+        case _:
+            raise "Unknown pos_type."

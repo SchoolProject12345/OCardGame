@@ -24,7 +24,7 @@ class OcgGame:
         """
         pygame.init()
         self.logo = pygame.image.load(os.path.join(utility.cwd_path,
-            "Assets", "Graphics", "Icons", "app_icon.png",))
+                                                   "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
         self.screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -41,7 +41,9 @@ class OcgGame:
             self.MainMenu.state_manager()
             pygame.display.update()
             self.clock.tick(60)
-
+            
+            # Event Handling
+            pygame.event.pump()
             if pygame.event.get(eventtype=pygame.QUIT):
                 self.stop()
 

@@ -148,6 +148,9 @@ class MenuBackgrounds:
 
     bg_pause_menu_path = bg_dir + "pause_menu_empty.png"
     bg_pause_menu_image = pygame.image.load(bg_pause_menu_path)
+    
+    bg_host_menu_path = bg_dir + "host_menu_empty.png"
+    bg_host_menu_image = pygame.image.load(bg_host_menu_path)
 
 
 @dataclass
@@ -226,6 +229,15 @@ class CardsMenuToggles:
     # Water
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
+
+
+@dataclass
+class TextBoxes:
+    textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
+
+    # TextBox 1
+    textbox_1_path = textbox_dir + "textbox_1.png"
+    textbox_1_image = pygame.image.load(textbox_1_path)
 
 
 if load_cards:

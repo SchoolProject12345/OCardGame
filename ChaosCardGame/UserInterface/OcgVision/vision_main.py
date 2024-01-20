@@ -1,5 +1,7 @@
 import pygame
 import inspect
+from UserInterface.OcgVision.vision_coordadapter import coord_converter
+from UserInterface.ui_settings import SCREEN_CENTER
 from Assets.menu_assets import smoothscale_converter
 
 
@@ -579,3 +581,69 @@ class DualBarVerti:
              self.width, self.height-(self.height-self.health_height)),
             border_radius=self.border_radius,
         )
+
+
+class SelectTextBox:
+    def __init__(self, screen: pygame.Surface,
+                 position: tuple,
+                 width: int, height: int,
+                 font: pygame.font.Font,
+                 color: tuple,
+                 position_type: str = "topleft",
+                 text_center="left",
+                 border_width=-1):
+        self.screen = screen
+        self.position = position
+        self.width = width
+        self.height = height
+        self.font = font
+        self.color = color
+        self.position_type = position_type
+        self.text_center = text_center
+        self.border_width = border_width
+
+        self.text = ""
+        self.active = False
+        print(SCREEN_CENTER)
+        print(coord_converter(
+            self.position_type, self.position, self.width, self.height))
+
+        self.input_rect = pygame.Rect(coord_converter(
+            self.position_type, self.position, self.width, self.height), (self.width, self.height))
+
+    def calc_left(self):
+        self.text_rect = self.text_surf.get_rect(midleft=(self.input_rect.x, self.input_rect.y))
+    
+    def calc_center(self):
+        self.text_rect = self.text_surf.get_rect(
+            center=(self.input_rect.x+(self.width//2), self.input_rect.y))
+    
+    def calc_right(self):
+        self.text_rect = self.text_surf.get_rect(
+            midright = (self.input_rect.x+self.width,self.input_rect.y)
+        )
+
+    def update(self, key_events: pygame.event.Event):
+        pygame.event.get(pygame.KEYUP)
+        if self.input_rect.collidepoint(pygame.mouse.get_pos()):
+            self.active = True
+        if self.active:
+            for event in key_events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        self.text = self.text[:-1]
+                    else:
+                        self.text += event.unicode
+                        print(event)
+        pygame.draw.rect(self.screen, (255, 255, 255),
+                         self.input_rect, width=self.border_width)
+        self.text_surf = self.font.render(self.text, True, self.color)
+        
+        match self.text_center:
+            case "left": self.calc_left()
+            case "center": self.calc_center()
+            case "right": self.calc_right()
+            case _: raise ValueError(f"Wrong argument {self.text_center}")
+            
+        self.screen.blit(
+            self.text_surf, (self.text_rect.x + 4, self.text_rect.y + 4))
