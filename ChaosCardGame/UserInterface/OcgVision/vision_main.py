@@ -620,7 +620,7 @@ class SelectTextBox:
             bottomright=(self.input_rect.x+self.width, self.input_rect.y)
         )
 
-    def update(self, key_events: pygame.event.Event):
+    def render(self, key_events: pygame.event.Event):
         # Event handler
         pygame.event.get(pygame.KEYUP)
         if self.input_rect.collidepoint(pygame.mouse.get_pos()):
