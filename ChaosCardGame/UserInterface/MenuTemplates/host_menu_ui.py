@@ -32,7 +32,6 @@ class HostMenu(State):
             self.change_state("GameMenu")
         elif self.hostmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.revert_state()
-            print("Reverted")
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:
