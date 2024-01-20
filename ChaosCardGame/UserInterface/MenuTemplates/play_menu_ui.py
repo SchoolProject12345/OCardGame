@@ -1,5 +1,5 @@
 import pygame
-from UserInterface.OCG_Vision.vision_main import State, ImageButton
+from UserInterface.OcgVision.vision_main import State, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
