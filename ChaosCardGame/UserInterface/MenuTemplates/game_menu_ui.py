@@ -42,11 +42,11 @@ class GameMenu(State):
             self.surrender_button.render()
 
             if self.back_button.answer():
-                pass
+                self.is_paused_toggle.toggle()
             elif self.settings_button.answer():
                 pass
             elif self.surrender_button.answer():
-                pass # Set back to PlayMenu
+                self.revert_state()
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:
