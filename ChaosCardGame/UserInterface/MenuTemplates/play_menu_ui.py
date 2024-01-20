@@ -33,9 +33,9 @@ class PlayMenu(State):
         self.join_button.render()
         self.playmenu_exit_button.render()
 
-        if self.playmenu_host_button.answer():
+        if self.host_button.answer():
             self.change_state("HostMenu")
-        elif self.playmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        elif self.exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.revert_state()
 
     def state_manager_hook(self):

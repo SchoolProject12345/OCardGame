@@ -23,8 +23,6 @@ class GameMenu(State):
 
         self.is_paused_toggle = KeyToggle(pygame.K_ESCAPE, False)
 
-        self.last_pause_toggle = -1
-
     def game_menu(self):
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
 
