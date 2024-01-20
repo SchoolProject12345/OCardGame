@@ -19,10 +19,13 @@ class KeyToggle(SingleExecKey):
     def __init__(self, target_key, init_val: bool):
         super().__init__(target_key)
         self.init_val = init_val
+    
+    def toggle(self):
+        self.init_val = not self.init_val
 
     def update(self, keys):
         if self.handle_key(keys):
-            self.init_val = not self.init_val
+            self.toggle()
             return self.init_val
         else:
             return self.init_val
