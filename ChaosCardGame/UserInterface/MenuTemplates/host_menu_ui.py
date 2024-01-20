@@ -17,7 +17,7 @@ class HostMenu(State):
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
         
-        self.exit_button = ImageButton(self.screen, True, image=alpha_converter(
+        self.hostmenu_exit_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.exit_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))
 
         # Options
@@ -26,12 +26,13 @@ class HostMenu(State):
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)
         self.hostmenu_host_button.render()
-        self.exit_button.render()
+        self.hostmenu_exit_button.render()
 
         if self.hostmenu_host_button.answer():
             self.change_state("GameMenu")
-        elif self.exit_button.answer or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        elif self.hostmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.revert_state()
+            print("Reverted")
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:
