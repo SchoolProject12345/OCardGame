@@ -604,26 +604,24 @@ class SelectTextBox:
 
         self.text = ""
         self.active = False
-        print(SCREEN_CENTER)
-        print(coord_converter(
-            self.position_type, self.position, self.width, self.height))
-
         self.input_rect = pygame.Rect(coord_converter(
             self.position_type, self.position, self.width, self.height), (self.width, self.height))
 
     def calc_left(self):
-        self.text_rect = self.text_surf.get_rect(midleft=(self.input_rect.x, self.input_rect.y))
-    
+        self.text_rect = self.text_surf.get_rect(
+            bottomleft=(self.input_rect.x, self.input_rect.y))
+
     def calc_center(self):
         self.text_rect = self.text_surf.get_rect(
-            center=(self.input_rect.x+(self.width//2), self.input_rect.y))
-    
+            midtop=(self.input_rect.x+(self.width//2), self.input_rect.y))
+
     def calc_right(self):
         self.text_rect = self.text_surf.get_rect(
-            midright = (self.input_rect.x+self.width,self.input_rect.y)
+            bottomright=(self.input_rect.x+self.width, self.input_rect.y)
         )
 
     def update(self, key_events: pygame.event.Event):
+        # Event handler
         pygame.event.get(pygame.KEYUP)
         if self.input_rect.collidepoint(pygame.mouse.get_pos()):
             self.active = True
@@ -634,16 +632,14 @@ class SelectTextBox:
                         self.text = self.text[:-1]
                     else:
                         self.text += event.unicode
-                        print(event)
+        # Rendering
         pygame.draw.rect(self.screen, (255, 255, 255),
                          self.input_rect, width=self.border_width)
         self.text_surf = self.font.render(self.text, True, self.color)
-        
         match self.text_center:
             case "left": self.calc_left()
             case "center": self.calc_center()
             case "right": self.calc_right()
             case _: raise ValueError(f"Wrong argument {self.text_center}")
-            
         self.screen.blit(
-            self.text_surf, (self.text_rect.x + 4, self.text_rect.y + 4))
+            self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
