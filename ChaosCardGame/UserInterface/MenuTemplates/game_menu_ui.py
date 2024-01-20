@@ -28,7 +28,7 @@ class GameMenu(State):
         self.settings_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.settings_button_image), position_type="center",position=(SCREEN_CENTER[0], 392))
         self.surrender_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.surrender_button_image), postion_type="center",postion=(SCREEN_CENTER[0], 490))
+            MenuButtons.surrender_button_image), postion_type="center",position=(SCREEN_CENTER[0], 490))
 
         self.is_paused_toggle = KeyToggle(pygame.K_ESCAPE, False)
 
