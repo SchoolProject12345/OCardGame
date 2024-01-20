@@ -14,12 +14,21 @@ class GameMenu(State):
         self.local_options = ["GameMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
 
+        # Game Menu
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect()
 
+        # Pause Menu
         self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
         self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(
             center=SCREEN_CENTER)
+        
+        self.back_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.back_button_image), position_type="center",position=(SCREEN_CENTER[0], 294))
+        self.settings_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.settings_button_image), position_type="center",position=(SCREEN_CENTER[0], 392))
+        self.surrender_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.surrender_button_image), postion_type="center",postion=(SCREEN_CENTER[0], 490))
 
         self.is_paused_toggle = KeyToggle(pygame.K_ESCAPE, False)
 
@@ -28,6 +37,16 @@ class GameMenu(State):
 
         if self.is_paused_toggle.update(pygame.key.get_pressed()):
             self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)
+            self.back_button.render()
+            self.settings_button.render()
+            self.surrender_button.render()
+
+            if self.back_button.answer():
+                pass
+            elif self.settings_button.answer():
+                pass
+            elif self.surrender_button.answer():
+                pass # Set back to PlayMenu
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:
