@@ -593,7 +593,8 @@ class SelectTextBox:
                  color: tuple,
                  position_type: str = "topleft",
                  text_center="left",
-                 border_width=-1):
+                 border_width=-1,
+                 default_text=""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -603,37 +604,47 @@ class SelectTextBox:
         self.position_type = position_type
         self.text_center = text_center
         self.border_width = border_width
+        self.default_text = default_text
 
-        self.text = ""
+        self.text = self.default_text
         self.active = False
         self.input_rect = pygame.Rect(coord_converter(
             self.position_type, self.position, self.width, self.height), (self.width, self.height))
 
     def calc_left(self):
         self.text_rect = self.text_surf.get_rect(
-            bottomleft=(self.input_rect.x, self.input_rect.y))
+            midleft=(self.input_rect.x, self.input_rect.y+(self.height//2)))
 
     def calc_center(self):
         self.text_rect = self.text_surf.get_rect(
-            midtop=(self.input_rect.x+(self.width//2), self.input_rect.y))
+            center=(self.input_rect.x+(self.width//2), self.input_rect.y+(self.height//2)))
 
     def calc_right(self):
         self.text_rect = self.text_surf.get_rect(
-            bottomright=(self.input_rect.x+self.width, self.input_rect.y)
+            midright=(self.input_rect.x+self.width,
+                      self.input_rect.y+(self.height//2))
         )
 
-    def render(self, key_events: pygame.event.Event):
-        # Event handler
+    def update(self, key_events):
         pygame.event.get(pygame.KEYUP)
-        if self.input_rect.collidepoint(pygame.mouse.get_pos()):
+        if self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             self.active = True
+        elif not self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.active = False
         if self.active:
             for event in key_events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.text = self.text[:-1]
-                    else:
+                    elif self.text_rect.width < self.input_rect.width:
                         self.text += event.unicode
+        if self.active == False and self.text == "":
+            self.text = self.default_text
+
+    def render(self, key_events: pygame.event.Event):
+        # Event handler
+        self.update(key_events)
+
         # Rendering
         pygame.draw.rect(self.screen, (255, 255, 255),
                          self.input_rect, width=self.border_width)
@@ -645,3 +656,4 @@ class SelectTextBox:
             case _: raise ValueError(f"Wrong argument {self.text_center}")
         self.screen.blit(
             self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
+        return self.text
