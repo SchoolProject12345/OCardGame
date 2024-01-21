@@ -590,6 +590,7 @@ class SelectTextBox:
                  position: tuple,
                  width: int, height: int,
                  font: pygame.font.Font,
+                 default_color: tuple,
                  color: tuple,
                  position_type: str = "topleft",
                  text_center="left",
@@ -600,6 +601,7 @@ class SelectTextBox:
         self.width = width
         self.height = height
         self.font = font
+        self.default_color = default_color
         self.color = color
         self.position_type = position_type
         self.text_center = text_center
@@ -640,6 +642,11 @@ class SelectTextBox:
                         self.text += event.unicode
         if self.active == False and self.text == "":
             self.text = self.default_text
+        
+        if self.active == False and self.text == self.default_text:
+            self.active_color = self.default_color
+        else:
+            self.active_color = self.color
 
     def render(self, key_events: pygame.event.Event):
         # Event handler
@@ -648,7 +655,7 @@ class SelectTextBox:
         # Rendering
         pygame.draw.rect(self.screen, (255, 255, 255),
                          self.input_rect, width=self.border_width)
-        self.text_surf = self.font.render(self.text, True, self.color)
+        self.text_surf = self.font.render(self.text, True, self.active_color)
         match self.text_center:
             case "left": self.calc_left()
             case "center": self.calc_center()
