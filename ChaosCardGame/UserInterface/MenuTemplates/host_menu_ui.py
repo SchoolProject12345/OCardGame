@@ -1,4 +1,6 @@
 import pygame
+from utility import cwd_path
+import os
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
@@ -11,6 +13,8 @@ class HostMenu(State):
         self.is_anchor = False
         self.local_options = ["HostMenu", "GameMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
+        self.ger_font_path = os.path.join(
+            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
 
         self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
@@ -19,10 +23,10 @@ class HostMenu(State):
         self.room_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
         self.username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
 
-        self.tb_room = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.SysFont(
-            "arial", 30), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
-        self.tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.SysFont(
-            "arial", 30), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
+        self.tb_room = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
+            self.ger_font_path, 70), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
+        self.tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
+            self.ger_font_path, 70), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
 
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
