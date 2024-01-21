@@ -1,5 +1,5 @@
 [
- {
+{
   "name": "Monkey of the Skies",
   "element": "air",
   "cost": 1,
@@ -36,10 +36,8 @@
     "effect": {
      "type":"union",
      "effect1":{
-      "type":"add_energy",
-      "energy":0, 
-      "max_energy":1, 
-      "energy_per_turn":0 
+      "type":"add_energy",  
+      "per_turn":1 
      },
     "effect2":{
      "type":"dot",
@@ -147,9 +145,7 @@
     "name": "Sun Chanelling",
     "effect": {
      "type": "add_energy",
-     "energy": 2,
-     "max_energy":0,
-     "energy_per_turn":0
+     "gain": 2
     },
     "trigger": "endofturn"
    }
@@ -554,7 +550,7 @@
     "name": "Energizing",
     "effect": {
      "type": "add_energy",
-     "max_energy":2
+     "max":2
     },
     "trigger": "whenplaced"
    }
@@ -646,7 +642,7 @@
     "name": "Energizing",
     "effect": {
      "type": "add_energy",
-     "mas_energy":2
+     "mas":2
     },
     "trigger": "whenplaced"
    }
@@ -800,7 +796,7 @@
    {
     "name":"Energy Hold",
     "trigger":"whenplaced",
-    "effect":{"type":"add_energy","max_energy":1}
+    "effect":{"type":"add_energy","max":1}
    }
   ]
  },
