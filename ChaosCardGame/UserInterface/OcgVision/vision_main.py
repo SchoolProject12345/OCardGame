@@ -640,9 +640,12 @@ class SelectTextBox:
                         self.text = self.text[:-1]
                     elif self.text_rect.width < self.input_rect.width:
                         self.text += event.unicode
+
         if self.active == False and self.text == "":
             self.text = self.default_text
-        
+        elif self.active and self.text == self.default_text:
+            self.text = ""
+
         if self.active == False and self.text == self.default_text:
             self.active_color = self.default_color
         else:
