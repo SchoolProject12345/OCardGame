@@ -85,8 +85,8 @@
      "creature":{
       "name":"Weakened Hydra",
       "element":"water",
-      "cost":1,
-      "hp":40,
+      "cost":2,
+      "hp":100,
       "attacks":[
        {
         "name":"Water Jet",
@@ -202,10 +202,11 @@
     "name": "Magic Taunt",
     "cost": 3,
     "target_mode": "foes",
-    "power": 0,
+    "power": 10,
     "effect": {
-     "type": "todo",
-     "desc": "Force ennemies to attack this card for the next turn."
+     "type": "taunt",
+     "new_targets":"self",
+     "duration":1
     }
    }
   ]
@@ -789,7 +790,24 @@
     "name": "Burning Grab",
     "cost": 1,
     "target_mode": "target",
-    "power": 30
+    "power": 30,
+    "effect":{
+      "type":"union",
+      "effect1":{
+        "type":"loop",
+        "infinite":false,
+        "effect":{"type":"damage","amount":10,"damage_mode":"direct"}
+      },
+      "effect2":{
+       "type":"targetchange",
+       "new_target":"self",
+       "effect":{
+        "type":"taunt",
+        "new_targets":"target",
+        "duration":-1
+      }
+     }
+    }
    }
   ],
   "passives":[
@@ -839,7 +857,7 @@
   "name": "Captain Octopus",
   "element": "Water",
   "cost": 1,
-  "hp": 90,
+  "hp": 70,
   "type": "creature",
   "attacks": [
    {
@@ -904,17 +922,27 @@
   "name": "Rio, o-colorido",
   "element": "Air",
   "cost": 2,
-  "hp": 75,
+  "hp": 97,
   "type": "creature",
   "attacks": [
    {
     "name": "Colourblast",
     "cost": 1,
     "target_mode": "foes",
-    "power": 20,
+    "power": 35,
     "effect": {
-     "type": "todo",
-     "desc": "Blocks all super effective type multipliers from ennemy attacks for two turns "
+     "type": "state_change",
+     "new_state":"monotonous",
+     "for":2
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Dazzling",
+    "effect":{
+     "type":"add_energy",
+     "per_turn":1
     }
    }
   ]
