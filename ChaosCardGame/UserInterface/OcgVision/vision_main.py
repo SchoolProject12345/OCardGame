@@ -32,8 +32,8 @@ class State:
     `change_state`(self, new_state):
         Changes the current state to a new state.
 
-    `revert_state`(self):
-        Reverts the current state to the previous state if not an anchor state.
+    `revert_state`(self,n_revert):
+        Reverts the current state n_revert times if not an anchor state.
 
     `check_ownership`(self):
         Checks if the current global state is within the local state options and assigns it as the local state.
@@ -71,14 +71,16 @@ class State:
         State.previous_state.append(State.state)
         State.state = new_state
 
-    def revert_state(self):
+    def revert_state(self,n_revert):
         """
-        Reverts the current state to the previous state if not an anchor state.
+        Reverts the current state n_revert times if not an anchor state.
 
         """
-        if self.is_anchor == False:
-            State.state = State.previous_state[-1]
-            State.previous_state.pop()
+        while n_revert > 0:
+            if self.is_anchor == False:
+                State.state = State.previous_state[-1]
+                State.previous_state.pop()
+            n_revert -= 1
 
     def check_ownership(self):
         """

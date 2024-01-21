@@ -20,7 +20,7 @@ class CreditsMenu(State):
         self.button.render()
 
         if self.button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
-            self.revert_state()
+            self.revert_state(1)
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:

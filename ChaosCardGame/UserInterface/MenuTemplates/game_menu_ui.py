@@ -47,7 +47,7 @@ class GameMenu(State):
                 pass
             elif self.surrender_button.answer():
                 self.is_paused_toggle.toggle() # Needs to reset the game
-                self.revert_state()
+                self.revert_state(2)
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:
