@@ -6,7 +6,7 @@ from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.MenuTemplates.main_menu_ui import MainMenu
 
 
-class App:
+class OcgGame:
     """
     This class represents the application for the "OCG" game.
 
@@ -24,7 +24,7 @@ class App:
         """
         pygame.init()
         self.logo = pygame.image.load(os.path.join(utility.cwd_path,
-            "Assets", "Graphics", "Icons", "app_icon.png",))
+                                                   "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
         self.screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -41,7 +41,9 @@ class App:
             self.MainMenu.state_manager()
             pygame.display.update()
             self.clock.tick(60)
-
+            
+            # Event Handling
+            pygame.event.pump()
             if pygame.event.get(eventtype=pygame.QUIT):
                 self.stop()
 

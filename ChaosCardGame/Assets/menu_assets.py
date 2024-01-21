@@ -140,6 +140,21 @@ class MenuBackgrounds:
     bg_cards_menu_path = bg_dir + "cards_menu_empty.png"
     bg_cards_menu_image = pygame.image.load(bg_cards_menu_path)
 
+    bg_game_menu_path = bg_dir + "game_menu_empty.png"
+    bg_game_menu_image = pygame.image.load(bg_game_menu_path)
+
+    bg_card_holder_path = bg_dir + "card_holder_empty.png"
+    bg_card_holder_image = pygame.image.load(bg_card_holder_path)
+
+    bg_pause_menu_path = bg_dir + "pause_menu_empty.png"
+    bg_pause_menu_image = pygame.image.load(bg_pause_menu_path)
+    
+    bg_host_menu_path = bg_dir + "host_menu_empty.png"
+    bg_host_menu_image = pygame.image.load(bg_host_menu_path)
+
+    bg_host_menu_path = bg_dir + "host_menu_empty.png"
+    bg_host_menu_image = pygame.image.load(bg_host_menu_path)
+
 
 @dataclass
 class MenuButtons:
@@ -178,6 +193,18 @@ class MenuButtons:
     exit_button_path = button_dir + "Exit"
     exit_button_image = transform_button_files(exit_button_path)
 
+    # Back
+    back_button_path = button_dir + "Back"
+    back_button_image = transform_button_files(back_button_path)
+
+    # Settings
+    settings_button_path = button_dir + "Settings"
+    settings_button_image = transform_button_files(settings_button_path)
+
+    # Surrender
+    surrender_button_path = button_dir + "Surrender"
+    surrender_button_image = transform_button_files(surrender_button_path)
+
 
 @dataclass
 class CardsMenuToggles:
@@ -205,6 +232,15 @@ class CardsMenuToggles:
     # Water
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
+
+
+@dataclass
+class TextBoxes:
+    textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
+
+    # TextBox 1
+    textbox_1_path = textbox_dir + "textbox_1.png"
+    textbox_1_image = pygame.image.load(textbox_1_path)
 
 
 if load_cards:

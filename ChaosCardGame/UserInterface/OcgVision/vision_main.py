@@ -1,12 +1,8 @@
 import pygame
 import inspect
+from UserInterface.OcgVision.vision_coordadapter import coord_converter
+from UserInterface.ui_settings import SCREEN_CENTER
 from Assets.menu_assets import smoothscale_converter
-
-
-def get_max_delta(image_idle, image_toggle):
-    delta_width = abs(image_toggle.get_width() - image_idle.get_width())
-    delta_height = abs(image_toggle.get_height() - image_idle.get_height())
-    return (delta_width, delta_height)
 
 
 class State:
@@ -36,8 +32,8 @@ class State:
     `change_state`(self, new_state):
         Changes the current state to a new state.
 
-    `revert_state`(self):
-        Reverts the current state to the previous state if not an anchor state.
+    `revert_state`(self,n_revert):
+        Reverts the current state n_revert times if not an anchor state.
 
     `check_ownership`(self):
         Checks if the current global state is within the local state options and assigns it as the local state.
@@ -75,14 +71,16 @@ class State:
         State.previous_state.append(State.state)
         State.state = new_state
 
-    def revert_state(self):
+    def revert_state(self, n_revert: int = 1):
         """
-        Reverts the current state to the previous state if not an anchor state.
+        Reverts the current state n_revert times if not an anchor state.
 
         """
-        if self.is_anchor == False:
-            State.state = State.previous_state[-1]
-            State.previous_state.pop()
+        while n_revert > 0:
+            if self.is_anchor == False:
+                State.state = State.previous_state[-1]
+                State.previous_state.pop()
+            n_revert -= 1
 
     def check_ownership(self):
         """
@@ -585,3 +583,77 @@ class DualBarVerti:
              self.width, self.height-(self.height-self.health_height)),
             border_radius=self.border_radius,
         )
+
+
+class SelectTextBox:
+    def __init__(self, screen: pygame.Surface,
+                 position: tuple,
+                 width: int, height: int,
+                 font: pygame.font.Font,
+                 color: tuple,
+                 position_type: str = "topleft",
+                 text_center="left",
+                 border_width=-1,
+                 default_text=""):
+        self.screen = screen
+        self.position = position
+        self.width = width
+        self.height = height
+        self.font = font
+        self.color = color
+        self.position_type = position_type
+        self.text_center = text_center
+        self.border_width = border_width
+        self.default_text = default_text
+
+        self.text = self.default_text
+        self.active = False
+        self.input_rect = pygame.Rect(coord_converter(
+            self.position_type, self.position, self.width, self.height), (self.width, self.height))
+
+    def calc_left(self):
+        self.text_rect = self.text_surf.get_rect(
+            midleft=(self.input_rect.x, self.input_rect.y+(self.height//2)))
+
+    def calc_center(self):
+        self.text_rect = self.text_surf.get_rect(
+            center=(self.input_rect.x+(self.width//2), self.input_rect.y+(self.height//2)))
+
+    def calc_right(self):
+        self.text_rect = self.text_surf.get_rect(
+            midright=(self.input_rect.x+self.width,
+                      self.input_rect.y+(self.height//2))
+        )
+
+    def update(self, key_events):
+        pygame.event.get(pygame.KEYUP)
+        if self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.active = True
+        elif not self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.active = False
+        if self.active:
+            for event in key_events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        self.text = self.text[:-1]
+                    elif self.text_rect.width < self.input_rect.width:
+                        self.text += event.unicode
+        if self.active == False and self.text == "":
+            self.text = self.default_text
+
+    def render(self, key_events: pygame.event.Event):
+        # Event handler
+        self.update(key_events)
+
+        # Rendering
+        pygame.draw.rect(self.screen, (255, 255, 255),
+                         self.input_rect, width=self.border_width)
+        self.text_surf = self.font.render(self.text, True, self.color)
+        match self.text_center:
+            case "left": self.calc_left()
+            case "center": self.calc_center()
+            case "right": self.calc_right()
+            case _: raise ValueError(f"Wrong argument {self.text_center}")
+        self.screen.blit(
+            self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
+        return self.text

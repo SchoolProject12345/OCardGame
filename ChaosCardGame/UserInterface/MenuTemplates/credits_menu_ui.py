@@ -1,4 +1,5 @@
-from UserInterface.OCG_Vision.vision_main import State, ImageButton
+import pygame
+from UserInterface.OcgVision.vision_main import State, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER
 
@@ -18,8 +19,8 @@ class CreditsMenu(State):
         self.screen.blit(self.bg_credits_menu_image, self.bg_credits_menu_rect)
         self.button.render()
 
-        if self.button.answer():
-            self.revert_state()
+        if self.button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            self.revert_state(1)
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:

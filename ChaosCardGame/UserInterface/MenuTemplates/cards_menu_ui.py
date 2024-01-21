@@ -2,7 +2,7 @@ import pygame
 import utility
 import os
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from UserInterface.OCG_Vision.vision_main import State, ImageToggle, ToggleGridFour, ImageButton
+from UserInterface.OcgVision.vision_main import State, ImageToggle, ToggleGridFour, ImageButton
 from Assets.menu_assets import MenuBackgrounds, CardsMenuToggles, MenuButtons, alpha_converter
 
 
@@ -65,8 +65,8 @@ class CardsMenu(State):
     def cards_menu(self):
         self.screen.blit(self.bg_cards_menu_image, self.bg_cards_menu_rect)
         self.exit_button.render()
-        if self.exit_button.answer():
-            self.revert_state()
+        if self.exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            self.revert_state(1)
         # Toggle selector
         for index, toggle in enumerate(self.element_toggles):
             if toggle.is_toggled:
