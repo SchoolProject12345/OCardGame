@@ -638,8 +638,11 @@ class SelectTextBox:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.text = self.text[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        self.active = False
                     elif self.text_rect.width < self.input_rect.width:
                         self.text += event.unicode
+                    
 
         if self.active == False and self.text == "":
             self.text = self.default_text
