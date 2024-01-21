@@ -71,7 +71,7 @@ class State:
         State.previous_state.append(State.state)
         State.state = new_state
 
-    def revert_state(self,n_revert):
+    def revert_state(self, n_revert: int = 1):
         """
         Reverts the current state n_revert times if not an anchor state.
 
