@@ -24,9 +24,9 @@ class HostMenu(State):
         self.username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
 
         self.tb_room = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
-            self.ger_font_path, 70), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
+            self.ger_font_path, 53), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
         self.tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
-            self.ger_font_path, 70), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
+            self.ger_font_path, 53), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
 
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
