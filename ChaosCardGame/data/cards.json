@@ -296,7 +296,7 @@
      "type":"target_change",
      "new_target":"allies",
      "effect":{
-      "type":"damaged",
+      "type":"damage",
       "amount":13
      }
     }
@@ -478,7 +478,7 @@
             "type":"union",
             "effect1":{"type":"damage","amount":105},
             "effect2":{
-             "type":"change_targe",
+             "type":"change_target",
              "new_target":"commander",
              "effect":{"type":"damage","amount":105}
             }
@@ -767,18 +767,15 @@
     "name":"Reef's Calling",
     "trigger":"endofturn",
     "effect":{
-     "type":"target_change",
-     "new_target":"allies",
+     "type":"repeat",
+     "n":{"type":"count","tags":["any"],"target_mode":"allies"},
      "effect":{
-      "type":"repeat",
-      "n":{"type":"count","tags":["any"],"target_mode":"allies"},
+      "type":"target_change",
+      "new_target":"foes",
       "effect":{
-       "type":"target_change",
-       "new_target":"foes",
-       "effect":{
-        "type":"random_target",
-        "effect":{"type":"damage","amount":10,"damage_mode":"indirect"}
-       }
+       "type":"random_target",
+       "sample":1,
+       "effect":{"type":"damage","amount":10,"damage_mode":"indirect"}
       }
      }
     }
