@@ -18,9 +18,9 @@ class GameMenu(State):
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect()
 
-        self.my_hand_button = ImageButton(self.screen, True, image=alpha_converter(
+        self.hand_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.hand_button_image), position_type="center", position=(0,0))
-        self.my_deck_button = ImageButton(self.screen, True, image=alpha_converter(
+        self.deck_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.deck_button_image), position_type="center", position=(0,0))
 
         # Pause Menu
@@ -45,6 +45,8 @@ class GameMenu(State):
             self.back_button.render()
             self.settings_button.render()
             self.surrender_button.render()
+            self.hand_button.render()
+            self.deck_button.render()
 
             if self.back_button.answer():
                 self.is_paused_toggle.toggle()
