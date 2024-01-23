@@ -40,13 +40,14 @@ class GameMenu(State):
     def game_menu(self):
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
 
+        self.hand_button.render()
+        self.deck_button.render()
+
         if self.is_paused_toggle.update(pygame.key.get_pressed()):
             self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)
             self.back_button.render()
             self.settings_button.render()
             self.surrender_button.render()
-            self.hand_button.render()
-            self.deck_button.render()
 
             if self.back_button.answer():
                 self.is_paused_toggle.toggle()
