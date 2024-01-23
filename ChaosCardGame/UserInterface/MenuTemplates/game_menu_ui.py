@@ -18,6 +18,11 @@ class GameMenu(State):
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect()
 
+        self.my_hand_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.my_hand_button_image), position_type="center", position=(0,0))
+        self.my_deck_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.my_deck_button_image), position_type="center", position=(0,0))
+
         # Pause Menu
         self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
         self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(
