@@ -628,7 +628,6 @@ class SelectTextBox:
         )
 
     def update(self, key_events):
-        pygame.event.get(pygame.KEYUP)
         if self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             self.active = True
         elif not self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
@@ -642,7 +641,6 @@ class SelectTextBox:
                         self.active = False
                     elif self.text_rect.width < self.input_rect.width:
                         self.text += event.unicode
-                    
 
         if self.active == False and self.text == "":
             self.text = self.default_text
