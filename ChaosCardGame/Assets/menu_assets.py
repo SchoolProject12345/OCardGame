@@ -154,6 +154,9 @@ class MenuBackgrounds:
 
     bg_host_menu_path = bg_dir + "host_menu_empty.png"
     bg_host_menu_image = pygame.image.load(bg_host_menu_path)
+    
+    bg_join_menu_path = bg_dir + "join_menu_empty.png"
+    bg_join_menu_image = pygame.image.load(bg_join_menu_path)
 
 
 @dataclass
