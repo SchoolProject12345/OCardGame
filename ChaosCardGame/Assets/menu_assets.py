@@ -208,6 +208,14 @@ class MenuButtons:
     surrender_button_path = button_dir + "Surrender"
     surrender_button_image = transform_button_files(surrender_button_path)
 
+    # Hand
+    hand_button_path = button_dir + "MyHand"
+    hand_button_image = transform_button_files(hand_button_path)
+
+    # Deck
+    deck_button_path = button_dir + "MyDeck"
+    deck_button_image = transform_button_files(deck_button_path)
+
 
 @dataclass
 class CardsMenuToggles:
