@@ -1,70 +1,296 @@
 import Network.network as net
 import Core.core_main as core
 import re
+from time import time_ns
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
-@core.dataclass
-class PseudoActiveCard:
-    name: str
-    hp: int
-    max_hp: int
-    element: core.Element
-    card: core.AbstractCard
-    def from_name(name: str):
-        card: core.AbstractCard = core.getCARDS()[core.Player.card_id(name)]
-        if not isinstance(card, core.CreatureCard):
-            return PseudoActiveCard(name, 1j, 1j, core.Element.elementless, card)
-        return PseudoActiveCard(name, card.max_hp, card.max_hp, card.element, card)
-    def commander(name: str):
-        if name in core.getCOMMANDERS():
-            card: core.CommanderCard = core.getCOMMANDERS()[name]
-            return PseudoActiveCard(name, card.max_hp, card.max_hp, card.element, card)
-        return PseudoActiveCard(
-            name, 600, 600, core.Element.elementless,
-            core.CommanderCard(
-                name, 1j, core.Element.elementless, 600,
-                [], [], 0, ()
-            )
-        )
+core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
+core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even if not their turn.
+core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
+core.Constants.progressbar_sytle = 1
+
+def clamp(x, min, max):
+    if x < min:
+        return min
+    if x > max:
+        return max
+    return x
+def gradient(x: float):
+    x = 5.0*x
+    r = int(255 * (clamp(2.0 - x, 0.0, 1.0) + clamp(x - 4.0, 0.0, 1.0)))
+    g = int(255 * (clamp(x, 0.0, 1.0) - clamp(x - 3.0, 0.0, 1.0)))
+    b = int(255 * clamp(x - 2.0, 0.0, 1.0))
+    return f"\033[38;2;{r};{g};{b}m"
+def progressbar(total: int, on: int, size: int = 10, style = 0):
+    total = min(total, on)
+    if total == on:
+        if style == 0:
+            return "[" + gradient(1.0) + "=" * size + "\033[0m]"
+        elif style == 1:
+            bar = "["
+            for i in range(size):
+                bar += gradient(i/size) + "="
+            return bar + "\033[0m]"
+        elif style == 2:
+            return "[" + "="*size + "]"
+    complete = total * size // on
+    bar = "["
+    if style != 2:
+        bar += gradient(total/on)
+    bar += "="*complete + ">" + " "*(size - complete - 1)
+    if style != 2:
+        bar += "\033[0m"
+    return bar + "]"
+def ansi_elementcolor(element: core.Element) -> str:
+    match element:
+        case core.Element.water: return "\033[38;2;0;122;247m"
+        case core.Element.fire: return "\033[38;2;205;94;1m"
+        case core.Element.earth: return "\033[38;2;32;153;13m"
+        case core.Element.air: return "\033[38;2;223;1;209m"
+        case _: return ""
+def ansi_card(card: dict | None, trailing="") -> str:
+    if card is None:
+        return "____"
+    return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
 
 @core.dataclass
-class PartialGameState:
-    server: net.socket.socket
-    canplay: bool
-    foe_name: str
-    foes: list[PseudoActiveCard | None]
-    enemy_commander: PseudoActiveCard
-    ally_name: str
-    allies: list[PseudoActiveCard | None]
-    ally_commander: PseudoActiveCard
-    turn: int
-    arena: core.Arena
-    hand: list[str]
-    deck_size: int
-    discard: list[str]
-    enemy_discard: list[str]
-    opponent_energies: list[int] # current, max, /turn
-    energies: list[int]
-    def devprint(self):
-        print("Turn", self.turn, "(" + core.ifelse(self.canplay, self.ally_name, self.foe_name) + "'s)\n")
-        print(self.foe_name + "'s side:")
-        print(self.enemy_commander.card.name + f" ({self.enemy_commander.hp}/{self.enemy_commander.card.max_hp})")
-        for card in self.foes:
+class ServerHandler:
+    board: core.Board
+    client_socket: net.socket.socket
+    ongoing = True
+    def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
+        if not self.ongoing:
+            return False
+        if data == "":
+            self.ongoing = False
+            return False
+        if '\n' in data:
+            return core.np.all([self(_data) for _data in data.split('\n')])
+        datas: list[str] = data.split('|')
+        head = core.cleanstr(datas[0])
+        if head == "sync":
+            self.sync()
+            return True
+        if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
+            self.client_socket.send(b"error|Wrong turn.")
+            return True
+        if head in core.Constants.serverside_actions:
+            return run_action(self.board, self.client_socket, head, *datas[1:], source=True)
+        self.client_socket.send(b"error|Unrecognized action.")
+        return True
+    def run_action(self, action: str) -> bool:
+        args = action.split('|')
+        head = args[0]
+        if head in core.Constants.clientside_actions:
+            clientside_action(self, *args)
+            return True
+        if self.board.active_player is not self.board.player1 and head not in core.Constants.anytime_actions:
+            core.warn("Wrong turn.")
+            return False
+        if head not in core.Constants.serverside_actions:
+            devlog("Invalid action. Write `help` to get a list of valid actions.")
+            return False
+        return run_action(self.board, self.client_socket, *args, source=False)
+    def showboard(self):
+        board = self.board
+        print(f"Turn {board.turn} ", end="")
+        player1 = self.board.player1
+        if board.active_player is player1:
+            print(f"(Your turn)")
+        else:
+            print(f"({board.active_player.name}'s turn)")
+        player2 = board.player2
+        print(f"\n\n\033[1;4m{player2.name}'s Side\033[0m")
+        print(f"Energy: \033[1m{player2.energy}\033[22m/\033[1m{player2.max_energy}\033[22m (\033[1m+{player2.energy_per_turn}/turn\033[22m)")
+        if len(player2.commander.card.attacks) > 1:
+            print(progressbar(player2.commander_charges, player2.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+        print("\033[4m" + ansi_card({
+            "name":player2.commander.card.name,
+            "hp":player2.commander.hp,
+            "max_hp":player2.commander.card.max_hp,
+            "element":player2.commander.element.value
+        }, '⋆'))
+        for card in player2.active:
             if card is None:
-                print("none ", end="")
+                print("____ ", end="")
                 continue
-            print(core.cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp})", end = " ")
-        print("\n")
-        print(self.foe_name + "'s side:")
-        print(self.ally_commander.card.name + f" ({self.ally_commander.hp}/{self.ally_commander.card.max_hp})")
-        for card in self.allies:
+            print(ansi_card({
+                "name":card.card.name,
+                "hp":card.hp,
+                "max_hp":card.card.max_hp,
+                "element":card.element.value
+            }), end=" ")
+
+        print(f"\n\033[1;4m{player1.name}'s Side\033[0m")
+        print(f"Energy: \033[1m{player1.energy}\033[22m/\033[1m{player1.max_energy}\033[22m (\033[1m+{player1.energy_per_turn}/turn\033[22m)")
+        if len(player1.commander.card.attacks) > 1:
+            print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+        print("\033[4m" + ansi_card({
+            "name":player1.commander.card.name,
+            "hp":player1.commander.hp,
+            "max_hp":player1.commander.card.max_hp,
+            "element":player1.commander.element
+        }, '⋆'))
+        for card in player1.active:
             if card is None:
-                print("none ", end="")
+                print("____ ", end="")
                 continue
-            print(core.cleanstr(card.card.name), f"({card.hp}/{card.card.max_hp})", end = " ")
-        print(self.deck_size, "cards in deck.")
-        print("\n")
-        print("Your hand:", self.hand)
+            print(ansi_card({
+                "name":card.card.name,
+                "hp":card.hp,
+                "max_hp":card.card.max_hp,
+                "element":card.element
+            }), end=" ")
+        print()
+        print("Your hand: ", end="")
+        for card in player1.hand:
+            print(card.name.replace(",", " -"), end=", ")
+        if len(player1.hand) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
+        return self # to chain
+    def sync(self):
+        "Update `network.get_data()` to prepare to send"
+        data = net.get_data()
+
+        player = self.board.player1
+        server = data["server"]
+        # name is constant, no need to update
+        server["deck_length"] = len(player.deck)
+        server["hand"] = len(player.hand)
+
+        server["commander"]["hp"] = player.commander.hp
+        server["commander"]["max_hp"] = player.commander.card.max_hp
+        server["commander"]["element"] = player.commander.element.value
+        server["commander"]["charges"] = player.commander_charges
+
+        server["board"] = player.get_actives_json()
+        server["discard"] = [card.name for card in player.discard]
+        server["energy"] = player.energy
+        server["max_energy"] = player.max_energy
+        server["energy_per_turn"] = player.energy_per_turn
+
+        data["turn"] = self.board.turn
+        data["server_turn"] = self.board.active_player is player
+        data["arena"] = self.board.arena.value
+
+        player = self.board.player2
+        client = data["client"]
+        # name is constant, no need to update
+        client["deck_length"] = len(player.deck)
+        client["hand"] = [card.name for card in player.hand]
+
+        client["commander"]["hp"] = player.commander.hp
+        client["commander"]["max_hp"] = player.commander.card.max_hp
+        client["commander"]["element"] = player.commander.element.value
+        client["commander"]["charges"] = player.commander_charges
+
+        client["board"] = player.get_actives_json()
+        client["discard"] = [card.name for card in player.discard]
+        client["energy"] = player.energy
+        client["max_energy"] = player.max_energy
+        client["energy_per_turn"] = player.energy_per_turn
+
+        self.client_socket.send(("sync|" + net.json.dumps(data, separators=(',', ':'))).encode())
+        return self
+@core.dataclass
+class ClientHandler:
+    server_socket: net.socket.socket
+    ongoing: bool = True
+    synced: bool = False
+    def __call__(self, data: str) -> bool:
+        if data == "":
+            self.ongoing = False
+            return False
+        if '\n' in data:
+            return core.np.all([self(_data) for _data in data.split('\n')])
+        datas: list[str] = data.split('|')
+        head = core.cleanstr(datas[0])
+        if head == "sync":
+            net.get_data().update(net.json.loads(datas[1]))
+            self.synced = True
+            return True
+        logplay(self, data)
+        return True
+    def run_action(self, action: str):
+        args = action.split('|')
+        head = args[0]
+        if head in core.Constants.clientside_actions:
+            clientside_action(self, *args)
+            return True
+        if head not in core.Constants.serverside_actions:
+            devlog("Invalid action. Write `help` to get a list of valid actions.")
+            return False
+        self.sync(False) 
+        if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
+            core.warn("Wrong turn.")
+            return False
+        self.server_socket.send(action.encode())
+        return True
+    def get_required_charges(commander: str):
+        commander: str = core.cleanstr(commander)
+        if commander not in core.getCOMMANDERS():
+            return 250
+        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
+        if len(commander.attacks) > 1:
+            return commander.attacks[1].cost
+        return 65535
+    def showboard(self):
+        data: dict = net.get_data()
+
+        print(f"Turn {data['turn']} ", end="")
+        server = data["server"]
+        if data["server_turn"]:
+            print(f"({server['name']}'s turn)")
+        else:
+            print("(Your turn)")
+
+        print(f"\n\033[1;4m{server['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            server["commander"]["charges"],
+            ClientHandler.get_required_charges(server["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(server["commander"], '⋆'))
+        for card in server["board"]:
+            print(ansi_card(card), end=" ")
+
+        client = data["client"]
+        print(f"\n\n\033[1;4m{client['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            client["commander"]["charges"],
+            ClientHandler.get_required_charges(client["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(client["commander"], '⋆'))
+        for card in client["board"]:
+            print(ansi_card(card), end=" ")
+        print()
+        print("Your hand: ", end="")
+        for card in client["hand"]:
+            print(card.replace(",", " -"), end=", ")
+        if len(client["hand"]) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
+        return self
+    def sync(self, wait: bool = True, max_wait: int = 100_000_000):
+        "Ask `self`'s sever for a synchronization, waiting its sucess for up to `max_wait` nanoseconds if `wait` is set to `True`."
+#       _test = net.get_data()["client"]["board"]
+        start = time_ns()
+        self.synced = False
+        self.server_socket.send(b"sync")
+        # result is automatically obtained through listen(server_socket, self) running on separate thread
+        while wait and not self.synced: # wait until update is done, ugly but it works ¯\_(ツ)_/¯
+            if time_ns() - start > max_wait:
+                core.warn(f"Synchronization undetected after {max_wait/1_000_000_000:.3}s. Continuing thread anyway.")
+                self.sync(False)
+                return self
+#       while _test is net.get_data()["client"]["board"]: pass # this one somehow blocks if used out of host/join
+        return self
 
 def sendblock(socket: net.socket.socket, *args):
     size = socket.send(*args)
@@ -75,36 +301,36 @@ def recvok(socket: net.socket.socket, *args):
     socket.send(b"ok")
     return data
 
-def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345):
+def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
     if len(hostname) > 64:
         hostname = hostname[:63]
+    net.get_data()["server"]["name"] = hostname
     core.DEV() and print("IP:", ip)
     client_socket = net.listen_for_connection(ip, port)
     host: core.Player = core.Player.from_save(hostname)
-    clientname = client_socket.recv(64).decode()
-    client_socket.send(b"ok")
-    client = client_socket.recv(1024).decode() # decks can be quite big.
+    clientname = recvok(client_socket, 64).decode()
+    net.get_data()["client"]["name"] = clientname
+    client_socket.send(chr(core.Constants.default_deck_size).encode())
+    if client_socket.recv(2).decode == "no":
+        return host(hostname, ip, port)
+    client = client_socket.recv(4096).decode() # decks can be quite big.
     client: core.Player = core.Player.from_json(
         clientname,
         net.json.loads(client)
     )
+    net.get_data()["client"]["commander"]["name"] = client.commander.card.name
+    net.get_data()["server"]["commander"]["name"] = host.commander.card.name
     board = core.Board(host, client)
-    # turn info
-    client_socket.send(core.ifelse(board.active_player is host, b'\0', b'\1'))
-    # opponent's infos
-    sendblock(client_socket, hostname.encode())
-    client_socket.send(chr(len(host.active)).encode())
-    sendblock(client_socket, core.cleanstr(host.commander.card.name).encode())
-    # board's infos
-    client_socket.send(chr(board.arena.value).encode())
-    sendblock(client_socket, net.json.dumps([card.name for card in client.hand], separators=(',', ':')).encode())
-    sendblock(client_socket, f"{host.energy}|{host.max_energy}|{host.energy_per_turn}".encode())
-    sendblock(client_socket, f"{client.energy}|{client.max_energy}|{client.energy_per_turn}".encode())
-    if core.DEV():
-        server_dev(board, client_socket)
-    return board, client_socket
+    handle = ServerHandler(board, client_socket)
+    client_socket.recv(2)
+    handle.sync()
+    net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
+    while core.DEV() and handle.ongoing:
+        handle.run_action(input())
+    devlog("Returning handle.")
+    return handle
 
-def join(username: str, target_ip: str, port: int = 12345):
+def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     if len(username) > 64:
         username = username[:63]
     server_socket: net.socket.socket = net.join_connection(target_ip, port)
@@ -112,65 +338,43 @@ def join(username: str, target_ip: str, port: int = 12345):
         return
     server_socket.send(username.encode())
     server_socket.recv(2)
+    core.Constants.default_deck_size = recvok(server_socket, 1)[0]
     user: dict = core.Player.get_save_json(username)
     if user is None:
         user = {
             "commander": core.cleanstr(core.Player.get_commander().name),
             "deck": [core.cleanstr(creature.name) for creature in core.Player.get_deck()],
         }
+    if len(user["deck"]) != core.Constants.default_deck_size:
+        core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
+        user["deck"] = core.Player.get_deck()
     server_socket.send(net.json.dumps(user, separators=(',', ':')).encode())
-    canplay = bool(ord(server_socket.recv(1)))
-    foe_name = recvok(server_socket, 64).decode()
-    if foe_name == username:
-        if len(foe_name) > 55:
-            foe_name = "Opponent " + foe_name[:54]
-        else:
-            foe_name = "Opponent " + foe_name
-    board_size = ord(server_socket.recv(1))
-    enemy_commander = recvok(server_socket, 64).decode()
-    arena = core.Arena(ord(server_socket.recv(1)))
-    hand = net.json.loads(recvok(server_socket, 512).decode())
-    opponent_energies = recvok(server_socket, 32).decode().split('|')
-    energies = recvok(server_socket, 32).decode().split('|')
-    game = PartialGameState(
-        server_socket,
-        canplay,
-        foe_name,
-        [None for _ in range(board_size)],
-        PseudoActiveCard.commander(enemy_commander),
-        username,
-        [None for _ in range(board_size)],
-        PseudoActiveCard.commander(user["commander"]),
-        0,
-        arena,
-        hand,
-        len(user["deck"]) - len(hand),
-        [],
-        [],
-        [int(i) for i in opponent_energies],
-        [int(i) for i in energies]
-    )
-    if core.DEV():
-        client_dev(game)
-    return game
+    handle = ClientHandler(server_socket)
+    net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
+    server_socket.send(b"ok")
+    while core.DEV() and handle.ongoing:
+        handle.run_action(input())
+    devlog("Returning handle.")
+    return handle
 
-def str2target_client(game: PartialGameState, index: str) -> core.ActiveCard | None:
-    foes, foec, allies, allyc = core.ifelse(game.canplay,
-        (game.foes, game.enemy_commander, game.allies, game.ally_commander),
-        (game.allies, game.ally_commander, game.foes, game.enemy_commander)
+def str2target_client(index: str) -> core.ActiveCard | None:
+    data = net.get_data()
+    foes, foec, allies, allyc = core.ifelse(data["server_turn"],
+        (data["client"]["board"], data["client"]["commander"], data["server"]["board"], data["server"]["commander"]),
+        (data["server"]["board"], data["server"]["commander"], data["client"]["board"], data["client"]["commander"])
     )
     m = re.match("foe(\d+)", index)
     if m:
         i = int(m[1])
         if i >= len(foes):
             return None
-        return game.foes[i]
+        return foes[i]
     m = re.match("ally(\d+)", index)
     if m:
         i = int(m[1])
         if i >= len(allies):
             return None
-        return game.allies[i]
+        return allies[i]
     match core.cleanstr(index):
         case "allycommander": return allyc
         case "alliedcommander": return allyc
@@ -199,37 +403,16 @@ def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
         case "commander": return board.unactive_player.commander
         case _: return None
 
-def client_dev(game: PartialGameState):
-    ongoing = True
-    while ongoing:
-        while not game.canplay:
-            data = recvok(game.server, 1024).decode()
-            if data == "":
-                ongoing = False
-                devlog("Your opponent interrupted connection.")
-                game.server.close()
-                return
-            logplay(game, data)
-        action = input()
-        head = action.split('|')[0]
-        if head in ["doc", "help", "showboard", "dochand"]:
-            clientside_action(game, *action.split('|'))
-            continue
-        if head not in ["help", "attack", "place", "spell", "discard", "endturn", "chat"]:
-            print("Invalid action. Write `help` to get a list of valid actions.")
-            continue
-        game.server.send(action.encode())
-        logplay(game, game.server.recv(512).decode())
-
-def clientside_action(board: core.Board | PartialGameState, action: str, *args):
+def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args):
     if action == "doc":
         if len(args) == 0:
-            return devlog("Missing `card name` argument.")
+            devlog("Missing `card name` argument.")
+            return
         cardname = core.cleanstr(args[0])
         card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
-            with open("textsprites.json") as io:
+            with open(net.utility.os.path.join(net.utility.cwd_path, "textsprites.json")) as io:
                 try:
                     json = net.json.load(io)
                     if fname in json:
@@ -238,17 +421,18 @@ def clientside_action(board: core.Board | PartialGameState, action: str, *args):
                         print("Image not found.\n  ______\n /  __  \\\n/__/  \\  \\\n      /  /\n     /  /\n    |  |\n    |__|\n     __\n    (__)\n")
                 finally:
                     io.close()
-        return devlog(card.__str__())
+        devlog(card.__str__())
+        return
     if action == "dochand":
-        if isinstance(board, core.Board):
-            for card in board.player1.hand:
-                clientside_action(board, "doc", card.name)
+        if isinstance(handle, ServerHandler):
+            for card in handle.board.player1.hand:
+                clientside_action(handle, "doc", card.name)
         else:
-            for card in board.hand:
-                clientside_action(board, "doc", card)
+            for card in net.get_data()["client"]["hand"]:
+                clientside_action(handle, "doc", card)
         return
     if action == "help":
-        return devlog(
+        devlog(
 """
 # Actions
 help
@@ -272,34 +456,12 @@ Indices marked with * can be any of the following:
 Other indices are regular integer, starting from 0.
 """
         )
+        return
     if action == "showboard":
-        return board.devprint()
-    return devlog("Unrecognized action.")
+        return handle.sync().showboard() # that's not clientside then
+    devlog("Unrecognized action.")
 
-def server_dev(board: core.Board, client_socket: net.socket.socket):
-    ongoing = True
-    while ongoing:
-        while board.active_player is board.player2: # while the client is playing.
-            data = recvok(client_socket, 1024).decode()
-            if data == "":
-                ongoing = False
-                devlog("Your opponent interrupted connection.")
-                client_socket.close()
-                return
-            run_action(board, client_socket, *data.split('|'))
-            if len(data.split('|')) != 0 and core.cleanstr(data.split('|')[0]) == "endturn":
-                break
-        action = input()
-        head = action.split('|')[0]
-        if head in ["doc", "help", "showboard", "dochand"]:
-            clientside_action(board, *action.split('|'))
-            continue
-        if head not in ["help", "attack", "place", "spell", "discard", "endturn", "chat"]:
-            print("Invalid action. Write `help` to get a list of valid actions.")
-            continue
-        run_action(board, client_socket, *action.split('|'))
-
-def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *args: str):
+def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *args: str, source: bool) -> bool:
     """
     Run the following actions on the server, sending logs to the client.
 
@@ -316,7 +478,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         if result[4] is not None:
             sendblock(client_socket, log_win(None, result[4].name).encode())
             client_socket.close()
-            return
+            return False
         logs = ""
         for card in result[2]:
             if isclientturn:
@@ -326,7 +488,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         logs += log_endturn(None, board.unactive_player.name,
                     board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
         sendblock(client_socket, logs.encode())
-        return
+        return True
     if head == "attack":
         if len(args) < 3:
             if isclientturn:
@@ -354,14 +516,15 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                           str(survey.return_code.value),
                           str(survey.damage), str(survey.heal))
         client_socket.send(logs.encode())
+        return True
     if head == "chat":
-        if isclientturn:
-            return devlog(board.active_player.name + ":", *args)
+        if source: # Imma fix chat later.
+            return devlog(board.player2.name + ":", *args)
         else:
             if len(args) < 1:
                 return devlog("Warning: Message not found.")
             client_socket.send(f"chat|{args[0]}".encode())
-            return
+            return True
     if head == "place":
         if len(args) < 2:
             if isclientturn:
@@ -372,8 +535,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         except:
             if isclientturn:
                 client_socket.send("error|place expected integers.".encode())
-            devlog("Warning: place expected integers.")
-            return
+            return devlog("Warning: place expected integers.")
         result = board.active_player.place(i, j)
         if not result:
             if isclientturn:
@@ -381,20 +543,21 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             return devlog("Warning: Invalid index (out of bound, wrong card or no card can be placed here).")
         card: core.ActiveCard = board.active_player.active[j]
         client_socket.send(log_place(None, card.card.name, str(j), str(card.card.cost)).encode())
-        return
+        return True
     if head == "discard":
         if len(args) < 1:
             if isclientturn:
                 client_socket.send("error|discard require one argument.".encode())
-            devlog("Warning: discard require one argument.")
+            return devlog("Warning: discard require one argument.")
         try:
             i = int(args[0])
         except:
             if isclientturn:
                 client_socket.send("error|discard expected a number.".encode())
-            devlog("Warning: discard expected a number.")
+            return devlog("Warning: discard expected a number.")
         card: core.AbstractCard = board.active_player.handdiscard(i)
         client_socket.send(log_discard(None, card.name).encode())
+        return True
     if head == "spell":
         if len(args) < 2:
             if isclientturn:
@@ -416,38 +579,47 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
         survey = spell.use(target, board)
-        logs = log_attack(None, spell.name, target.name,
+        logs = log_attack(None, spell.name, target.card.name,
                           spell.on_use.name, str(spell.on_use.cost),
                           str(survey.return_code.value),
                           str(survey.damage), str(survey.heal))
         client_socket.send(logs.encode())
+        return True
+    if head == "forfeit":
+        if isclientturn:
+            client_socket.send("win|???".encode())
+        client_socket.close()
+        return False
+    core.warn("Tried to run unrecognized action.")
+    return True
 
-def logplay(game: PartialGameState | None, log: str):
+def logplay(handle: ClientHandler, log: str):
     if not bool(log):
         return
     if "\n" in log:
         for _log in log.split("\n"):
-            logplay(game, _log)
+            logplay(handle, _log)
     log: list[str] = log.split('|')
-    args = [game] + log[1:]
+    args = [handle] + log[1:]
     match core.cleanstr(log[0]):
         case "attack": log_attack(*args)
 #       case "damage": log_damage(*args)
 #       case "heal": log_heal(*args)
         case "defeat": log_defeat(*args)
         case "win": log_win(*args)
-        case "endturn": core.show(log); log_endturn(*core.show(args))
+        case "endturn": log_endturn(*args)
         case "draw": log_draw(*args)
         case "discard": log_discard(*args)
         case "place": log_place(*args)
         case "error": devlog(f"Error: {args[1]}")
-        case "chat": devlog(game.foe_name + ":", *log[1:])
+        case "chat": devlog(net.get_data()["server"]["name"] + ":", *log[1:])
         case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
 
 def devlog(*msg, dev: bool = core.DEV()):
     dev and print(*msg)
+    return True
 
-def log_attack(game: PartialGameState | None, user: str,
+def log_attack(game: None, user: str,
                target: str, attackname: str, cost: str,
                return_code: str, damage_dealt: str, healing_done: str):
     if int(return_code) != core.ReturnCode.ok:
@@ -456,59 +628,26 @@ def log_attack(game: PartialGameState | None, user: str,
         devlog(f"{user} successfully used {attackname} against {target} dealing {damage_dealt} and healing {healing_done} damages")
     return f"attack|{user}|{target}|{attackname}|{cost}|{return_code}|{damage_dealt}|{healing_done}"
 
-def log_endturn(game: PartialGameState | None, player_name: str, energy: str, max_energy: str, energy_per_turn: str):
-    devlog(f"{player_name} ends their turn. Their current energy is {energy}/{max_energy} after the gained {energy_per_turn}.")
-    if game is not None:
-        if game.canplay:
-            game.energies[:] = [energy, max_energy, energy_per_turn]
-            game.canplay = False
-        else:
-            game.opponent_energies[:] = [energy, max_energy, energy_per_turn]
-            game.canplay = True
+def log_endturn(game: None, player_name: str, energy: str, max_energy: str, energy_per_turn: str):
+    devlog(f"{player_name} ends their turn. Their current energy is {energy}/{max_energy} after they gained {energy_per_turn}.")
     return f"endturn|{player_name}|{energy}|{max_energy}|{energy_per_turn}"
 
-def log_place(game: PartialGameState | None, cardname: str, index: str, cardcost: str):
+def log_place(game: None, cardname: str, index: str, cardcost: str):
     devlog(f"A {cardname} has been placed at the {index}th index.") # 1th > 1st
-    if game is not None:
-        if game.canplay:
-            game.energies[0] -= int(cardcost)
-            game.allies[int(index)] = PseudoActiveCard.from_name(cardname)
-        else:
-            game.opponent_energies[0] -= int(cardcost)
-            game.foes[int(index)] = PseudoActiveCard.from_name(cardname)
     return f"place|{cardname}|{index}|{cardcost}"
 
-def log_draw(game: PartialGameState | None, card_drawn: str):
-    if game is not None:
+def log_draw(handle: ServerHandler | ClientHandler, card_drawn: str):
+    if isinstance(handle, ClientHandler):
         devlog(f"You have drawn a {card_drawn}.")
-        game.deck_size -= 1
-        if game.deck_size == 0:
-            game.deck_size = len(game.discard)
-            game.discard.clear()
     return f"draw|{card_drawn}"
-def log_discard(game: PartialGameState | None, card_discarded: str):
+def log_discard(game: None, card_discarded: str):
     devlog(f"The active player discarded {card_discarded}")
-    if game is not None and game.canplay:
-        game.discard.append(card_discarded)
     return f"discard|{card_discarded}"
 
-def log_win(game: PartialGameState | None, winner: str):
+def log_win(game: None, winner: str):
     devlog(f"The winner is {winner}.")
-    if game is not None:
-        game.server.close()
     return f"win|{winner}"
 
-def log_defeat(game: PartialGameState | None, index: str):
-    devlog("Creature at index {index} has been defeated.")
-    if game is not None:
-        creature: PseudoActiveCard = str2target_client(game, index)
-        if creature is not None:
-            for i in range(len(game.allies)):
-                if game.allies[i] is creature:
-                    game.allies[i] = None
-                    game.discard.append(creature.card.name)
-            for i in range(len(game.foes)):
-                if game.foes[i] is creature:
-                    game.foes[i] = None
-                    game.enemy_discard.append(creature.card.name)
+def log_defeat(game: None, index: str):
+    devlog(f"Creature at index {index} has been defeated.")
     return f"defeat|{index}"
