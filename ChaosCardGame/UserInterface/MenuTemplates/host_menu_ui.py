@@ -1,6 +1,7 @@
 import pygame
 from utility import cwd_path
 import os
+from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
@@ -15,6 +16,7 @@ class HostMenu(State):
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+        self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
         self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
@@ -49,7 +51,7 @@ class HostMenu(State):
 
         if self.hostmenu_host_button.answer():
             self.change_state("GameMenu")
-        elif self.hostmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
     def state_manager_hook(self):

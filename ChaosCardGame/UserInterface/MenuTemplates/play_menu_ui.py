@@ -1,6 +1,7 @@
 import pygame
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
+from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.MenuTemplates.join_menu_ui import JoinMenu
 from UserInterface.MenuTemplates.host_menu_ui import HostMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
@@ -10,8 +11,9 @@ class PlayMenu(State):
     def __init__(self, screen):
         self.screen = screen
         self.is_anchor = False
-        self.local_options = ["PlayMenu", "HostMenu","JoinMenu"]
+        self.local_options = ["PlayMenu", "HostMenu", "JoinMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
+        self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
         self.bg_play_menu_image = MenuBackgrounds.bg_play_menu_image.convert_alpha()
         self.bg_play_menu_rect = self.bg_play_menu_image.get_rect()
@@ -39,7 +41,7 @@ class PlayMenu(State):
             self.change_state("HostMenu")
         elif self.join_button.answer():
             self.change_state("JoinMenu")
-        elif self.playmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        elif self.playmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state()
 
     def state_manager_hook(self):
