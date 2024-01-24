@@ -38,14 +38,16 @@ class OcgGame:
         """
         self.running = True
         while self.running:
+
             self.MainMenu.state_manager()
-            pygame.display.update()
-            self.clock.tick(60)
-            
-            # Event Handling
-            pygame.event.pump()
             if pygame.event.get(eventtype=pygame.QUIT):
                 self.stop()
+            pygame.event.get()
+
+            pygame.display.update()
+            self.clock.tick(60)
+
+            # Event Handling
 
     def stop(self):
         """
@@ -53,4 +55,4 @@ class OcgGame:
         """
         self.running = False
         pygame.quit()
-        sys.exit
+        sys.exit()
