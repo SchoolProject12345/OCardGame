@@ -19,6 +19,10 @@ OCardGame is a little chaotic card game coded exhaustively in Python. Inspired b
 - Must be specified in the `requirements.txt` file.
 - Must be only used if **truly** necessary.
 
+## Play
+Launch `launcher_dev.py` and follow the instructions to connect with a peer.
+Once connected with another peer (or in localhost), write "help" to get a list of actions.
+
 ## Initialization (`DEV()`-mode)
 The `os.chdir("")` at line 7 must have its argument replaced by the directory in which the file is stored.
 After running the code, two players objects must be initialized, and a board must be initialized from them:

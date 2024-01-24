@@ -10,7 +10,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_max_energy = 4
     default_energy_per_turn = 3
     default_hand_size = 5
-    default_deck_size = 15
+    default_deck_size = 30
     path = utility.cwd_path
 
 class Numeric:
@@ -590,7 +590,7 @@ class DOTEffect(AbstractEffect):
         "Pseudo copy of self: evaluate fields with `kwargs` before copying."
         return DOTEffect(RawNumeric(self.damage.eval(**kwargs)), RawNumeric(self.turn.eval(**kwargs)))
     def from_json(json: dict):
-        return DOTEffect(int(json["damage"]), json["time"])
+        return DOTEffect(Numeric.from_json(json["damage"]), Numeric.from_json(json["time"]))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.pcopy())
@@ -701,7 +701,7 @@ class HealEffect(AbstractEffect):
     "Heal target(s) by amount."
     amount: Numeric
     def execute(self, **kwargs) -> bool:
-        amount = amount.eval(**kwargs)  # eval once for every target.
+        amount = self.amount.eval(**kwargs)  # eval once for every target.
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].heal += card.heal(amount)
         return False  # will use check from survey.
@@ -957,8 +957,10 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             int(json["hp"]),
-            [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7), TargetMode.target, ifelse(
-                getordef(json, "commander", False), 1, 0), NullEffect()), *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7),
+                TargetMode.target, ifelse(
+                 getordef(json, "commander", False), 1, 0), NullEffect(), ("default")),
+                *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
             [Passive.from_json(passive)
              for passive in getordef(json, "passives", [])],
             json["cost"],
@@ -1092,8 +1094,6 @@ class ActiveCard:
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
         self.attacked = True
-        if DEV() and not self.owner.isai():
-            self.board.devprint()
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -1242,6 +1242,19 @@ class Player:
         return [*rng.choice(getCARDS(), Constants.default_deck_size)]
     def get_actives(self) -> list[ActiveCard]:
         return [card for card in self.active if card is not None]
+    def get_actives_json(self) -> list[None | dict]:
+        actives = []
+        for card in self.active:
+            if card is None:
+                actives.append(None)
+                continue
+            actives.append({
+                "name":card.card.name,
+                "hp":card.hp,
+                "element":card.element.value,
+                "max_hp":card.card.max_hp
+            })
+        return actives
     def isai(self) -> bool: return False
     def card_id(name: str) -> int:
         for card in getCARDS():
@@ -1261,10 +1274,11 @@ class Player:
     def from_json(name: str, json: dict):
         return Player(name, getCOMMANDERS()[json["commander"]], [getCARDS()[Player.card_id(i)] for i in json["deck"]])
     def from_save(name: str):
-        "Try to fetch & return a player with the same name from `data/player.json` as a `Player` object, returning a random player if it isn't found."
+        "Try to fetch & return a player with the same name from `data/players.json` as a `Player` object, returning a random player if it isn't found."
         player = Player.get_save_json(name)
         if player is None:
-            return Player(name + " (deck not found)", Player.get_commander(), Player.get_deck())
+            warn(f"Player with name {name} was not found in `players.json`, returning default deck.")
+            return Player(name, Player.get_commander(), Player.get_deck())
         return Player.from_json(name, player)
     def from_saves(name: str, saves: dict):
         return Player.from_json(name, saves[name])
@@ -1421,7 +1435,6 @@ class Board:
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
-        DEV() and not self.active_player.isai() and self.devprint()
         if autoplay and self.active_player.isai():
             self.active_player.auto_play(self)
     def getwinner(self) -> Player | None:
@@ -1445,7 +1458,6 @@ class Board:
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
                 return ret
-            not self.active_player.isai() and self.devprint()
         if self.autoplay and self.active_player.isai() and ret[4] is None:
             return self.active_player.auto_play(self)
         return ret
