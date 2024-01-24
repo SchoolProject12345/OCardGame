@@ -16,7 +16,7 @@ class JoinMenu(State):
         self.screen.blit(self.bg_image, (0, 0))
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-            self.revert_state(1)
+            self.revert_state()
 
     def state_manager_hook(self):
         if self.local_state == self.local_options[0]:

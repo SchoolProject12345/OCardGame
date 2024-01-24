@@ -1,7 +1,5 @@
 # Cards
-
 Cards must be defined in `cards.json` as follow:
-
 ```js
 // Creature and Commander Cards
 {
@@ -21,13 +19,10 @@ Cards must be defined in `cards.json` as follow:
  "on_use":{/*attack object*/}
 }
 ```
-
 With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, `"earth"` and `"chaos"`
 
 ## Complete Example
-
 ### Creature, Attacks and Passives
-
 ```js
 {
  "type":"creature",
@@ -113,9 +108,7 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  ]
 } // commander is set to false by default
 ```
-
 ### Spells
-
 ```js
 {
  "type":"spell",
@@ -130,13 +123,10 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
  }
 }
 ```
-
 See below for more details
 
 ## Attack
-
 An attack object is formed as follow:
-
 ```js
 {
  "name":"attack's name",
@@ -146,9 +136,7 @@ An attack object is formed as follow:
  "effect":{/*effect object*/}
 }
 ```
-
 With possible values for field `"target_mode"` being:
-
 - `"self"`: the user of the move.
 - `"foes"`: all of the opponent's cards.
 - `"allies"`: all of your cards.
@@ -159,9 +147,7 @@ With possible values for field `"target_mode"` being:
 - `"all"`: every card but the user.
 - `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
 - `"random_chaos"` or `"random_target_mode"`: change the targetting mode to random. Yes.
-
 To select a (or multiple) random target among the target distribution, use the following effect:
-
 ```js
 {
  "type":"random_targets",
@@ -169,9 +155,8 @@ To select a (or multiple) random target among the target distribution, use the f
  "effect":{/*effect object*/} // "effect" is applied on each target selected
 }
 ```
-
+## Passive
 A Passive object is formed as follow:
-
 ```js
 {
  "name":"passive's name"
@@ -179,9 +164,7 @@ A Passive object is formed as follow:
  "effect":{/*effect object*/}
 }
 ```
-
 With possible values for field `"trigger"` being:
-
 - `"endofturn"`: applied on self at the end of each turn.
 - `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking (before damages).
 - `"whenplaced"`: applied on self when card is placed for the first time.
@@ -193,10 +176,8 @@ With possible values for field `"trigger"` being:
 
 Effect objects exists through different type as follow:
 
-### Effect Union
-
+### Effect Union:
 Effect union apply two effect, allowing to make attack with two completely independant effects.
-
 ```js
 {
  "type":"union",
@@ -204,10 +185,8 @@ Effect union apply two effect, allowing to make attack with two completely indep
  "effect2":{/*effect object*/}
 }
 ```
-
 To combine 3 or more effect, one may use chain of nested unions.
 To combine any number of identical objects, use this syntax:
-
 ```js
 {
  "type":"repeat",
@@ -216,10 +195,8 @@ To combine any number of identical objects, use this syntax:
 }
 ```
 
-### Target Change
-
+### Target Change:
 Change the target of every sub-effects to a new target_mode.
-
 ```js
 {
  "type":"target_change",
@@ -228,19 +205,15 @@ Change the target of every sub-effects to a new target_mode.
 }
 ```
 
-### State Change
-
+### State Change:
 Change the state of every target(s).
-
 ```js
 {
  "type":"state_change",
  "new_state":"{State string}"
 }
 ```
-
 Form a temporary State change (doesn't work for `"new_state":"unattacked"`), that last `"for"` a given number of turns, reverting afterward, with the following syntax:
-
 ```js
 {
  "type":"state_change",
@@ -248,7 +221,6 @@ Form a temporary State change (doesn't work for `"new_state":"unattacked"`), tha
  "for":1 // revert at the end of the targeted team next turn (at the end of the current turn if targeting an ally)
 }
 ```
-
 With possible values of field `"new_state"` being:
     `"default"`: has no effect.
     `"block"` or `"blocked"`: cannot attack.
@@ -258,8 +230,7 @@ With possible values of field `"new_state"` being:
     `"cloudy"`: -20% damages, all attacks are single-random-targeted.
     `"monotonous"`: damages are not affected by weaknesses.
 Cleanse effects and tags by tags. `by_tags` defaults to `["+", "-", "+-"]`. Default supported tags are #`+` (positive state/effect), #`-` (negative state/effect) & #`+-` (positive with drawback state/effect). All effects than can be tagged should be tagged (i.e. loop & delay) for this to work properly.
-
-js```
+```
 {
  "type":"cleanse",
  "by_tags":["+", "-", "+-"]
@@ -267,13 +238,11 @@ js```
 ```
 
 ### HP Manipulation
-
 Inflict damages to target(s), which depend on mode.
 DamageModes include:
     `"direct"`: depend on weakness, resistance & other modification
     `"ignore_resist"` or `"ignore_resistance"`: depend on weakness & other modification, but not resistance.
     `"indirect"`: doesn't depend on anything else, reduce the target HP directly.
-
 ```js
 {
  "type":"damage",
@@ -281,19 +250,15 @@ DamageModes include:
  "damage_mode":"{DamageMode string}"
 }
 ```
-
 Heal target(s) by `amount`.
-
 ```js
 {
  "type":"heal",
  "amount":0
 }
 ```
-
 Damage Over Time, deal `"damage"` over `"time"` turns. A DOT over 1 turn is equivalent to indirect damage, with the only difference being that it happens at the end of the target's owner's next turn and hence doesn't count in draining.
 As the name suggest, the `"damage"` field represent the *total* damage dealt over the time; in the following example the target would lose 2 HP, then 3 and finally 3, for a total of 8 damages over 3 turns.
-
 ```js
 {
  "type":"dot",
@@ -301,9 +266,7 @@ As the name suggest, the `"damage"` field represent the *total* damage dealt ove
  "time":3
 }
 ```
-
 Heal from a ratio of total damage dealt in sub-effects. This doesn't take end of turn damages (such as DOT) into account.
-
 ```js
 {
  "type":"drain",
@@ -312,9 +275,7 @@ Heal from a ratio of total damage dealt in sub-effects. This doesn't take end of
  "effect":{/*effect object*/}
 }
 ```
-
 Redirect `amount` damages from `from` distribution to targets.
-
 ```js
 {
  "type":"direct",
@@ -324,7 +285,6 @@ Redirect `amount` damages from `from` distribution to targets.
 ```
 
 ### Energy Manipulation
-
 ```js
 {
  "type":"add_energy",
@@ -335,9 +295,7 @@ Redirect `amount` damages from `from` distribution to targets.
 ```
 
 ### Creature Maniplation
-
 Summon a creature card on the user's owner's board if possible
-
 ```js
 {
  "type":"summon",
@@ -345,25 +303,18 @@ Summon a creature card on the user's owner's board if possible
  "creature":{/*creature object*/}
 }
 ```
-
 Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commanders. It wouldn't work anyway.
-
 ```
-
 {"type":"hypnotize"} // yeah that's it, no fields.
 ```
-
 Change the target's own card to `new_forme`. Please note that when the card is discarded, only the new forme will be avaible to redraw, so one might want to add a passive with trigger "whenplaced" to revert to the base forme. Cost of the `new_forme` is also necessary for this same reason.
-
 ```
 {
  "type":"changeforme",
  "new_forme":{/*creature card object*/}
 }
 ```
-
 Taunt the targets to a random target from the `new_targets` distribution for `duration` (set to -1 or 65535 for infinite taunt). A taunted creature's target automatically changed to its taunter whenever it attacks. `duration` is in number of attacks rather than number of turns.
-
 ```
 {
  "type":"taunt",
@@ -372,11 +323,9 @@ Taunt the targets to a random target from the `new_targets` distribution for `du
 }
 ```
 
-### Control
-
+###  Control:
 Apply either `"effect1"` or `"effect2"`, chosen at random, with `"probability"` of being `effect1`.
 `probability` defaults to 0.5 and `effect2` to no effect.
-
 ```js
 {
  "type":"with_probability",
@@ -385,9 +334,7 @@ Apply either `"effect1"` or `"effect2"`, chosen at random, with `"probability"` 
  "effect2":{/*effect object*/}
 }
 ```
-
 Apply `"effect"` after `"delay"` turns of delay.
-
 ```js
 {
  "type":"delay",
@@ -396,9 +343,7 @@ Apply `"effect"` after `"delay"` turns of delay.
  "tags":[]
 }
 ```
-
 Apply `effect` at the end of every turn, until the user is defeated if `"infinite"` is set to `false` (default value).
-
 ```js
 {
  "type":"loop",
@@ -407,34 +352,26 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
  "tags":[]
 }
 ```
-
 Evaluate expression if `value` is evalutated to non-zero.
-
-js```
+```
 {
  "type":"if",
  "value":{/*Numeric expr*/},
  "effect":{/*effect object*/}
 }
-
 ```
 
 ## Numeric Expressions
-
 In most cases, integers in effect objects can be replaced by other object which are evaluated to integers every time the effect is applied.
 
 ### List of targets' HP
-
 Eval into a `list`, which must then be further processed into a `int`.
-
 ```js
 {"type":"HPs", "target_mode":"{TargetMode string}"}
 ```
 
 ### GCD
-
 Return the GCD of all elements in the evaluation of sample.
-
 ```js
 {
  "type":"gcd",
@@ -443,9 +380,7 @@ Return the GCD of all elements in the evaluation of sample.
 ```
 
 ### Sum
-
 Return the sum of all elements in the evaluation of sample. This can be used with a single-valued list to obtain its first (and only) element.
-
 ```js
 {
  "type":"sum",
@@ -454,9 +389,7 @@ Return the sum of all elements in the evaluation of sample. This can be used wit
 ```
 
 ### Count
-
 Return the number of targets matching either by any tag or by any element. Both `tags` and `elements` are optional arguments, defaulting to an empty set.
-
 ```js
 {
  "type":"count",
@@ -466,9 +399,7 @@ Return the number of targets matching either by any tag or by any element. Both 
 ```
 
 ### Energy Count
-
 Return the number of energy by type. Type can be either "max", "current" or "per_turn".
-
 ```js
 {
  "type":"energy",
@@ -477,9 +408,7 @@ Return the number of energy by type. Type can be either "max", "current" or "per
 ```
 
 ### Multiplication
-
 Multiply evaluate numeric by rational.
-
 ```js
 {
  "type":"mul",
@@ -490,7 +419,6 @@ Multiply evaluate numeric by rational.
 ```
 
 ### Current turn
-
 ```js
 {"type":"turn"}
 ```
