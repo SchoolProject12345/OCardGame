@@ -388,7 +388,25 @@
   "element": "Air",
   "cost": 1,
   "hp": 110,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+    "name":"Mystical Sleep",
+    "cost":3,
+    "target_mode":"foes",
+    "power":0,
+    "effect":{
+      "type":"state_change",
+      "new_state":"block"
+    }
+  }],
+   "passives":[{
+     "name":"Night Vision",
+     "trigger":"whenplaced",
+     "effect":{
+       "type":"cleanse",
+       "by_tags":["+", "+-"]
+     }
+   }]
  },
  {
   "name": "Bulk Cherry",
