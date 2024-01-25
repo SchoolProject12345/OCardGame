@@ -4,6 +4,7 @@ import os
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.OcgVision.vision_main import State, ImageToggle, ToggleGridFour, ImageButton
 from Assets.menu_assets import MenuBackgrounds, CardsMenuToggles, MenuButtons, alpha_converter
+from ChaosCardGame.SfxEngine import ButtonSounds
 
 
 class EarthCards():

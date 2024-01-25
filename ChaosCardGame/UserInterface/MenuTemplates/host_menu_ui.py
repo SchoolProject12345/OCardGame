@@ -6,6 +6,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
+from ChaosCardGame.SfxEngine import ButtonSounds
 
 
 class HostMenu(State):
