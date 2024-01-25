@@ -1075,8 +1075,8 @@
    "power":0,
    "effect":{
     "type":"state_change",
-     "new_state":"a crée",
-     "for":3
+     "new_state":"damageless",
+     "for":2
    }
   }],
   "passives": [{
