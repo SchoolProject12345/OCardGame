@@ -159,7 +159,7 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
     if len(COMMANDERS) != 0:
         return COMMANDERS
     io = open(
-        os.path.join(Constants.path, "data/commanders.json"),
+        os.path.join(Constants.path, "Data/commander.json"),
     encoding="utf-8")
     json = loads(io.read())
     io.close()
