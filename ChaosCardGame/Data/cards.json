@@ -404,7 +404,7 @@
      "trigger":"whenplaced",
      "effect":{
        "type":"cleanse",
-       "by_tags":["+", "+-"]
+       "by_tags":["+"]
      }
    }]
  },
@@ -436,8 +436,8 @@
    {
     "name": "Horn Cure",
     "effect": {
-     "type": "todo",
-     "desc": "Cleanse all negative effects from allies."
+     "type": "cleanse",
+     "by_tags":["+"]
     },
     "trigger": "whenplaced"
    }
