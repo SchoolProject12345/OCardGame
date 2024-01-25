@@ -70,6 +70,7 @@ class State:
         self.local_state = new_state
         State.previous_state.append(State.state)
         State.state = new_state
+        print(State.previous_state, new_state)
 
     def revert_state(self, n_revert: int = 1):
         """
