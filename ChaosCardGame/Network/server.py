@@ -279,17 +279,15 @@ class ClientHandler:
         return self
     def sync(self, wait: bool = True, max_wait: int = 100_000_000):
         "Ask `self`'s sever for a synchronization, waiting its sucess for up to `max_wait` nanoseconds if `wait` is set to `True`."
-#       _test = net.get_data()["client"]["board"]
         start = time_ns()
         self.synced = False
         self.server_socket.send(b"sync")
         # result is automatically obtained through listen(server_socket, self) running on separate thread
         while wait and not self.synced: # wait until update is done, ugly but it works ¯\_(ツ)_/¯
             if time_ns() - start > max_wait:
-                core.warn(f"Synchronization undetected after {max_wait/1_000_000_000:.3}s. Continuing thread anyway.")
+                core.warn(f"Synchronization undetected after {max_wait/1_000_000_000:.4}s. Continuing thread anyway.")
                 self.sync(False)
                 return self
-#       while _test is net.get_data()["client"]["board"]: pass # this one somehow blocks if used out of host/join
         return self
 
 def sendblock(socket: net.socket.socket, *args):
@@ -313,7 +311,7 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     client_socket.send(chr(core.Constants.default_deck_size).encode())
     if client_socket.recv(2).decode == "no":
         return host(hostname, ip, port)
-    client = client_socket.recv(4096).decode() # decks can be quite big.
+    client = recvok(client_socket, 4096).decode() # decks can be quite big.
     client: core.Player = core.Player.from_json(
         clientname,
         net.json.loads(client)
@@ -322,7 +320,6 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     net.get_data()["server"]["commander"]["name"] = host.commander.card.name
     board = core.Board(host, client)
     handle = ServerHandler(board, client_socket)
-    client_socket.recv(2)
     handle.sync()
     net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
     while core.DEV() and handle.ongoing:
@@ -348,10 +345,9 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     if len(user["deck"]) != core.Constants.default_deck_size:
         core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
         user["deck"] = core.Player.get_deck()
-    server_socket.send(net.json.dumps(user, separators=(',', ':')).encode())
+    sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
     handle = ClientHandler(server_socket)
     net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
-    server_socket.send(b"ok")
     while core.DEV() and handle.ongoing:
         handle.run_action(input())
     devlog("Returning handle.")
