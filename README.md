@@ -67,7 +67,7 @@ Attacks and spell can use the following targets:
 - [OrnitOnGithub](https://github.com/OrnitOnGithub)
 - [DrN1ghtW0lf](https://github.com/DrN1ghtW0lf)
 - [andrei73457](https://github.com/andrei73457)
-- [ErdaBerda](?)
+- [ErdaBerda](????????????????????????????????)
 - [flowey0101](https://github.com/flowey0101)
 - [swisscookieman](https://github.com/swisscookieman)
 - [luiza1607](https://github.com/luiza1607)

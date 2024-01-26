@@ -10,17 +10,22 @@ pygame.init()
 
 devmode = True
 class ButtonSounds():
-    # default menu button press
-    def ClickSFX12():
+
+    def ClickSFX12(): #press
         Click12_path = os.path.join(os.getcwd(), "ChaosCardGame", 'SfxEngine', 'SFX', 'ClickSound1-2.wav')
         sfx = pygame.mixer.Sound(Click12_path)
         sfx.play()
 
-    def ClickSFX21():
+    def ClickSFX21(): #unpress
         Click12_path = os.path.join(os.getcwd(), "ChaosCardGame", 'SfxEngine', 'SFX', 'ClickSound1-2.wav')
         sfx = pygame.mixer.Sound(Click12_path)
         sfx.play()
-
+    #hover
+        
+    #back button
+    #press
+    #unpress
+    #hover
 
 
 
