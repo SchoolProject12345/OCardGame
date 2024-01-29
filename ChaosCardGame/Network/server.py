@@ -21,7 +21,7 @@ def gradient(x: float):
     g = int(255 * (clamp(x, 0.0, 1.0) - clamp(x - 3.0, 0.0, 1.0)))
     b = int(255 * clamp(x - 2.0, 0.0, 1.0))
     return f"\033[38;2;{r};{g};{b}m"
-def progressbar(total: int, on: int, size: int = 10, style = 0):
+def progressbar(total: int, on: int, size: int = 15, style = 0):
     total = min(total, on)
     if total == on:
         if style == 0:
@@ -41,6 +41,15 @@ def progressbar(total: int, on: int, size: int = 10, style = 0):
     if style != 2:
         bar += "\033[0m"
     return bar + "]"
+def stringclr(string: str):
+    "Used for username color in chat."
+    t = sum([ord(c) for c in string])
+    # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
+    # But I'm not 100% sure.
+    r = t % 255
+    g = 2*t % 255
+    b = 7*t % 255
+    return f"\033[38;2;{r};{g};{b}m"
 def ansi_elementcolor(element: core.Element) -> str:
     match element:
         case core.Element.water: return "\033[38;2;0;122;247m"
@@ -75,7 +84,8 @@ class ServerHandler:
             self.client_socket.send(b"error|Wrong turn.")
             return True
         if head in core.Constants.serverside_actions:
-            return run_action(self.board, self.client_socket, head, *datas[1:], source=True)
+            self.ongoing = run_action(self.board, self.client_socket, head, *datas[1:], source=True)
+            return self.ongoing
         self.client_socket.send(b"error|Unrecognized action.")
         return True
     def run_action(self, action: str) -> bool:
@@ -121,7 +131,7 @@ class ServerHandler:
                 "element":card.element.value
             }), end=" ")
 
-        print(f"\n\033[1;4m{player1.name}'s Side\033[0m")
+        print(f"\n\n\033[1;4m{player1.name}'s Side\033[0m")
         print(f"Energy: \033[1m{player1.energy}\033[22m/\033[1m{player1.max_energy}\033[22m (\033[1m+{player1.energy_per_turn}/turn\033[22m)")
         if len(player1.commander.card.attacks) > 1:
             print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
@@ -408,7 +418,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
         card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
-            with open(net.utility.os.path.join(net.utility.cwd_path, "textsprites.json")) as io:
+            with open(net.utility.os.path.join(net.utility.cwd_path, "Data/textsprites.json")) as io:
                 try:
                     json = net.json.load(io)
                     if fname in json:
@@ -483,7 +493,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 devlog(f"You have drawn a {card.name}.")
         logs += log_endturn(None, board.unactive_player.name,
                     board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
-        sendblock(client_socket, logs.encode())
+        client_socket.send(logs.encode())
         return True
     if head == "attack":
         if len(args) < 3:
@@ -582,8 +592,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         client_socket.send(logs.encode())
         return True
     if head == "forfeit":
-        if isclientturn:
-            client_socket.send("win|???".encode())
+        client_socket.send("win|???".encode())
         client_socket.close()
         return False
     core.warn("Tried to run unrecognized action.")
@@ -608,7 +617,11 @@ def logplay(handle: ClientHandler, log: str):
         case "discard": log_discard(*args)
         case "place": log_place(*args)
         case "error": devlog(f"Error: {args[1]}")
-        case "chat": devlog(net.get_data()["server"]["name"] + ":", *log[1:])
+        case "chat":
+            name = net.get_data()["server"]["name"]
+            # bold probably only works in VSCode as interpreted as bright in other terminal
+            name = "\033[1m" + stringclr(name) + name + "\033[0m"
+            devlog(name + ":", *log[1:])
         case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
 
 def devlog(*msg, dev: bool = core.DEV()):
