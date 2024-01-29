@@ -204,6 +204,8 @@ class ServerHandler:
 
         self.client_socket.send(("sync|" + net.json.dumps(data, separators=(',', ':'))).encode())
         return self
+    def get_state(self):
+        return net.get_data()
 @core.dataclass
 class ClientHandler:
     server_socket: net.socket.socket
@@ -299,6 +301,8 @@ class ClientHandler:
                 self.sync(False)
                 return self
         return self
+    def get_state(self):
+        return net.get_data()
 
 def sendblock(socket: net.socket.socket, *args):
     size = socket.send(*args)
