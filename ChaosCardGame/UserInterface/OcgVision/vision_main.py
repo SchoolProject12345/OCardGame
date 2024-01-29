@@ -75,10 +75,9 @@ class State:
     def revert_state(self, n_revert: int = 1):
         """
         Reverts the current state n_revert times if not an anchor state.
-
         """
         while n_revert > 0:
-            if self.is_anchor == False:
+            if self.is_anchor == False and State.previous_state:
                 State.state = State.previous_state[-1]
                 State.previous_state.pop()
             n_revert -= 1
@@ -471,7 +470,7 @@ class DualBarHori:
         height: int,
         color_bg: pygame.Color | tuple,
         color_fg: pygame.Color | tuple,
-        max_health: int,
+        max_value: int,
         **kwargs,
     ) -> None:
         self.screen = screen
@@ -482,12 +481,12 @@ class DualBarHori:
         self.color_bg = color_bg
         self.color_fg = color_fg
         self.border_radius = kwargs.get("border_radius", 0)
-        self.max_health = max_health
-        self.health = self.max_health
+        self.max_value = max_value
+        self.health = self.max_value
 
     def update(self, health: int) -> None:
         self.health = health
-        self.health_percent = self.health / self.max_health
+        self.health_percent = self.health / self.max_value
         self.health_width = self.health_percent * self.width
 
     def render(self, health: int):
@@ -514,7 +513,7 @@ class DualBarHori:
 
 class DualBarVerti:
     """
-    Creates a horizontal dual bar to display two values.
+    Creates a vertical dual bar to display two values.
 
     Args:
         screen: `pygame.Surface`
@@ -544,7 +543,7 @@ class DualBarVerti:
         height: int,
         color_bg: pygame.Color | tuple,
         color_fg: pygame.Color | tuple,
-        max_health: int,
+        max_value: int,
         **kwargs,
     ) -> None:
         self.screen = screen
@@ -555,48 +554,60 @@ class DualBarVerti:
         self.color_bg = color_bg
         self.color_fg = color_fg
         self.border_radius = kwargs.get("border_radius", 0)
-        self.max_health = max_health
-        self.health = self.max_health
+        self.max_value = max_value
+        self.health = self.max_value
 
     def update(self, health: int) -> None:
         self.health = health
-        self.health_percent = self.health / self.max_health
+        self.health_percent = self.health / self.max_value
         self.health_height = int(self.health_percent * self.height)
 
-    def render(self, health: int):
-        """Renders and maintains the bar.
+    def render(self, health: int, rotate: bool = False):
+        """Renders and maintains the bar, optionally rotated by 180 degrees.
 
         Args:
             health (int): The current health of the bar.
+            rotate (bool, optional): Whether to rotate the bar by 180 degrees. Defaults to False.
         """
-
         self.update(health)
+
+        temp_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
         pygame.draw.rect(
-            self.screen,
+            temp_surface,
             self.color_bg,
-            (self.position[0], self.position[1], self.width, self.height),
+            (0, 0, self.width, self.height),
             border_radius=self.border_radius,
         )
+
         pygame.draw.rect(
-            self.screen,
+            temp_surface,
             self.color_fg,
-            (self.position[0], self.position[1]+(self.height-self.health_height),
-             self.width, self.height-(self.height-self.health_height)),
+            (0, self.height-self.health_height, self.width, self.health_height),
             border_radius=self.border_radius,
         )
+
+        if rotate:
+            temp_surface = pygame.transform.rotate(temp_surface, 180)
+            new_position = self.position[0] - (temp_surface.get_width() - self.width) // 2, \
+                           self.position[1] - (temp_surface.get_height() - self.height) // 2
+        else:
+            new_position = self.position
+
+        self.screen.blit(temp_surface, new_position)
 
 
 class SelectTextBox:
     def __init__(self, screen: pygame.Surface,
-                 position: tuple,
-                 width: int, height: int,
-                 font: pygame.font.Font,
-                 default_color: tuple,
-                 color: tuple,
-                 position_type: str = "topleft",
-                 text_center="left",
-                 border_width=-1,
-                 default_text=""):
+                position: tuple,
+                width: int, height: int,
+                font: pygame.font.Font,
+                default_color: tuple,
+                color: tuple,
+                position_type: str = "topleft",
+                text_center="left",
+                border_width=-1,
+                default_text=""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -625,7 +636,7 @@ class SelectTextBox:
     def calc_right(self):
         self.text_rect = self.text_surf.get_rect(
             midright=(self.input_rect.x+self.width,
-                      self.input_rect.y+(self.height//2))
+                    self.input_rect.y+(self.height//2))
         )
 
     def update(self, key_events):
@@ -659,7 +670,7 @@ class SelectTextBox:
 
         # Rendering
         pygame.draw.rect(self.screen, (255, 255, 255),
-                         self.input_rect, width=self.border_width)
+                        self.input_rect, width=self.border_width)
         self.text_surf = self.font.render(self.text, True, self.active_color)
         match self.text_center:
             case "left": self.calc_left()
@@ -669,3 +680,31 @@ class SelectTextBox:
         self.screen.blit(
             self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
         return self.text
+    
+
+class TextBox:
+    def __init__(self, screen : pygame.surface.Surface,
+                position : tuple,
+                width : int, height : int,
+                font : pygame.font.Font,
+                color : tuple,
+                position_type : str = "topleft",
+                text_center : str = "left",
+                text : str = ""):
+        self.screen = screen
+        self.position = position
+        self.width = width
+        self.height = height
+        self.font = font
+        self.color = color
+        self.position_type = position_type
+        self.text_center = text_center
+        self.text = text
+
+    def update(self, new_text : str):
+        self.text = new_text
+
+    def render(self):
+        text_surface = self.font.render(self.text, True, self.color)
+        text_rect = text_surface.get_rect(**{self.position_type: self.position})
+        self.screen.blit(text_surface, text_rect)
