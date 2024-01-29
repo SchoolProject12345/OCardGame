@@ -1,5 +1,9 @@
-def DEV() -> bool: return True
+from utility import *
 
+if get_setting("dev", True):
+    def DEV() -> bool: return True
+else:
+    def DEV() -> bool: return False
 
 def getordef(d: dict, key, default):
     """    
