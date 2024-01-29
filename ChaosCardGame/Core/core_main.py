@@ -137,11 +137,11 @@ class FuncNumeric(Numeric):
         )
 
 def getCARDS(CARDS=[]) -> list:
-    "Return the list of every card defined in `./data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
+    "Return the list of every card defined in `Data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(CARDS) != 0:
         return CARDS
     io = open(
-        os.path.join(Constants.path, "data/cards.json"),
+        os.path.join(Constants.path, "Data/cards.json"),
     encoding="utf-8")
     json = loads(io.read())
     io.close()
@@ -155,11 +155,11 @@ def getCARDS(CARDS=[]) -> list:
     return CARDS
 
 def getCOMMANDERS(COMMANDERS={}) -> dict:
-    "Return a dict of every card defined `./data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
+    "Return a dict of every card defined `Data/commanders.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
     if len(COMMANDERS) != 0:
         return COMMANDERS
     io = open(
-        os.path.join(Constants.path, "Data/commander.json"),
+        os.path.join(Constants.path, "Data/commanders.json"),
     encoding="utf-8")
     json = loads(io.read())
     io.close()
@@ -341,6 +341,7 @@ class ReturnCode(IntEnum):
     cant = 400
     no_energy = 401
     wrong_turn = 402
+    charging = 403
     no_target = 404
     failed = 500
 
@@ -484,7 +485,7 @@ class DamageRedirect(AbstractEffect):
     def from_json(json: dict):
         return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
     def __str__(self):
-        return f"redirect {self.amount} damages from {self.from_} to the target(s)"
+        return f"redirect {self.amount} damages from {self.from_.name} to the target(s)"
 
 @dataclass
 class EffectUnion(AbstractEffect):
@@ -767,7 +768,7 @@ class SummonEffect(AbstractEffect):
     def from_json(json: dict):
         return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
     def __str__(self):
-        return f"summoning of a {self.summon.name}"
+        return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {self.summon.name}"
 
 @dataclass
 class HypnotizeEffect(AbstractEffect):
@@ -808,12 +809,7 @@ class RepeatEffect(AbstractEffect):
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
-        match self.n:
-            case 1: verbal = " once"
-            case 2: verbal = " twice"
-            case 3: verbal = " thrice"
-            case n: verbal = f" {n} times"
-        return str(self.effect) + verbal
+        return str(self.effect) + f"{self.n} times"
 
 @dataclass
 class FormeChange(AbstractEffect):
@@ -831,7 +827,7 @@ class FormeChange(AbstractEffect):
 
 @dataclass
 class TauntTargets:
-    "Force the target(s) to attack a random creature among the `new_targets` distribution during `duration` turns."
+    "Force the target(s) to attack a random creature among the `new_targets` distribution during `duration` turns"
     new_targets: TargetMode
     duration: Numeric
     def execute(self, **kwargs) -> bool:
@@ -901,7 +897,7 @@ class Attack:
     def from_json(json: dict):
         if "target_mode" not in json:
             warn(f"{json['name']} has no target mode.")
-        return Attack(
+        attack = Attack(
             getordef(json, "name", ""),
             int(json["power"]),  # no float in power
             TargetMode.from_str(json["target_mode"]),
@@ -909,9 +905,15 @@ class Attack:
             AbstractEffect.from_json(getordef(json, "effect", "null")),
             (*getordef(json, "tags", ()),)
         )
+        if "tag" in json:
+            attack.tags = (*attack.tags, json["tag"])
+        return attack
     def __str__(self) -> str:
         "Return a verbal representation of self."
-        s = f"{self.name} (cost:{str(self.cost)}) targets {self.target_mode.to_str()} "
+        s = f"{self.name} (cost:{str(self.cost)}"
+        for tag in self.tags:
+            s += f" #{tag}"
+        s += f") targets {self.target_mode.to_str()} "
         if self.power != 0:
             s += f"dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
@@ -959,7 +961,7 @@ class CreatureCard(AbstractCard):
             int(json["hp"]),
             [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7),
                 TargetMode.target, ifelse(
-                 getordef(json, "commander", False), 1, 0), NullEffect(), ("default")),
+                 getordef(json, "commander", False), 1, 0), NullEffect(), ("default",)),
                 *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
             [Passive.from_json(passive)
              for passive in getordef(json, "passives", [])],
@@ -1043,13 +1045,13 @@ class ActiveCard:
         if self.board.active_player != self.owner:
             kwargs["survey"].return_code = ReturnCode.wrong_turn
             return kwargs["survey"]  # doesn't act if it can't
-        if (not self.can_attack()) or target.state in [State.invisible, State.damageless]:
+        if (not self.can_attack() and not "ultimate" in attack.tags) or target.state in [State.invisible, State.damageless]:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
         if "ultimate" in attack.tags and self.owner.commander_charges < attack.cost:
-            kwargs["survey"].return_code = ReturnCode.no_energy
+            kwargs["survey"].return_code = ReturnCode.charging
             return kwargs["survey"]
-        elif self.owner.energy < attack.cost:
+        elif "ultimate" not in attack.tags and self.owner.energy < attack.cost:
             kwargs["survey"].return_code = ReturnCode.no_energy
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
@@ -1161,7 +1163,7 @@ class ActiveCard:
                 continue
             passive.execute(**kwargs)
         if not self.attacked:
-            self.heal(ifelse(self.card.iscommander(), 30, 10))
+            self.heal(ifelse(self.card.iscommander(), 20, 10))
         self.attacked = False
 
 @dataclass
@@ -1263,9 +1265,9 @@ class Player:
         # I'm way to lazy to check whether the returned value is valid, so I just return a valid value in case the card doesn't exist.
         return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
     def get_save_json(name: str) -> dict | None:
-        "Try to fetch & return a player witht he same name from `data/player.json` as a `dict`, returning None if it isn't found."
+        "Try to fetch & return a player witht he same name from `Data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
-        io = open(os.path.join(Constants.path, "data/players.json"))
+        io = open(os.path.join(Constants.path, "Data/players.json"))
         players: dict = loads(io.read())
         io.close()
         if fname not in players:
@@ -1274,7 +1276,7 @@ class Player:
     def from_json(name: str, json: dict):
         return Player(name, getCOMMANDERS()[json["commander"]], [getCARDS()[Player.card_id(i)] for i in json["deck"]])
     def from_save(name: str):
-        "Try to fetch & return a player with the same name from `data/players.json` as a `Player` object, returning a random player if it isn't found."
+        "Try to fetch & return a player with the same name from `Data/players.json` as a `Player` object, returning a random player if it isn't found."
         player = Player.get_save_json(name)
         if player is None:
             warn(f"Player with name {name} was not found in `players.json`, returning default deck.")
@@ -1284,7 +1286,7 @@ class Player:
         return Player.from_json(name, saves[name])
     def save(self):
         self.reset()
-        io = open(os.path.join(Constants.path, "data/players.json"), "r+")
+        io = open(os.path.join(Constants.path, "Data/players.json"), "r+")
         players: dict = loads(io.read())
         userdata: dict = {cleanstr(self.name): {
             "commander": cleanstr(self.commander.card.name),
@@ -1445,6 +1447,7 @@ class Board:
         return None
     def endturn(self) -> tuple[Player, int, list[AbstractCard], int, None | Player]:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
+        winner = self.getwinner() # evaluate before healing
         for card in self.active_player.active:
             if card is None:
                 continue
@@ -1453,13 +1456,13 @@ class Board:
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
         ret = (self.unactive_player, self.unactive_player.add_energy(
-            self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, self.getwinner())
+            self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
         if DEV():
             if ret[4] is not None:
                 print(f"The winner is {ret[4].name}")
                 return ret
         if self.autoplay and self.active_player.isai() and ret[4] is None:
-            return self.active_player.auto_play(self)
+            return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
     def devprint(self):
         you = self.player1
