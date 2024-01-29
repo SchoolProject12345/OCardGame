@@ -1,17 +1,26 @@
-from Core.convenience import *  # makes code cleaner
+from Core.convenience import *  # makes code cleaner, includes utility.py
 from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
-import os, utility
+import os
 
 class Constants:  # to change variables quickly, easily and buglessly.
-    default_max_energy = 4
-    default_energy_per_turn = 3
-    default_hand_size = 5
-    default_deck_size = 30
-    path = utility.cwd_path
+    # Client settings (DEV() is through function)
+    path = cwd_path
+    progressbar_style = get_setting("progressbar_style", 1) # must clamp between 0-2 but needs cleaning first
+    # Server settings
+    default_max_energy = max(1, get_setting("default_max_energy"))
+    default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
+    default_hand_size = max(1, get_setting("hand_size", 5))
+    default_deck_size = max(1, get_setting("deck_size", 15))
+    strong_increase = max(0, get_setting("strong_percent_increase", 20)) // 10 # percent are overrated
+    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
+    commander_heal = max(0, get_setting("passive_commander_heal", 30))
+    commander_power = 65
+    base_power = 3
+    power_increase = 7
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -845,12 +854,11 @@ class TauntTargets:
         return f"taunt the targets for {self.duration} turns"
 
 class PassiveTrigger(IntEnum):
-    endofturn = 0  # main_target => self
-    whenplaced = 1  # main_target => self
-    whendefeated = 2  # main_target => attacker / only work when defeated by attack (feature not bug)
-    whenattack = 3  # same kwargs as attack
-    # main_target => atatcker
-    whenattacked = 4
+    endofturn = 0    # main_target => self
+    whenplaced = 1   # main_target => self
+    whendefeated = 2 # main_target => attacker / only work when defeated by attack (feature not bug)
+    whenattack = 3   # same kwargs as attack
+    whenattacked = 4 # main_target => atatcker
     # Must improve code before implementing those:
     whendiscarded = 5  # main_target => allied_commander
     whendrawn = 6  # main_target => allied_commander
@@ -959,7 +967,7 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             int(json["hp"]),
-            [Attack("Default Attack", ifelse(getordef(json, "commander", False), 65, 3 + json["cost"]*7),
+            [Attack("Default Attack", ifelse(getordef(json, "commander", False), Constants.commander_power, Constants.base_power + json["cost"]*Constants.power_increase),
                 TargetMode.target, ifelse(
                  getordef(json, "commander", False), 1, 0), NullEffect(), ("default",)),
                 *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
@@ -1163,7 +1171,7 @@ class ActiveCard:
                 continue
             passive.execute(**kwargs)
         if not self.attacked:
-            self.heal(ifelse(self.card.iscommander(), 20, 10))
+            self.heal(ifelse(self.card.iscommander(), Constants.commander_heal, Constants.passive_heal))
         self.attacked = False
 
 @dataclass
