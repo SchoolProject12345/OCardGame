@@ -19,7 +19,8 @@
    "name":"Nidhogg Armageddon",
    "target_mode":"commander",
    "power":65535,
-   "cost":900
+   "cost":900,
+   "tag":"ultimate"
   }
  ]
 },
@@ -36,7 +37,8 @@
    "target_mode":"foes",
    "power":50,
    "cost":250,
-   "effect":{"type":"state_change","new_state":"block","for":1}
+   "effect":{"type":"state_change","new_state":"block","for":1},
+   "tag":"ultimate"
   }
  ],
  "passives":[
@@ -72,7 +74,8 @@
     "type":"dot",
     "damage":45,
     "time":3
-   }
+   },
+   "tag":"ultimate"
   }
  ]
 },
