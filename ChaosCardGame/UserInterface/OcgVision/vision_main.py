@@ -701,10 +701,8 @@ class TextBox:
         self.text_center = text_center
         self.text = text
 
-    def update(self, new_text : str):
+    def render(self, new_text :str):
         self.text = new_text
-
-    def render(self):
         text_surface = self.font.render(self.text, True, self.color)
         text_rect = text_surface.get_rect(**{self.position_type: self.position})
         self.screen.blit(text_surface, text_rect)
