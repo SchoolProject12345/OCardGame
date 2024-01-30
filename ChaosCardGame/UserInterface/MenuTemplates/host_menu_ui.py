@@ -22,12 +22,12 @@ class HostMenu(State):
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
 
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
-        self.room_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
-        self.username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
+        self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
+        self.hostmenu_username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
 
-        self.tb_room = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
+        self.tb_roomname = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
-        self.tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
+        self.hostmenu_tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
 
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
@@ -40,17 +40,17 @@ class HostMenu(State):
 
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)
-        self.screen.blit(self.tb_image, self.room_tb_rect)
-        self.screen.blit(self.tb_image, self.username_tb_rect)
+        self.screen.blit(self.tb_image, self.roomname_tb_rect)
+        self.screen.blit(self.tb_image, self.hostmenu_username_tb_rect)
         self.hostmenu_host_button.render()
         self.hostmenu_exit_button.render()
 
         keys = pygame.event.get(pygame.KEYDOWN)
-        self.room_text = self.tb_room.render(keys)
-        self.username_text = self.tb_username.render(keys)
+        self.room_text = self.tb_roomname.render(keys)
+        self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            self.change_state("GameMenu")
+            self.change_state("GameMenu") # Needs someway to display IP at one point
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
