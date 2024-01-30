@@ -11,13 +11,13 @@ class Constants:  # to change variables quickly, easily and buglessly.
     path = cwd_path
     progressbar_style = get_setting("progressbar_style", 1) # must clamp between 0-2 but needs cleaning first
     # Server settings
-    default_max_energy = max(1, get_setting("default_max_energy"))
+    default_max_energy = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size = max(1, get_setting("hand_size", 5))
     default_deck_size = max(1, get_setting("deck_size", 15))
     strong_increase = max(0, get_setting("strong_percent_increase", 20)) // 10 # percent are overrated
     passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
-    commander_heal = max(0, get_setting("passive_commander_heal", 30))
+    commander_heal = max(0, get_setting("passive_commander_heal", 20))
     commander_power = 65
     base_power = 3
     power_increase = 7
