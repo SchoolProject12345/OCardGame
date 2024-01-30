@@ -7,15 +7,16 @@ from random import randint
 
 pygame.init()
 
-devmode = False
+devmode = True
 
 def sound_handle(track:str , action_type:str = "play"):
     sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
     sound = pygame.mixer.Sound(sfx_path)
 
     if action_type == "play":
-        if randint(0,1000) == 389:
+        if randint(0,1000) == 827:
             pygame.mixer.Sound.play(pygame.mixer.Sound(os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", "magictrack.wav")))
+            print("HEHEHEHHEHEHEHAEHAEHAHEAHEHAEHAHEHAEHEAHEAHAEHAEHEEAHA")
         pygame.mixer.Sound.play(sound)
 
     if action_type == "pause":
