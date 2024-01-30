@@ -72,7 +72,7 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
         Tk().wm_withdraw()
         messagebox.showinfo('Continue', error_string)
 
-# test
+# tests
 throw_error(ErrorCode.UNKNOWN)
 throw_error(ErrorCode.TEST, "test 123")
 throw_error(ErrorCode.CUSTOM, "test 123")
