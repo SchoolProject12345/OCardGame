@@ -559,7 +559,8 @@ class ChangeState(AbstractEffect):
                     card.attacked = False
                     has_worked = True
                 continue
-            if card.state.value < self.new_state.value: # stronger `State`s cannot be overriden by weaker `State`s
+            # stronger `State`s cannot be overriden by weaker `State`s
+            if card.state.value < self.new_state.value or self.new_state == State.default:
                 has_worked = True
                 card.state = self.new_state
         return has_worked
@@ -1131,7 +1132,10 @@ class ActiveCard:
                           and self.element.resist(attacker.element), 12, 10)
         if self.card.iscommander() and mode.can_weak():
             amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
-        return self.indirectdamage(amount)
+        amount = self.indirectdamage(amount)
+        # TODO: fix index
+        self.board.logs.append(f"damage|{self.owner.namecode()}||{self.hp}/{self.card.max_hp}")
+        return amount
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if self.state == State.damageless:
@@ -1337,10 +1341,16 @@ class Player:
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(i)
+    def namecode(self):
+        "Return player code used for logging."
+        if self.commander.board.player1 == self:
+            return "p1"
+        return "p2"
     def boarddiscard(self):
         "Discard every defeated cards, returning them."
         discards: list[ActiveCard] = []
         cards = self.active
+        board = self.commander.board
         for i in range(len(cards)):
             if cards[i] is None:
                 continue
@@ -1348,6 +1358,7 @@ class Player:
                 cards[i].state = State.discarded
                 discards.append(cards[i])
                 self.discard.append(cards[i].card)
+                board.logs.append(f"defeat|{self.namecode()}|{i}")
                 cards[i] = None
         return discards
     def place(self, i: int, j: int):
@@ -1374,6 +1385,8 @@ class Player:
             "user": self.active[j],
             "survey": EffectSurvey()
         }
+        # TODO: give important informations on card instead of just name.
+        board.logs.append(f"place|{self.namecode()}|{j}|{kwargs['main_target'].card.name}")
         for passive in self.active[j].card.passives:
             if passive.trigger != PassiveTrigger.whenplaced:
                 continue
@@ -1408,6 +1421,7 @@ class Board:
     turn: int
     arena: Arena
     autoplay: bool
+    logs: list[str]
     def rps_win(player1: str, player2: str): # no idea why this is a method
         "Return `0` if player1 win Rock Paper Scissor against player2, `1` if player2 wins and `-1` if it's a draw."
         player1, player2 = rps2int(player1), rps2int(player2)
