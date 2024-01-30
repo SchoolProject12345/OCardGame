@@ -9,10 +9,12 @@ class ErrorCode(enum.Enum):
     know which error has to be thrown.
     """
 
-    UNKNOWN = 0     # The error is unknown or undefined
-    TEST = 1        # Used for testing
-    CUSTOM = 2      # Will not return a default message. Only the custom one given.
-
+    UNKNOWN = 0             # The error is unknown or undefined
+    TEST = 1                # Used for testing
+    CUSTOM = 2              # Will not return a default message. Only the custom one given.
+    INVALID_ROOM_NAME = 3   # Because nobody listens to me these three errors
+    INVALID_USER_NAME = 4   # actually have to be handled ffs
+    INVALID_IP = 5
 
 def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = True):
     """
@@ -46,6 +48,14 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
         error_string = f"Error code: {error_code}"
         error_string += ""
 
+    if error_code == ErrorCode.INVALID_ROOM_NAME:
+        error_string += "You have entered an invalid room name. Get good"
+
+    if error_code == ErrorCode.INVALID_USER_NAME:
+        error_string += "You have entered an invalid username. Get good"
+
+    if error_code == ErrorCode.INVALID_IP:
+        error_string += "You have entered an invalid IP adress. Get good"
 
     # Append the optional text
     if optional_text != "default":
@@ -66,3 +76,4 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
 throw_error(ErrorCode.UNKNOWN)
 throw_error(ErrorCode.TEST, "test 123")
 throw_error(ErrorCode.CUSTOM, "test 123")
+throw_error(ErrorCode.INVALID_ROOM_NAME)
