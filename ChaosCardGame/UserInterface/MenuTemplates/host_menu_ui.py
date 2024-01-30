@@ -1,11 +1,11 @@
 import pygame
-from utility import cwd_path
 import os
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
+from utility import cwd_path
 
 
 class HostMenu(State):
@@ -50,7 +50,9 @@ class HostMenu(State):
         self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            self.change_state("GameMenu") # Needs someway to display IP at one point
+            self.roomname = self.tb_roomname.text
+            self.player_username = self.hostmenu_tb_username.text
+            self.change_state("GameMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 

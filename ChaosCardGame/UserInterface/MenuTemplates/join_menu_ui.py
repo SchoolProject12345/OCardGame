@@ -1,11 +1,11 @@
-import pygame
-from utility import cwd_path
 import os
-from UserInterface.OcgVision.vision_io import KeyRel
-from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
-from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
+import pygame
+from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes,alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
+from UserInterface.OcgVision.vision_io import KeyRel
+from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox,State
 from UserInterface.ui_settings import SCREEN_CENTER
+from utility import cwd_path
 
 
 class JoinMenu(State):
@@ -50,7 +50,9 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.change_state("GameMenu") # Needs GameState file to be fixed
+            self.change_state("GameMenu") # Needs fixing
+            self.player_username = self.joinmenu_tb_username.text
+            data_handler
         if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
