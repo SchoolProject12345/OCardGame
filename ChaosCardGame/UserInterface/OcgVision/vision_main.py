@@ -3,7 +3,7 @@ import inspect
 from UserInterface.OcgVision.vision_coordadapter import coord_converter
 from UserInterface.ui_settings import SCREEN_CENTER
 from Assets.menu_assets import smoothscale_converter
-
+from SfxEngine.SoundEngine import sound_handle
 
 class State:
     """
@@ -171,6 +171,9 @@ class ImageButton:
             self.screen.blit(self.button_image[1], self.button_rect)
         elif self.state == self.all_states[2]:
             self.screen.blit(self.button_image[2], self.button_rect)
+        
+        if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
+            sound_handle("ClickSound1-2", "play")
 
     def check_state(self) -> None:
         """
@@ -202,6 +205,7 @@ class ImageButton:
             self.previous_state == self.all_states[2]
             and self.state == self.all_states[1]
         ):
+            sound_handle("ClickSound2-1", "play")
             if inspect.isfunction(self.call_back):
                 return self.call_back()
             elif type(self.call_back) == pygame.event.Event:
@@ -386,7 +390,7 @@ class ToggleGridFour:
             for i_2, image_type in enumerate(toggle):
                 match i_2:
                     case 0:
-                        local_factor = factor
+                        local_factor = factor 
                     case 1:
                         local_factor = factor_T
                 self.all_images[i_1][i_2] = smoothscale_converter(

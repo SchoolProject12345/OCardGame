@@ -2,30 +2,27 @@
 from pygame import mixer, mixer_music
 import pygame
 from pygame.locals import *
-
-
 import os
+from random import randint
 
 pygame.init()
 
-devmode = True
-class ButtonSounds():
+devmode = False
 
-    def ClickSFX12(): #press
-        Click12_path = os.path.join(os.getcwd(), "ChaosCardGame", 'SfxEngine', 'SFX', 'ClickSound1-2.wav')
-        sfx = pygame.mixer.Sound(Click12_path)
-        sfx.play()
+def sound_handle(track:str , action_type:str = "play"):
+    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
+    sound = pygame.mixer.Sound(sfx_path)
 
-    def ClickSFX21(): #unpress
-        Click12_path = os.path.join(os.getcwd(), "ChaosCardGame", 'SfxEngine', 'SFX', 'ClickSound1-2.wav')
-        sfx = pygame.mixer.Sound(Click12_path)
-        sfx.play()
-    #hover
-        
-    #back button
-    #press
-    #unpress
-    #hover
+    if action_type == "play":
+        if randint(0,1000) == 389:
+            pygame.mixer.Sound.play(pygame.mixer.Sound(os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", "magictrack.wav")))
+        pygame.mixer.Sound.play(sound)
+
+    if action_type == "pause":
+        pygame.mixer.pause()
+
+
+
 
 
 
@@ -36,7 +33,7 @@ if devmode:
     WINDOW_HEIGHT = 600
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.mixer.init()
-#    sound = pygame.mixer.Sound("speech.mp3")
+
     button_color = (255, 0, 0) # Red color
     button_width = 100
     button_height = 50
@@ -44,6 +41,7 @@ if devmode:
     button_y = (WINDOW_HEIGHT - button_height) // 2
     button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -51,11 +49,14 @@ if devmode:
             elif event.type == MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if button_rect.collidepoint(mouse_pos):
-                    ButtonSounds.ClickSFX12()
+                    print("clicked")
+                    sound_handle("ClickSound1-2", "play")
             elif event.type == MOUSEBUTTONUP:
                 mouse_pos = pygame.mouse.get_pos()
                 if button_rect.collidepoint(mouse_pos):
-                    ButtonSounds.ClickSFX21()
+                    print("released")                    
+                    sound_handle("ClickSound2-1", "play")
+
 
         window.fill((0, 0, 0)) # Fill the window with black color
         pygame.draw.rect(window, button_color, button_rect) # Draw the button

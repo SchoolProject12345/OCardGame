@@ -5,8 +5,7 @@ from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.MenuTemplates.join_menu_ui import JoinMenu
 from UserInterface.MenuTemplates.host_menu_ui import HostMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from ChaosCardGame.SfxEngine import ButtonSounds
-
+ 
 class PlayMenu(State):
     def __init__(self, screen):
         self.screen = screen

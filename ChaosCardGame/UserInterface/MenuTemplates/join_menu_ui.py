@@ -3,8 +3,7 @@ from icecream import ic
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State
 from Assets.menu_assets import MenuBackgrounds
-from ChaosCardGame.SfxEngine import ButtonSounds
-
+ 
 
 class JoinMenu(State):
     def __init__(self, screen: pygame.Surface):
