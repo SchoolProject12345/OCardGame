@@ -48,13 +48,13 @@ class GameMenu(State):
         self.enemy_energy_bar = DualBarVerti(self.screen, position=(674, 0),position_type="topleft", width=96, height=52,
             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255),max_value=self.enemy_max_energy)
 
-        self.player_health_bar_text = TextBox(self.screen, (580, 711), 55, 41, pygame.font.Font(
+        self.player_health_bar_text = TextBox(self.screen, (557, 706), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
-        self.player_energy_bar_text = TextBox(self.screen, (706, 711), 55, 41, pygame.font.Font(
+        self.player_energy_bar_text = TextBox(self.screen, (674, 706), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
-        self.enemy_health_bar_text = TextBox(self.screen, (580, 6), 55, 41, pygame.font.Font(
+        self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
-        self.enemy_energy_bar_text = TextBox(self.screen, (706, 6), 55, 41, pygame.font.Font(
+        self.enemy_energy_bar_text = TextBox(self.screen, (675, 0), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
 
 
