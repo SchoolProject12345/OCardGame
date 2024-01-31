@@ -128,8 +128,14 @@ def hasany(A: list, B: list) -> bool:
         if a in B: return True
     return False
 
-
 def show(arg):
     "Debug function returning its argument after printing it on the terminal."
     print(arg)
     return arg
+
+def clamp(x, a, b):
+    if x < a:
+        return a
+    if x > b:
+        return b
+    return x
