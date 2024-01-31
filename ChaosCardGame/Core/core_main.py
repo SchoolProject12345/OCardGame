@@ -458,15 +458,18 @@ class NullEffect(AbstractEffect):
 
 @dataclass
 class IfEffect(AbstractEffect):
-    "Evaluate `effect` only if `value` is non-zero"
+    "Evaluate `effect` only if `value` is greater or equal than `cond`, `other` otherwise."
     effect: AbstractEffect
+    other: AbstractEffect
     value: Numeric
+    cond: Numeric
     def execute(self, **kwargs) -> bool:
-        if not self.value.eval(**kwargs):
+        if not self.value.eval(**kwargs) < self.cond.eval(**kwargs):
             return self.effect.execute(**kwargs)
-        return False
+        else:
+            return self.other.execute(**kwargs)
     def from_json(json: dict):
-        return IfEffect(AbstractEffect.from_json(json["effect"]), Numeric.from_json(json["value"]))
+        return IfEffect(AbstractEffect.from_json(json["effect"]), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
         return f"{self.effect} if {self.value} is non-zero."
 
