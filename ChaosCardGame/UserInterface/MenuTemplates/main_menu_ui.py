@@ -5,7 +5,7 @@ from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-
+import os 
 
 class MainMenu(State):
     def __init__(self, screen):
@@ -68,6 +68,8 @@ class MainMenu(State):
             self.change_state("CreditsMenu")
         elif self.play_button.answer():
             self.change_state("PlayMenu")
+            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav')
+            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav-backup.msav')
         elif self.cards_button.answer():
             self.change_state("CardsMenu")
         self.exit_button.answer()
