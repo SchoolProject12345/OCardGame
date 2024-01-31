@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
 import enum
+from datetime import datetime
+
+ERRORLOG = "ChaosCardGame/Debug/errorlog" # path to errorlog file
 
 class ErrorCode(enum.Enum):
     """
@@ -64,6 +67,16 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
 
     # Print the error in the terminal
     print(error_string)
+    with open(ERRORLOG, 'a') as file:
+
+        file.write("\n")
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        file.write(current_time)
+        file.write("\n")
+        file.write(error_string)
+        file.write("\n")
+        file.write("\n")
 
 
     # Finally, draw the error box with the error string
