@@ -438,7 +438,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             devlog("Missing `card name` argument.")
             return
         cardname = core.cleanstr(args[0])
-        if cardname in core.getCOMMANDERS()
+        if cardname in core.getCOMMANDERS():
             card: core.AbstractCard = core.getCOMMANDERS()[cardname]
         else:
             card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
