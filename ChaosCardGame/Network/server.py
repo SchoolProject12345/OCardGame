@@ -1,7 +1,7 @@
 import Network.network as net
-import Core.core_main as core
 import re
 from time import time_ns
+from Core.logging import *
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
@@ -9,17 +9,11 @@ core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even 
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 core.Constants.progressbar_sytle = 1
 
-def clamp(x, min, max):
-    if x < min:
-        return min
-    if x > max:
-        return max
-    return x
 def gradient(x: float):
     x = 5.0*x
-    r = int(255 * (clamp(2.0 - x, 0.0, 1.0) + clamp(x - 4.0, 0.0, 1.0)))
-    g = int(255 * (clamp(x, 0.0, 1.0) - clamp(x - 3.0, 0.0, 1.0)))
-    b = int(255 * clamp(x - 2.0, 0.0, 1.0))
+    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
+    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
+    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
     return f"\033[38;2;{r};{g};{b}m"
 def progressbar(total: int, on: int, size: int = 15, style = 0):
     total = min(total, on)
@@ -211,7 +205,9 @@ class ClientHandler:
     server_socket: net.socket.socket
     ongoing: bool = True
     synced: bool = False
+    waiting: bool = False
     def __call__(self, data: str) -> bool:
+        self.waiting = False
         if data == "":
             self.ongoing = False
             return False
@@ -225,7 +221,20 @@ class ClientHandler:
             return True
         logplay(self, data)
         return True
+    def sendblock(self, *args, max_wait: int = 100_000_000):
+        self.waiting = True
+        start = time_ns()
+        self.server_socket.send(*args)
+        while self.waiting:
+            if time_ns() - start > max_wait:
+                core.warn(f"Response undetected after {max_wait/1_000_000_000:.4}s. Continuing thread anyway.")
+                return self
+        return self
+    def send(self, *args):
+        self.server_socket.send(*args)
+        return self
     def run_action(self, action: str):
+        "Request server to run action, returning `True` if sucessfully sent and `False` if clientside check failed."
         args = action.split('|')
         head = args[0]
         if head in core.Constants.clientside_actions:
@@ -237,7 +246,12 @@ class ClientHandler:
         if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
             core.warn("Wrong turn.")
             return False
-        self.server_socket.send(action.encode())
+        if head == "chat":
+            if len(args) < 2:
+                devlog("Missing message in `chat` request.")
+                return False
+            action = f"chat|{self.get_state()['client']['name']}|{args[1]}"
+        self.sendblock(action.encode(), max_wait=300_000_000).sync()
         return True
     def get_required_charges(commander: str):
         commander: str = core.cleanstr(commander)
@@ -304,13 +318,19 @@ class ClientHandler:
         return net.get_data()
 
 def sendblock(socket: net.socket.socket, *args):
+    "Send and block until receiving 'ok' or any two-byte message."
     size = socket.send(*args)
     socket.recv(2)
     return size
 def recvok(socket: net.socket.socket, *args):
+    "Send 'ok' after receiving to release `sendblock`."
     data = socket.recv(*args)
     socket.send(b"ok")
     return data
+def sendrecv(socket: net.socket.socket, size: int, *args):
+    "Send `*args` to `socket` then wait until a message with up to `size` size is received, returning it as `bytes`."
+    socket.send(*args)
+    return socket.recv(size)
 
 def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
     if len(hostname) > 64:
@@ -527,13 +547,15 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         client_socket.send(logs.encode())
         return True
     if head == "chat":
-        if source: # Imma fix chat later.
-            return devlog(board.player2.name + ":", *args)
-        else:
-            if len(args) < 1:
-                return devlog("Warning: Message not found.")
-            client_socket.send(f"chat|{args[0]}".encode())
+        if len(args) == 0:
+            return devlog("Warning: message not found.")
+        if len(args) == 1:
+            client_socket.send(f"chat|{board.player1.name}|{args[0]}".encode())
+            showchat(board.player1.name, args[0])
             return True
+        client_socket.send(f"chat|{args[0]}|{args[1]}".encode())
+        showchat(args[0], args[1])
+        return True
     if head == "place":
         if len(args) < 2:
             if isclientturn:
@@ -620,16 +642,12 @@ def logplay(handle: ClientHandler, log: str):
         case "discard": log_discard(*args)
         case "place": log_place(*args)
         case "error": devlog(f"Error: {args[1]}")
-        case "chat":
-            name = net.get_data()["server"]["name"]
-            # bold probably only works in VSCode as interpreted as bright in other terminal
-            name = "\033[1m" + stringclr(name) + name + "\033[0m"
-            devlog(name + ":", *log[1:])
+        case "chat": showchat(log[1], log[2])
         case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
 
-def devlog(*msg, dev: bool = core.DEV()):
-    dev and print(*msg)
-    return True
+def showchat(name: str, msg: str):
+    name = "\033[1m" + stringclr(name) + name + "\033[0m"
+    devlog(name + ":", msg)
 
 def log_attack(game: None, user: str,
                target: str, attackname: str, cost: str,
