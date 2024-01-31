@@ -438,7 +438,10 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             devlog("Missing `card name` argument.")
             return
         cardname = core.cleanstr(args[0])
-        card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
+        if cardname in core.getCOMMANDERS()
+            card: core.AbstractCard = core.getCOMMANDERS()[cardname]
+        else:
+            card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
             with open(net.utility.os.path.join(net.utility.cwd_path, "Data/textsprites.json")) as io:
@@ -533,7 +536,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         except:
             if isclientturn:
                 client_socket.send(f'error|{user.name} has no such attack "{args[1]}".')
-                return devlog(f'Warning: {user.name} has no such attack "{args[1]}".')
+            return devlog(f'Warning: {user.name} has no such attack "{args[1]}".')
         target = str2target(board, args[2])
         if target is None:
             if isclientturn:
