@@ -169,10 +169,11 @@ With possible values for field `"trigger"` being:
 - `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking (before damages).
 - `"whenplaced"`: applied on self when card is placed for the first time.
 - `"whendefeated"`: applied on attacker when defeated directly.
+- `"whenattacked"`: applied on attacker when attacked.
+- `"whendamaged"`: applied on damager when damaged only, damage taken can be retrieved through Numeric `"damage_taken"`.
 - (***upcoming***)
 - `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
 - `"whendrawn"`: applied on allied commander when drawn.
-- `"whenattacked"`: applied on attack when attacked.
 
 Effect objects exists through different type as follow:
 
@@ -423,4 +424,10 @@ Multiply evaluate numeric by rational.
 ### Current turn
 ```js
 {"type":"turn"}
+```
+
+### Damage Taken
+For passive whendamaged.
+```js
+{"type":"damage_taken"}
 ```
