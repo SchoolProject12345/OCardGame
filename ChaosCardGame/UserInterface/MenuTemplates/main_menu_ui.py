@@ -69,8 +69,8 @@ class MainMenu(State):
             self.change_state("CreditsMenu")
         elif self.play_button.answer():
             self.change_state("PlayMenu")
-            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav')
-            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav-backup.msav')
+#            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav')
+#            os.remove('/Users/etudiant/Library/Application Support/Mindustry/saves/moddedeuropa.msav-backup.msav')
 
 
         elif self.cards_button.answer():
