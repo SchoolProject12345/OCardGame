@@ -352,12 +352,14 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
  "tags":[]
 }
 ```
-Evaluate expression if `value` is evalutated to non-zero.
+Evaluate `effect` if `value` is evalutated greater or equal than `cond`, evaluate `else` otherwise.
 ```
 {
  "type":"if",
  "value":{/*Numeric expr*/},
+ "cond":/*Numeric expr or int, defaults to 0*/
  "effect":{/*effect object*/}
+ "else":  {/*effect object*/}
 }
 ```
 
