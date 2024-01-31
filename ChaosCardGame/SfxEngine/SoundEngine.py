@@ -14,7 +14,7 @@ def sound_handle(track:str , action_type:str = "play"):
     sound = pygame.mixer.Sound(sfx_path)
 
     if action_type == "play":
-        if randint(0,1000) == 827:
+        if randint(0,10) == 1:
             pygame.mixer.Sound.play(pygame.mixer.Sound(os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", "magictrack.wav")))
             print("HEHEHEHHEHEHEHAEHAEHAHEAHEHAEHAHEHAEHEAHEAHAEHAEHEEAHA")
         pygame.mixer.Sound.play(sound)
