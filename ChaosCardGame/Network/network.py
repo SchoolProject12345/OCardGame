@@ -18,7 +18,7 @@ def data_handler(action: str, path: str, data: str, loaded_data: dict = get_data
     Appends/removes/replaces data in a JSON file.
 
     Parameters:
-        - action (str): Specifies the action to be performed. Possible values are 'append', 'remove', or 'replace'.
+        - action (str): Specifies the action to be performed. Possible values are 'append', 'remove' or 'replace'.
 
         - path (str): The path in the JSON file (e.g., 'Player0/deck/1').
 
@@ -47,8 +47,7 @@ def data_handler(action: str, path: str, data: str, loaded_data: dict = get_data
                 current_node[key] = {}
                 current_node = current_node[key]
             else:
-                print(
-                    f"Key '{key}' not found in the JSON data at path '{path}'.")
+                print(f"Key '{key}' not found in the JSON data at path '{path}'.")
                 return
 
     last_key = keys[-1]
@@ -73,7 +72,11 @@ def data_handler(action: str, path: str, data: str, loaded_data: dict = get_data
             return
 
     elif action == 'replace':
-        if last_key in current_node:
+        if isinstance(current_node, list):
+            if not last_key.isnumeric():
+                return print(f"Index '{last_key}' is not an integer.")
+            current_node[int(last_key)] = data
+        elif last_key in current_node:
             current_node[last_key] = data
         else:
             print(f"Key '{last_key}' not found in the JSON data.")
@@ -122,8 +125,8 @@ def listen(client_socket: socket.socket, handler = default_handler):
     for changes to the public directory
     """
     while True:
-        data = client_socket.recv(1024).decode("utf-8") # 1 kb of data
-        if not (default_handler(data) or bool(data)): # if empty byte string (socket was closed)
+        data = client_socket.recv(4096).decode() # 4 kb of data, just to be sure.
+        if not (handler(data) or bool(data)): # if empty byte string (socket was closed)
             client_socket.close()
             break
 
@@ -159,7 +162,7 @@ def join_connection(target_ip: str, port: int):
         print(f"Error connecting to {target_ip}:{port}: {str(e)}")
         return
 
-def start_peer_to_peer(action, target_ip: str = "", port: int = 12345, handler = default_handler): # You can choose any available port
+def start_peer_to_peer(action, target_ip: str = get_ip(), port: int = 12345, handler = default_handler): # You can choose any available port
     """
     `start_peer_to_peer(action, target_ip)` is the starting point of the network program.
     The user will choose to join or to host a party.
@@ -168,9 +171,8 @@ def start_peer_to_peer(action, target_ip: str = "", port: int = 12345, handler =
     get_data().clear()
 
     if action == "start":
-        ip = get_ip()
-        print("IP:", ip)
-        client_socket = listen_for_connection(ip, port)
+        print("IP:", target_ip) # taking ip in argument allows to localhost
+        client_socket = listen_for_connection(target_ip, port)
     else:
         client_socket = join_connection(target_ip, port)
         if client_socket is None:

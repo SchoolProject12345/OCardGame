@@ -388,7 +388,25 @@
   "element": "Air",
   "cost": 1,
   "hp": 110,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+    "name":"Mystical Sleep",
+    "cost":3,
+    "target_mode":"foes",
+    "power":0,
+    "effect":{
+      "type":"state_change",
+      "new_state":"block"
+    }
+  }],
+   "passives":[{
+     "name":"Night Vision",
+     "trigger":"whenplaced",
+     "effect":{
+       "type":"cleanse",
+       "by_tags":["+"]
+     }
+   }]
  },
  {
   "name": "Bulk Cherry",
@@ -418,8 +436,8 @@
    {
     "name": "Horn Cure",
     "effect": {
-     "type": "todo",
-     "desc": "Cleanse all negative effects from allies."
+     "type": "cleanse",
+     "by_tags":["+"]
     },
     "trigger": "whenplaced"
    }
@@ -1057,8 +1075,8 @@
    "power":0,
    "effect":{
     "type":"state_change",
-     "new_state":"a crée",
-     "for":3
+     "new_state":"damageless",
+     "for":2
    }
   }],
   "passives": [{

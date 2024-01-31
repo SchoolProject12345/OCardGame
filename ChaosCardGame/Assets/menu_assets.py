@@ -154,6 +154,15 @@ class MenuBackgrounds:
 
     bg_host_menu_path = bg_dir + "host_menu_empty.png"
     bg_host_menu_image = pygame.image.load(bg_host_menu_path)
+    
+    bg_join_menu_path = bg_dir + "join_menu_empty.png"
+    bg_join_menu_image = pygame.image.load(bg_join_menu_path)
+
+    bg_deck_menu_path = bg_dir + "deck_menu_empty.png"
+    bg_deck_menu_image = pygame.image.load(bg_deck_menu_path)
+
+    bg_hand_menu_path = bg_dir + "hand_menu_empty.png"
+    bg_hand_menu_image = pygame.image.load(bg_hand_menu_path)
 
 
 @dataclass
@@ -206,12 +215,16 @@ class MenuButtons:
     surrender_button_image = transform_button_files(surrender_button_path)
 
     # Hand
-    hand_button_path = button_dir + "MyHand"
+    hand_button_path = button_dir + "Hand"
     hand_button_image = transform_button_files(hand_button_path)
 
     # Deck
-    deck_button_path = button_dir + "MyDeck"
+    deck_button_path = button_dir + "Deck"
     deck_button_image = transform_button_files(deck_button_path)
+
+    # Place
+    place_button_path = button_dir + "Place"
+    place_button_image = transform_button_files(place_button_path)
 
 
 @dataclass

@@ -1,16 +1,27 @@
 {
  "server":{
-  "deck_length":15,
+  "name":"",
+  "deck_length":10,
+  "hand":5,
+  "commander":{"name":"","hp":0,"max_hp":600,"element":0,"charges":0},
   "board":[],
   "discard":[],
-  "log":[]
+  "energy":3,
+  "max_energy":4,
+  "energy_per_turn":3
  },
  "client":{
-  "deck_length":15,
+  "name":"",
+  "deck_length":10,
   "hand":[],
+  "commander":{"name":"","hp":0,"max_hp":600,"element":0,"charges":0},
   "board":[],
   "discard":[],
-  "action_queue":[]
+  "energy":3,
+  "max_energy":4,
+  "energy_per_turn":3
  },
- "server_turn":true
+ "turn":0,
+ "server_turn":true,
+ "arena":0
 }

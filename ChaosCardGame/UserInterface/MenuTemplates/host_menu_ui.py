@@ -1,10 +1,11 @@
 import pygame
-from utility import cwd_path
 import os
+from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuTemplates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
+from utility import cwd_path
 
 
 class HostMenu(State):
@@ -15,17 +16,18 @@ class HostMenu(State):
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+        self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
         self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
 
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
-        self.room_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
-        self.username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
+        self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
+        self.hostmenu_username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
 
-        self.tb_room = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
+        self.tb_roomname = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
-        self.tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
+        self.hostmenu_tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
 
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
@@ -38,18 +40,20 @@ class HostMenu(State):
 
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)
-        self.screen.blit(self.tb_image, self.room_tb_rect)
-        self.screen.blit(self.tb_image, self.username_tb_rect)
+        self.screen.blit(self.tb_image, self.roomname_tb_rect)
+        self.screen.blit(self.tb_image, self.hostmenu_username_tb_rect)
         self.hostmenu_host_button.render()
         self.hostmenu_exit_button.render()
 
         keys = pygame.event.get(pygame.KEYDOWN)
-        self.room_text = self.tb_room.render(keys)
-        self.username_text = self.tb_username.render(keys)
+        self.room_text = self.tb_roomname.render(keys)
+        self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
+            self.roomname = self.tb_roomname.text
+            self.player_username = self.hostmenu_tb_username.text
             self.change_state("GameMenu")
-        elif self.hostmenu_exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
     def state_manager_hook(self):
