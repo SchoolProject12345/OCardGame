@@ -1,5 +1,6 @@
 import Network.network as net
 import re
+import Core.core_main as core
 from time import time_ns
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
@@ -682,5 +683,5 @@ def log_defeat(game: None, index: str):
     return f"defeat|{index}"
 
 def devlog(*args):
-    core_main.DEV() and print(*args)
+    core.DEV() and print(*args)
     return True
