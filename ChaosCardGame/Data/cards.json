@@ -1069,9 +1069,9 @@
   "tag": "support",
   "hp": 70,
   "attacks":[{
-   "name":"Litoff",
+   "name":"Liftoff",
    "cost":2,
-   "Target_mode":"target",
+   "target_mode":"target",
    "power":0,
    "effect":{
     "type":"state_change",
@@ -1086,7 +1086,6 @@
     "type":"state_change",
     "state_change":"invisble",
     "for":2
-    
    }
   }],
   "type": "creature"
