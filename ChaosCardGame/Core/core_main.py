@@ -38,6 +38,7 @@ class Numeric:
             case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
+            case "damagetaken": return DamageTaken()
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
