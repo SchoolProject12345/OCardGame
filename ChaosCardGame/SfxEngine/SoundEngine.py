@@ -10,7 +10,7 @@ pygame.init()
 
 devmode = True
 
-def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:int=1):
+def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:int=5):
     sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
     channel = pygame.mixer.Channel(channel)
     sound = pygame.mixer.Sound(sfx_path)
