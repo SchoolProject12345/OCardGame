@@ -449,6 +449,7 @@ class AbstractEffect:
             case "cleanse": return CleanseEffect.from_json(json)
             case "redirect": return DamageRedirect.from_json(json)
             case "if": return IfEffect.from_json(json)
+            case "hardcoded": return HardCodedEffect(getordef(json, "desc", ""))
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -456,13 +457,22 @@ class AbstractEffect:
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
-    def __init__(self): return
     def execute(self, **_) -> bool:
         return False
     def from_json():
         return NullEffect()
     def __str__(self) -> str:
         return "nothing"
+
+@dataclass
+class HardCodedEffect(AbstractEffect):
+    desc: str
+    def execute(self, **_) -> bool:
+        return True
+    def from_json():
+        return HardCodedEffect(getordef(json, "desc", ""))
+    def __str__(self):
+        return self.desc
 
 @dataclass
 class IfEffect(AbstractEffect):
@@ -1094,6 +1104,11 @@ class ActiveCard:
             else:
                 kwargs["target_mode"] = TargetMode.target
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
+        # Gravitational Lensing - start
+        # overrides everything
+        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
+            kwargs["main_target"] = self.board.unactive_player.commander
+        # Gravitational Lensing - end
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
