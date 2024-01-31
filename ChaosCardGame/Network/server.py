@@ -234,7 +234,6 @@ class ClientHandler:
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        self.sync(False) 
         if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
             core.warn("Wrong turn.")
             return False
