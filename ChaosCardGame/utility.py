@@ -123,6 +123,11 @@ def get_setting(key: str, default: bool | int | str):
         # It should be at the beginning for safety, but that'd impact performances, so please just don't use invalid types fpr default.
         raise ValueError("`get_setting`'s default excepted either a `bool`, `int` or `str`")
     settings[key] = default
+    if isinstance(default, bool):
+        if default:
+            default = "true"
+        else:
+            default = "false"
     with open(os.path.join(cwd_path, "options.txt"), "a") as io:
         io.write(f"\n{key}:{default}")
         io.close()
