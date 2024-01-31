@@ -682,5 +682,5 @@ def log_defeat(game: None, index: str):
     return f"defeat|{index}"
 
 def devlog(*args):
-    core.DEV() and print(*args)
+    core_main.DEV() and print(*args)
     return True
