@@ -991,13 +991,13 @@ class CreatureCard(AbstractCard):
         return CreatureCard(*args)
     def __str__(self) -> str:
         "Return a 'beautiful' string reprensenting self instead of ugly mess defaulting from dataclasses."
-        pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP: {self.max_hp}\nCost: {self.cost}\nAttacks: ["
+        pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP: {self.max_hp}\nCost: {self.cost}\nAttacks:"
         for attack in self.attacks:
-            pretty += "\n " + str(attack)
-        pretty += "\n]\nPassives: ["
+            pretty += "\n- " + str(attack)
+        pretty += "\nPassives:"
         for passive in self.passives:
-            pretty += "\n " + str(passive)
-        return pretty + "\n]"
+            pretty += "\n- " + str(passive)
+        return pretty
     def image_file(self) -> str:
         "Return the directory to self's image"
         fname: str = f"{self.element.name}-{cleanstr(self.name)}.png"
@@ -1012,7 +1012,7 @@ class CommanderCard(CreatureCard):
     def iscommander(self) -> bool: return True
 
 class Player:
-    pass  # necessary cause Python
+    pass  # necessary 'cause Python
 
 class Board:
     pass
@@ -1043,7 +1043,7 @@ class ActiveCard:
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
-        if self.card.iscommander() and np.any([card is not None for card in self.owner.active]):
+        if self.iscommander() and np.any([card is not None for card in self.owner.active]):
             return False
         if self.board is None or self.owner != self.board.active_player:
             return False
@@ -1120,6 +1120,18 @@ class ActiveCard:
             if passive.trigger != PassiveTrigger.whendefeated:
                 continue
             passive.execute(**kwargs)
+    def iscommander(self):
+        self.card.iscommander()
+    def namecode(self):
+        if self.iscommander():
+            return self.owner.namecode() + '@'
+        for i in range(len(self.owner.active)):
+            if i > 25:
+                warn("Board size is unsupported, causing logging issues.")
+                self.board.logs.append("raw|Warning: board size is unsupported, causing logging issues.")
+                return self.owner.namecode() + '@' # may be fixed later.
+            if self.owner.active[i] is self:
+                return self.owner.namecode() + chr(97 + i)
     def damage(self, amount, **kwargs) -> int:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
@@ -1132,10 +1144,7 @@ class ActiveCard:
                           and self.element.resist(attacker.element), 12, 10)
         if self.card.iscommander() and mode.can_weak():
             amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
-        amount = self.indirectdamage(amount)
-        # TODO: fix index
-        self.board.logs.append(f"damage|{self.owner.namecode()}||{self.hp}/{self.card.max_hp}")
-        return amount
+        return self.indirectdamage(amount)
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if self.state == State.damageless:
@@ -1145,9 +1154,8 @@ class ActiveCard:
             amount = int(amount)
         if amount > self.hp:
             amount = self.hp
-            self.hp = 0
-            return amount
         self.hp -= amount
+        self.board.logs.append(f"-damage|{self.namecode()}||{self.hp}/{self.card.max_hp}")
         return amount
     def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
@@ -1156,6 +1164,7 @@ class ActiveCard:
             amount = int(amount)
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
+        self.board.logs.append(f"-heal|{self.namcode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def endturn(self):
         "Apply all effects at the end of turn."
