@@ -1,7 +1,6 @@
 import Network.network as net
 import re
 from time import time_ns
-from Core.logging import *
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
@@ -681,3 +680,7 @@ def log_win(game: None, winner: str):
 def log_defeat(game: None, index: str):
     devlog(f"Creature at index {index} has been defeated.")
     return f"defeat|{index}"
+
+def devlog(*args):
+    core.DEV() and print(*args)
+    return True
