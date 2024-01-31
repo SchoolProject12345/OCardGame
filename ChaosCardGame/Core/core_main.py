@@ -429,7 +429,7 @@ class AbstractEffect:
             case "loop": return LoopEffect.from_json(json)
             case "randomtarget": return RandomTargets.from_json(json)
             case "randomtargets": return RandomTargets.from_json(json)
-            case "repeat": return warn("RepeatEffect may be deprecated soon.") and RepeatEffect.from_json(json)
+            case "repeat": return RepeatEffect.from_json(json)
             # .from_json is useless but it allows more flexibility if we want to add something
             case "hypnotize": return HypnotizeEffect.from_json(json)
             case "summon": return SummonEffect.from_json(json)
