@@ -50,6 +50,13 @@ class TurnNumeric(Numeric):
         return "current turn"
 
 @dataclass
+class DamageTaken(Numeric):
+    def eval(self, **kwargs):
+        return getordef(kwargs, "damage_taken", 0)
+    def __str__(self):
+        return "damage taken"
+
+@dataclass
 class RawNumeric(Numeric):
     value: int
     def eval(self, **_) -> int:
@@ -368,7 +375,7 @@ class EffectSurvey:
         return self
 
 class AbstractEffect:
-    def __init__(self):
+    def __new__(self):
         warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
     def execute(self, **_) -> bool:
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
@@ -444,7 +451,7 @@ class AbstractEffect:
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
-            case _: return warn(f"Tried to parse an effect with type {type}. Returning NullEffect instead.") and NullEffect()
+            case _: return warn(f"Tried to parse an effect with type {type} in {json}. Returning NullEffect instead.") and NullEffect()
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
@@ -862,6 +869,7 @@ class PassiveTrigger(IntEnum):
     whendefeated = 2 # main_target => attacker / only work when defeated by attack (feature not bug)
     whenattack = 3   # same kwargs as attack
     whenattacked = 4 # main_target => atatcker
+    whendamaged = 5  # main_target => self
     # Must improve code before implementing those:
     whendiscarded = 5  # main_target => allied_commander
     whendrawn = 6  # main_target => allied_commander
@@ -1090,6 +1098,10 @@ class ActiveCard:
             return kwargs["survey"]
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
+            for passive in card.card.passives:
+                if passive.trigger != PassiveTrigger.whenattack:
+                    continue
+                passive.execute(**kwargs)
         if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
             kwargs["survey"].return_code = ReturnCode.failed
             if cleanstr(attack.name) != "splishsplosh":
@@ -1126,7 +1138,12 @@ class ActiveCard:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         if mode == DamageMode.indirect:
-            return self.indirectdamage(amount)
+            amount = self.indirectdamage(amount)
+            for passive in self.card.passives:
+                if passive.trigger != PassiveTrigger.whendamaged:
+                    continue
+                passive.execute(**withfield(kwargs, "damage_taken", amount))
+            return amount
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
                          and attacker.element.effectiveness(self.element), 12, 10)
@@ -1134,7 +1151,12 @@ class ActiveCard:
                           and self.element.resist(attacker.element), 12, 10)
         if self.card.iscommander() and mode.can_weak():
             amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
-        return self.indirectdamage(amount)
+        amount = self.indirectdamage(amount)
+        for passive in self.card.passives:
+            if passive.trigger != PassiveTrigger.whendamaged:
+                continue
+            passive.execute(**withfield(kwargs, "damage_taken", amount))
+        return amount
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if self.state == State.damageless:
