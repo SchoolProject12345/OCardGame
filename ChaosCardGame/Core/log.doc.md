@@ -8,7 +8,7 @@ Note: commander are refered through `p{i}@`
 # Initialization
 For each player:
 
-`p{i}|{Player Name}|{commandername}|{max_hp}|{element}`\
+`player|p{i}|{Player Name}|{commandername}|{max_hp}|{element}`\
 `hand|p{i}|{Card Name}|{...}`
 
 # Actions
@@ -23,10 +23,12 @@ For each player:
 `passive|p{i}{j}|{Passive Name}`\
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
 `-element|p{i}{j}|{new_element}`
+`-hypno|p{i}{j}|p{i'}{j'}`
 
 # Misc
 `chat|{Player Name}|{content}`\
 `win|p{i}|{Player Name}`\
 `raw|{msg}`\
-`energy|{current}/{max}+{per_turn}`
+`energy|{current}/{max}+{per_turn}`\
 `turn|{turn}`
+`-ccharge|p{i}|{amount}`
