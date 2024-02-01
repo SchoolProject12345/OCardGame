@@ -46,8 +46,8 @@ class State:
 
     """
 
-    state = "MainMenu"
-    previous_state = []
+    state_tree = ["MainMenu"]
+    new_menu = False
 
     def __init__(
         self, screen: pygame.surface.Surface, is_anchor: bool, local_options: list
@@ -56,7 +56,6 @@ class State:
         self.is_anchor = is_anchor
         self.local_options = local_options
         # Option on index 0 is always the default one.
-        self.local_state = self.local_options[0]
 
     def change_state(self, new_state: str):
         """
@@ -67,28 +66,16 @@ class State:
                 The new state to change to
 
         """
-        self.local_state = new_state
-        State.previous_state.append(State.state)
-        State.state = new_state
-        print(State.previous_state, new_state)
+        State.state_tree.append(new_state)
 
     def revert_state(self, n_revert: int = 1):
         """
         Reverts the current state n_revert times if not an anchor state.
         """
-        while n_revert > 0:
-            if self.is_anchor == False and State.previous_state:
-                State.state = State.previous_state[-1]
-                State.previous_state.pop()
-            n_revert -= 1
+        for _ in range(n_revert):
+            State.state_tree.pop()
 
-    def check_ownership(self):
-        """
-        Checks if the current global state is within the local state options and assigns it as the local state.
-
-        """
-        if State.state in self.local_options:
-            self.local_state = State.state
+        State.new_menu = True
 
     def state_manager_hook(self):
         """
@@ -102,7 +89,6 @@ class State:
         Checks state ownership and runs the state_manager_hook.
 
         """
-        self.check_ownership()
         self.state_manager_hook()
 
 
@@ -571,7 +557,8 @@ class DualBarVerti:
         """
         self.update(health)
 
-        temp_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        temp_surface = pygame.Surface(
+            (self.width, self.height), pygame.SRCALPHA)
 
         pygame.draw.rect(
             temp_surface,
@@ -590,7 +577,8 @@ class DualBarVerti:
         if rotate:
             temp_surface = pygame.transform.rotate(temp_surface, 180)
             new_position = self.position[0] - (temp_surface.get_width() - self.width) // 2, \
-                           self.position[1] - (temp_surface.get_height() - self.height) // 2
+                self.position[1] - \
+                (temp_surface.get_height() - self.height) // 2
         else:
             new_position = self.position
 
@@ -599,15 +587,15 @@ class DualBarVerti:
 
 class SelectTextBox:
     def __init__(self, screen: pygame.Surface,
-                position: tuple,
-                width: int, height: int,
-                font: pygame.font.Font,
-                default_color: tuple,
-                color: tuple,
-                position_type: str = "topleft",
-                text_center="left",
-                border_width=-1,
-                default_text=""):
+                 position: tuple,
+                 width: int, height: int,
+                 font: pygame.font.Font,
+                 default_color: tuple,
+                 color: tuple,
+                 position_type: str = "topleft",
+                 text_center="left",
+                 border_width=-1,
+                 default_text=""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -636,7 +624,7 @@ class SelectTextBox:
     def calc_right(self):
         self.text_rect = self.text_surf.get_rect(
             midright=(self.input_rect.x+self.width,
-                    self.input_rect.y+(self.height//2))
+                      self.input_rect.y+(self.height//2))
         )
 
     def update(self, key_events):
@@ -670,7 +658,7 @@ class SelectTextBox:
 
         # Rendering
         pygame.draw.rect(self.screen, (255, 255, 255),
-                        self.input_rect, width=self.border_width)
+                         self.input_rect, width=self.border_width)
         self.text_surf = self.font.render(self.text, True, self.active_color)
         match self.text_center:
             case "left": self.calc_left()
@@ -680,17 +668,17 @@ class SelectTextBox:
         self.screen.blit(
             self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
         return self.text
-    
+
 
 class TextBox:
-    def __init__(self, screen : pygame.surface.Surface,
-                position : tuple,
-                width : int, height : int,
-                font : pygame.font.Font,
-                color : tuple,
-                position_type : str = "topleft",
-                text_center : str = "left",
-                text : str = ""):
+    def __init__(self, screen: pygame.surface.Surface,
+                 position: tuple,
+                 width: int, height: int,
+                 font: pygame.font.Font,
+                 color: tuple,
+                 position_type: str = "topleft",
+                 text_center: str = "left",
+                 text: str = ""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -701,8 +689,9 @@ class TextBox:
         self.text_center = text_center
         self.text = text
 
-    def render(self, new_text :str):
+    def render(self, new_text: str):
         self.text = new_text
         text_surface = self.font.render(self.text, True, self.color)
-        text_rect = text_surface.get_rect(**{self.position_type: self.position})
+        text_rect = text_surface.get_rect(
+            **{self.position_type: self.position})
         self.screen.blit(text_surface, text_rect)

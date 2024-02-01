@@ -45,9 +45,10 @@ class PlayMenu(State):
             self.revert_state()
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if len(State.state_tree) >= 3:
+            if State.state_tree[2] == self.local_options[1]:
+                self.host_menu.state_manager()
+            elif State.state_tree[2] == self.local_options[2]:
+                self.join_menu.state_manager()
+        elif State.state_tree[1] == self.local_options[0]:
             self.play_menu()
-        elif self.local_state == self.local_options[1]:
-            self.host_menu.state_manager_hook()
-        elif self.local_state == self.local_options[2]:
-            self.join_menu.state_manager_hook()

@@ -54,10 +54,12 @@ class HostMenu(State):
             self.player_username = self.hostmenu_tb_username.text
             self.change_state("GameMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
-            self.revert_state(1)
+            self.revert_state()
+            print("Here")
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if len(State.state_tree) >= 4:
+            if State.state_tree[3] == self.local_options[1]:
+                self.game_menu.state_manager()
+        elif State.state_tree[2] == self.local_options[0]:
             self.host_menu()
-        elif self.local_state == self.local_options[1]:
-            self.game_menu.state_manager()

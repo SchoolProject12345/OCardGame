@@ -5,12 +5,13 @@ from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-import os 
+import os
+
 
 class MainMenu(State):
     def __init__(self, screen):
         super().__init__(
-            screen, True, ["MainMenu", "CreditsMenu", "PlayMenu", "CardsMenu"]
+            screen, True, ["MainMenu", "PlayMenu", "CardsMenu", "CreditsMenu"]
         )
 
         self.bg_main_menu_image = MenuBackgrounds.bg_main_menu_image.convert_alpha()
@@ -53,9 +54,9 @@ class MainMenu(State):
         )
 
         # Options
-        self.credits_menu = CreditsMenu(self.screen)
         self.play_menu = PlayMenu(self.screen)
         self.cards_menu = CardsMenu(self.screen)
+        self.credits_menu = CreditsMenu(self.screen)
 
     def main_menu(self):
         self.screen.blit(self.bg_main_menu_image, self.bg_main_menu_rect)
@@ -74,11 +75,12 @@ class MainMenu(State):
         self.exit_button.answer()
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if len(State.state_tree) >= 2:
+            if State.state_tree[1] == self.local_options[1]:
+                self.play_menu.state_manager()
+            elif State.state_tree[1] == self.local_options[2]:
+                self.cards_menu.state_manager()
+            elif State.state_tree[1] == self.local_options[3]:
+                self.credits_menu.state_manager()
+        elif State.state_tree[0] == self.local_options[0]:
             self.main_menu()
-        elif self.local_state == self.local_options[1]:
-            self.credits_menu.state_manager()
-        elif self.local_state == self.local_options[2]:
-            self.play_menu.state_manager()
-        elif self.local_state == self.local_options[3]:
-            self.cards_menu.state_manager()
