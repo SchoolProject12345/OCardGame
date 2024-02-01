@@ -469,7 +469,7 @@ class HardCodedEffect(AbstractEffect):
     desc: str
     def execute(self, **_) -> bool:
         return True
-    def from_json():
+    def from_json(json):
         return HardCodedEffect(getordef(json, "desc", ""))
     def __str__(self):
         return self.desc
