@@ -48,14 +48,14 @@ class GameMenu(State):
         self.enemy_energy_bar = DualBarVerti(self.screen, position=(674, 0),position_type="topleft", width=96, height=52,
             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255),max_value=self.enemy_max_energy)
 
-        self.player_health_bar_text = TextBox(self.screen, (557, 706), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.player_energy_bar_text = TextBox(self.screen, (674, 706), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.enemy_energy_bar_text = TextBox(self.screen, (674, 0), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
+        self.player_health_bar_text = TextBox(self.screen, (557, 706), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.player_energy_bar_text = TextBox(self.screen, (674, 706), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.enemy_energy_bar_text = TextBox(self.screen, (675, 0), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
 
 
         # Pause Menu
@@ -106,10 +106,10 @@ class GameMenu(State):
         self.enemy_health_bar.render(self.enemy_health, True)
         self.enemy_energy_bar.render(self.enemy_energy, True)
         
-        self.player_health_bar_text.render(str(self.player_health) + "HP")
-        self.player_energy_bar_text.render(str(self.player_energy) + "NRG")
-        self.enemy_health_bar_text.render(str(self.enemy_health) + "HP")
-        self.enemy_energy_bar_text.render(str(self.enemy_energy) + "NRG")
+        self.player_health_bar_text.render(str(self.player_health))
+        self.player_energy_bar_text.render(str(self.player_energy))
+        self.enemy_health_bar_text.render(str(self.enemy_health))
+        self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
         self.deck_button.render()
         if self.deck_button.answer():
