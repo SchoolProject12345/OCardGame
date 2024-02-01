@@ -376,8 +376,6 @@ class EffectSurvey:
         return self
 
 class AbstractEffect:
-    def __init__(self):
-        warn(f"AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
     def execute(self, **_) -> bool:
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
         warn(
