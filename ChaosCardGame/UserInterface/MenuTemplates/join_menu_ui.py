@@ -56,7 +56,8 @@ class JoinMenu(State):
             self.revert_state(1)
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if len(State.state_tree) >= 4:
+            if State.state_tree[3] == self.local_options[1]:
+                self.game_menu.state_manager()
+        elif State.state_tree[2] == self.local_options[0]:
             self.join_menu()
-        if self.local_state == self.local_options[1]:
-            self.game_menu.state_manager()

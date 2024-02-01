@@ -6,7 +6,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarHori,
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER
 from Debug.DEV_debug import ValueWatcher
- 
+
 
 class GameMenu(State):
     def __init__(self, screen):
@@ -48,14 +48,17 @@ class GameMenu(State):
         self.enemy_energy_bar = DualBarVerti(self.screen, position=(674, 0),position_type="topleft", width=96, height=52,
             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255),max_value=self.enemy_max_energy)
 
-        self.player_health_bar_text = TextBox(self.screen, (557, 706), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.player_energy_bar_text = TextBox(self.screen, (674, 706), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
-        self.enemy_energy_bar_text = TextBox(self.screen, (674, 0), 400, 50, pygame.font.Font(
-            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="left",text="")
+        self.player_health_bar_text = TextBox(self.screen, (557, 706), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.player_energy_bar_text = TextBox(self.screen, (674, 706), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        self.enemy_energy_bar_text = TextBox(self.screen, (675, 0), 96, 52, pygame.font.Font(
+            self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        
+        self.player_username_text = TextBox(self.screen, (72, 726), 96, 52, pygame.font.Font(
+            self.ger_font_path, 18), (255, 255, 255), position_type="topleft", text_center="center",text="")
 
 
         # Pause Menu
@@ -106,10 +109,12 @@ class GameMenu(State):
         self.enemy_health_bar.render(self.enemy_health, True)
         self.enemy_energy_bar.render(self.enemy_energy, True)
         
-        self.player_health_bar_text.render(str(self.player_health) + "HP")
-        self.player_energy_bar_text.render(str(self.player_energy) + "NRG")
-        self.enemy_health_bar_text.render(str(self.enemy_health) + "HP")
-        self.enemy_energy_bar_text.render(str(self.enemy_energy) + "NRG")
+        self.player_health_bar_text.render(str(self.player_health))
+        self.player_energy_bar_text.render(str(self.player_energy))
+        self.enemy_health_bar_text.render(str(self.enemy_health))
+        self.enemy_energy_bar_text.render(str(self.enemy_energy))
+
+        #self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
 
         self.deck_button.render()
         if self.deck_button.answer():
@@ -144,9 +149,11 @@ class GameMenu(State):
             elif self.settings_button.answer():
                 pass
             elif self.surrender_button.answer():
-                self.revert_state()
                 self.is_paused_toggle()
+                self.revert_state(2)
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if len(State.state_tree) >= 5:
+            raise ValueError("Bro what?")
+        elif State.state_tree[3] == self.local_options[0]:
             self.game_menu()

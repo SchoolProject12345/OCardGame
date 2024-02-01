@@ -23,5 +23,5 @@ class CreditsMenu(State):
             self.revert_state(1)
 
     def state_manager_hook(self):
-        if self.local_state == self.local_options[0]:
+        if State.state_tree[1] == self.local_options[0]:
             self.credits_menu()
