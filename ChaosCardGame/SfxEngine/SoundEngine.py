@@ -8,28 +8,32 @@ print(pygame.__version__)
 
 pygame.init()
 
-devmode = True
+devmode = False
 
-def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:int=5):
+def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5, ambient_channel:int=6):
+    
     sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
-    channel = pygame.mixer.Channel(channel)
-    sound = pygame.mixer.Sound(sfx_path)
 
+    sfxchannel = pygame.mixer.Channel(sfx_channel)
+    sound = pygame.mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
 
+
     if action_type == "play":
-        channel.play(pygame.mixer.Sound(sound))
+        sfxchannel.play(sound)
 
     if action_type == "pause":
-        pygame.mixer.stop()
+        sfxchannel.stop()
 
     if action_type == "ambient_play":
         pygame.mixer.music.load(sfx_path)
         pygame.mixer.music.set_volume(volume/100)
-        pygame.mixer.music.play(-1)
-        
-#channel crap is tricke, you cant play 2 things at the same time on the same channel so you have to number these correctly
-# music shall be on the default channel, dont need to put an int for the channel, but sfx will have to be numbered
+        pygame.mixer.music.play()
+
+    #    ambientchannel = pygame.mixer.Channel(ambient_channel)
+    #    ambient_sound = pygame.mixer.Sound(sfx_path)
+    #    ambient_sound.set_volume(volume/100)
+    #    ambientchannel.play(ambient_sound)
 
 
 
@@ -49,8 +53,11 @@ if devmode:
     button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
     running = True
 
+    sound_handle("ambientmenumusictest", "ambient_play",30)
+# put this piece of crap NOT IN A WHILE LOOP, it will start the song repeatedly and not play
+    
     while running:
-        sound_handle("ambientmenumusictest", "play",30)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False

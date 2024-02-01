@@ -5,6 +5,8 @@ from UserInterface.ui_settings import SCREEN_CENTER
 from Assets.menu_assets import smoothscale_converter
 from SfxEngine.SoundEngine import sound_handle
 
+pygame.init()
+
 class State:
     """
     A class to represent a state.
@@ -48,6 +50,7 @@ class State:
 
     state = "MainMenu"
     previous_state = []
+    sound_handle("ambientmenumusictest", "ambient_play", 25)
 
     def __init__(
         self, screen: pygame.surface.Surface, is_anchor: bool, local_options: list
