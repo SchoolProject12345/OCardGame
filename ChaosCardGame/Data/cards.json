@@ -117,8 +117,8 @@
  {
   "name": "Gargoyle of the Void",
   "element": "Chaos",
-  "cost": 2,
-  "hp": 115,
+  "cost": 1,
+  "hp": 120,
   "type": "creature",
   "attacks":[{
    "name":"Shadow Realm",
