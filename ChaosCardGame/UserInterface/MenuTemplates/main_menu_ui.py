@@ -5,7 +5,7 @@ from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-import os 
+import os
 
 
 class MainMenu(State):
