@@ -41,15 +41,7 @@ def progressbar(total: int, on: int, size: int = 15, style = 0):
     if style != 2:
         bar += "\033[0m"
     return bar + "]"
-def stringclr(string: str):
-    "Used for username color in chat."
-    t = sum([ord(c) for c in string])
-    # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
-    # But I'm not 100% sure.
-    r = t % 255
-    g = 2*t % 255
-    b = 7*t % 255
-    return f"\033[38;2;{r};{g};{b}m"
+
 def ansi_elementcolor(element: core.Element) -> str:
     match element:
         case core.Element.water: return "\033[38;2;0;122;247m"
