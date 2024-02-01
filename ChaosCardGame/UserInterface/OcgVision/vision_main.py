@@ -5,7 +5,6 @@ from UserInterface.ui_settings import SCREEN_CENTER
 from Assets.menu_assets import smoothscale_converter
 from SfxEngine.SoundEngine import sound_handle
 
-pygame.init()
 
 class State:
     """
@@ -49,7 +48,6 @@ class State:
     """
 
     state_tree = ["MainMenu"]
-    sound_handle("ambientmenumusictest", "ambient_play", 25)
 
     def __init__(
         self, screen: pygame.surface.Surface, is_anchor: bool, local_options: list
@@ -161,7 +159,7 @@ class ImageButton:
             self.screen.blit(self.button_image[2], self.button_rect)
         
         if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
-            #-------------------------------------------CLICK SOUND THING-------------------------------------------------
+            #On click sound handler
             sound_handle("ClickSound1-2", "play",50)
 
     def check_state(self) -> None:
