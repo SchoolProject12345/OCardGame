@@ -84,6 +84,15 @@ class ReplayHandler:
                     print(
                         "\033[1m" + stringclr(args[0]) + args[0] + "\033[0m:" + args[1]
                     )
+            case "defeat":
+                player, i = player_index(args[0])
+                self.state[player]["discard"].append(defeated := self.state[player]["board"][i]["name"])
+                self.state[player]["board"][i] = None
+                return f"{defeated} has been defeated."
+
+def player_index(index: str):
+    "Parse an index in the form pix with i int and x letter (e.g. p1a)."
+    return (index[0:2], ord(index[2])-97)
 
 def stringclr(string: str):
     "Used for username color in chat."
