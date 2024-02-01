@@ -881,9 +881,10 @@ class PassiveTrigger(IntEnum):
     whenattack = 3   # same kwargs as attack
     whenattacked = 4 # main_target => atatcker
     whendamaged = 5  # main_target => self
+    never = 6        # to hardcode
     # Must improve code before implementing those:
-    whendiscarded = 5  # main_target => allied_commander
-    whendrawn = 6  # main_target => allied_commander
+    whendiscarded = 7  # main_target => allied_commander
+    whendrawn = 8  # main_target => allied_commander
     def from_str(name: str):
         match cleanstr(name):
             case "endofturn": return PassiveTrigger.endofturn
@@ -891,6 +892,7 @@ class PassiveTrigger(IntEnum):
             case "whendefeated": return PassiveTrigger.whendefeated
             case "whenattack": return PassiveTrigger.whenattack
             case "whenattacking": return PassiveTrigger.whenattack
+            case "never": return PassiveTrigger.never
     def to_str(self):
         match self:
             case PassiveTrigger.endofturn: return "the turn end"
@@ -906,6 +908,8 @@ class Passive:
     def from_json(json: dict):
         if not isinstance(json, dict):
             warn(json)
+        if not "trigger" in json:
+            warn(f"Passive with name {json['name']} has no trigger.")
         return Passive(
                        getordef(json, "name", ""),
                        PassiveTrigger.from_str(json["trigger"]),
