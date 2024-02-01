@@ -24,8 +24,8 @@ class ReplayHandler:
         return {
          "p1":{
           "name":"",
-          "deck_length":core.Constants.default_deck_size - core.Constants.default_hand_size,
-          "hand":core.Constants.default_hand_size,
+          "deck_length":core.Constants.default_deck_size,
+          "hand":[],
           "commander":{"name":"","hp":600,"max_hp":600,"element":0,"charges":0},
           "board":[],
           "discard":[],
@@ -35,8 +35,8 @@ class ReplayHandler:
          },
          "p2":{
           "name":"",
-          "deck_length":core.Constants.default_deck_size - core.Constants.default_hand_size,
-          "hand":core.Constants.default_hand_size,
+          "deck_length":core.Constants.default_deck_size,
+          "hand":[],
           "commander":{"name":"","hp":600,"max_hp":600,"element":0,"charges":0},
           "board":[],
           "discard":[],
@@ -65,16 +65,41 @@ class ReplayHandler:
                 self.state[ind]["commander"]["element"] = commander.element.value
                 return ""
             case "discard":
-                pass
+                # No error handling AT ALL
+                if args[1] in self.state[args[0]]["hand"]:
+                    self.state[args[0]]["hand"].remove(args[1])
+                else:
+                    # If cards are hidden (e.g. opponnent's)
+                    self.state[args[0]]["hand"].pop()
+                self.state[args[0]]["discard"].append(args[1])
+                name = self.state[args[0]]["name"]
+                return f"{name} discarded {args[1]} of their hand."
             case "draw":
-                pass
+                self.state[args[0]]["hand"].append(args[1])
+                self.state[args[0]]["deck_length"] -= 1
+                name = self.state[args[0]]["name"]
+                return f"{name} drew a {args[1]}."
+            case "chat":
+                if not core.DEV():
+                    print(
+                        "\033[1m" + stringclr(args[0]) + args[0] + "\033[0m:" + args[1]
+                    )
+
+def stringclr(string: str):
+    "Used for username color in chat."
+    t = sum([ord(c) for c in string])
+    # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
+    # But I'm not 100% sure.
+    r = t % 255
+    g = 2*t % 255
+    b = 7*t % 255
+    return f"\033[38;2;{r};{g};{b}m"                
 
 def get_commander(name: str) -> core.CommanderCard:
     "Return correct commander or UNKNOWN if not implemented in current save."
     if name in core.getCOMMANDERS():
         return core.getCOMMANDERS()[name]
     return core.CommanderCard("UNKNOWN", 1j, core.Element.elementless, 600, [], [], 0, ("any", "unknown"))
-
 
 def devlog(*msg, dev: bool = core.DEV()):
     dev and print(*msg)
