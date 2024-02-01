@@ -7,6 +7,7 @@ from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 import os 
 
+
 class MainMenu(State):
     def __init__(self, screen):
         super().__init__(
