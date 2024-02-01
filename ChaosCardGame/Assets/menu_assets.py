@@ -164,6 +164,37 @@ class MenuBackgrounds:
     bg_hand_menu_path = bg_dir + "hand_menu_empty.png"
     bg_hand_menu_image = pygame.image.load(bg_hand_menu_path)
 
+    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
+    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
+
+    # Tutorial
+    bg_tutorial1_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial1_image = pygame.image.load(bg_tutorial1_path)
+
+    bg_tutorial2_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial2_image = pygame.image.load(bg_tutorial2_path)
+
+    bg_tutorial3_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial3_image = pygame.image.load(bg_tutorial3_path)
+
+    bg_tutorial4_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial4_image = pygame.image.load(bg_tutorial4_path)
+
+    bg_tutorial5_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial5_image = pygame.image.load(bg_tutorial5_path)
+
+    bg_tutorial6_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial6_image = pygame.image.load(bg_tutorial6_path)
+
+    bg_tutorial7_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial7_image = pygame.image.load(bg_tutorial7_path)
+
+    bg_tutorial8_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial8_image = pygame.image.load(bg_tutorial8_path)
+
+    bg_tutorial9_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial9_image = pygame.image.load(bg_tutorial9_path)
+
 
 @dataclass
 class MenuButtons:
@@ -225,6 +256,26 @@ class MenuButtons:
     # Place
     place_button_path = button_dir + "Place"
     place_button_image = transform_button_files(place_button_path)
+
+    # End Tutorial
+    endtutorial_button_path = button_dir + "EndTutorial"
+    endtutorial_button_image = transform_button_files(endtutorial_button_path)
+
+    # Next Tutorial
+    nexttutorial_button_path = button_dir + "NextTutorial"
+    nexttutorial_button_image = transform_button_files(nexttutorial_button_path)
+
+    # Skip Tutorial
+    skiptutorial_button_path = button_dir + "SkipTutorial"
+    skiptutorial_button_image = transform_button_files(skiptutorial_button_path)
+
+    # Start Tutorial
+    starttutorial_button_path = button_dir + "StartTutorial"
+    starttutorial_button_image = transform_button_files(starttutorial_button_path)
+
+    # View Lore
+    viewlore_button_path = button_dir + "ViewLore"
+    viewlore_button_image = transform_button_files(viewlore_button_path)
 
 
 @dataclass
