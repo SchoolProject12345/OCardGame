@@ -1,8 +1,7 @@
 import Network.network as net
-import Core.core_main as core
 import re
 from time import time_ns
-from Core.logging import *
+from Core.logging import * # includes core
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
