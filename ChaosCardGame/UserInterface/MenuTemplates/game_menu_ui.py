@@ -56,6 +56,9 @@ class GameMenu(State):
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
         self.enemy_energy_bar_text = TextBox(self.screen, (675, 0), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center",text="")
+        
+        self.player_username_text = TextBox(self.screen, (72, 726), 96, 52, pygame.font.Font(
+            self.ger_font_path, 18), (255, 255, 255), position_type="topleft", text_center="center",text="")
 
 
         # Pause Menu
@@ -110,6 +113,8 @@ class GameMenu(State):
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
+
+        self.player_username_text.redner(str(self.player_username)) # Need to import player_username from host_menu and join_menu
 
         self.deck_button.render()
         if self.deck_button.answer():
