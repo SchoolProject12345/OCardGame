@@ -48,8 +48,7 @@ class State:
 
     """
 
-    state = "MainMenu"
-    previous_state = []
+    state_tree = ["MainMenu"]
     sound_handle("ambientmenumusictest", "ambient_play", 25)
 
     def __init__(
