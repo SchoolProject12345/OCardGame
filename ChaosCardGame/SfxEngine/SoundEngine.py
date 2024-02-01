@@ -4,13 +4,13 @@ import pygame
 from pygame.locals import *
 import os
 
-pygame.init()
+
 
 
 
 def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5, ambient_channel:int=6):
     
-    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
+    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "Assets", "SFX", str(track) + ".wav")
 
     sfxchannel = pygame.mixer.Channel(sfx_channel)
     sound = pygame.mixer.Sound(sfx_path)
@@ -40,6 +40,7 @@ devmode = False
 # CEST EN FALSE DONC LE CODE EN DESSOUS NE SE PLAY MEME PAS
 
 if devmode:
+    pygame.init()
     #experimental window with a button to test if work or no
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600

@@ -4,6 +4,7 @@ import os
 import utility
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.MenuTemplates.main_menu_ui import MainMenu
+from SfxEngine.SoundEngine import sound_handle
 
 
 class OcgGame:
@@ -37,6 +38,7 @@ class OcgGame:
         Starts the game loop which continues running until the quit event is caught.
         """
         self.running = True
+        sound_handle("ambientmenumusictest2", "ambient_play", 30)
         while self.running:
 
             self.MainMenu.state_manager()
