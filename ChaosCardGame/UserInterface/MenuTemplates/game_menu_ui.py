@@ -114,7 +114,7 @@ class GameMenu(State):
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
-        self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
+        #self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
 
         self.deck_button.render()
         if self.deck_button.answer():
