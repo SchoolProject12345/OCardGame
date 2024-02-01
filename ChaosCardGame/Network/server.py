@@ -2,6 +2,7 @@ import Network.network as net
 import Core.core_main as core
 import re
 from time import time_ns
+from Core.logging import *
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
@@ -627,10 +628,6 @@ def logplay(handle: ClientHandler, log: str):
             name = "\033[1m" + stringclr(name) + name + "\033[0m"
             devlog(name + ":", *log[1:])
         case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
-
-def devlog(*msg, dev: bool = core.DEV()):
-    dev and print(*msg)
-    return True
 
 def log_attack(game: None, user: str,
                target: str, attackname: str, cost: str,
