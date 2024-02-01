@@ -160,7 +160,7 @@ class ImageButton:
         
         if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
             #On click sound handler
-            sound_handle("ClickSound1-2", "play",50)
+            sound_handle("ClickSound1-2", "play",40)
 
     def check_state(self) -> None:
         """
@@ -194,7 +194,8 @@ class ImageButton:
         ):
         #-------------------------------------------RELEASE SOUND THING-------------------------------------------------
 
-            sound_handle("ClickSound2-1", "play",50)
+            sound_handle("ClickSound2-1", "play",40)
+
             if inspect.isfunction(self.call_back):
                 return self.call_back()
             elif type(self.call_back) == pygame.event.Event:

@@ -3,12 +3,10 @@ from pygame import mixer, mixer_music
 import pygame
 from pygame.locals import *
 import os
-from random import randint
-print(pygame.__version__)
 
 pygame.init()
 
-devmode = False
+
 
 def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5, ambient_channel:int=6):
     
@@ -37,7 +35,9 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_chann
 
 
 
-
+devmode = False
+# TOUCHE PAS, CEST JUSTE LE TEST WINDOW AVEC LE BOUTON AU MILLIEU, SI TU TOUCHE JE TE BUTE
+# CEST EN FALSE DONC LE CODE EN DESSOUS NE SE PLAY MEME PAS
 
 if devmode:
     #experimental window with a button to test if work or no
