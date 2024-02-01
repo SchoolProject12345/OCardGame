@@ -5,7 +5,7 @@ from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-import os
+import os 
 
 
 class MainMenu(State):
@@ -53,10 +53,27 @@ class MainMenu(State):
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 302),
         )
 
+        self.viewlore_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.viewlore_button_image),
+            position_type="topleft",
+            position=(91, 683),
+        )
+
+        self.starttutorial_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.starttutorial_button_image),
+            position_type="topleft",
+            position=(1065, 685),
+        )
+
         # Options
         self.play_menu = PlayMenu(self.screen)
         self.cards_menu = CardsMenu(self.screen)
-        self.credits_menu = CreditsMenu(self.screen)
+        #self.lore_menu = LoreMenu(self.screen)
+        #self.tutorial_menu = TutorialMenu(self.screen)
 
     def main_menu(self):
         self.screen.blit(self.bg_main_menu_image, self.bg_main_menu_rect)
@@ -64,6 +81,8 @@ class MainMenu(State):
         self.cards_button.render()
         self.credits_button.render()
         self.exit_button.render()
+        self.viewlore_button.render()
+        self.starttutorial_button.render()
 
         if self.credits_button.answer():
             self.change_state("CreditsMenu")

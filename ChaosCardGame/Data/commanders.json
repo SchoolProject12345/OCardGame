@@ -26,6 +26,7 @@
  "passives":[
   {
    "name":"Gravitational Lensing",
+   "trigger":"never",
    "type":"hardcoded",
    "desc":"redirects all foes' single target attacks to self"
   }

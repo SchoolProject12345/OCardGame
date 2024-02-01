@@ -589,6 +589,10 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             if isclientturn:
                 client_socket.send("error|discard expected a number.".encode())
             return devlog("Warning: discard expected a number.")
+        if i >= len(board.active_player.hand):
+            if isclientturn:
+                client_socket.send("error|out of bound discard.".encode())
+            return devlog("Warning: out of bound discard.")
         card: core.AbstractCard = board.active_player.handdiscard(i)
         client_socket.send(log_discard(None, card.name).encode())
         return True
