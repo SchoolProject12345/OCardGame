@@ -29,6 +29,6 @@ For each player:
 `chat|{Player Name}|{content}`\
 `win|p{i}|{Player Name}`\
 `raw|{msg}`\
-`energy|p{i}|{current}/{max}+{per_turn}`\
+`energy|p{i}|{current}/{max}|{per_turn}`\
 `turn|{turn}`\
 `-ccharge|p{i}|{amount}`
