@@ -1105,6 +1105,7 @@ class ActiveCard:
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
         self.attacked = True
+        self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
