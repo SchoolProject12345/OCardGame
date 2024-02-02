@@ -1,7 +1,7 @@
 import os
 import pygame
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes,alpha_converter
-from UserInterface.MenuTemplates.game_menu_ui import GameMenu
+from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox,State
 from UserInterface.ui_settings import SCREEN_CENTER

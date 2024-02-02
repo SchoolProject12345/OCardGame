@@ -3,7 +3,7 @@ import os
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
-from UserInterface.MenuTemplates.game_menu_ui import GameMenu
+from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
 from utility import cwd_path
 

@@ -3,7 +3,7 @@ import pygame
 import os
 import utility
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from UserInterface.MenuTemplates.main_menu_ui import MainMenu
+from UserInterface.MenuStates.main_menu_ui import MainMenu
 from SfxEngine.SoundEngine import sound_handle
 
 
