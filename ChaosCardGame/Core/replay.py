@@ -3,9 +3,11 @@ import Core.core_main as core
 class ReplayHandler:
     state: dict[str, any]
     replay: list[str]
+    ongoing: bool
     def __init__(self):
         self.state = ReplayHandler.default_state()
         self.replay = []
+        self.ongoing = False
     def get_state(self):
         return self.state
     def get_replay(self):
@@ -105,28 +107,74 @@ class ReplayHandler:
                     return f"{user} sucessfully used {args[1]} against {target}."
                 return f"{user}'s {args[1]} failed."
             case "-damage":
-                raw_hp, max_hp = args[1].split("/")
+                raw_hp, max_hp = args[1].split('/')
                 # No handling at all
                 raw_hp = int(raw_hp)
                 max_hp = int(max_hp)
                 player, i = player_index(args[0])
-                pre_hp = self.state[player]["board"][i]["hp"]
                 target = self.state[player]["board"][i]
+                pre_hp = target["hp"]
                 target["hp"] = raw_hp
                 target["max_hp"] = max_hp
                 return f"{target['name']} took {pre_hp - raw_hp} damages."
             case "-heal":
-                raw_hp, max_hp = args[1].split("/")
+                raw_hp, max_hp = args[1].split('/')
                 # No handling at all
                 raw_hp = int(raw_hp)
                 max_hp = int(max_hp)
                 player, i = player_index(args[0])
-                pre_hp = self.state[player]["board"][i]["hp"]
                 target = self.state[player]["board"][i]
+                pre_hp = target["hp"]
                 target["hp"] = raw_hp
                 target["max_hp"] = max_hp
-                return f"{target['name']} healed {pre_hp - raw_hp} damages."
-
+                return f"{target['name']} healed {raw_hp - pre_hp} damages."
+            case "passive":
+                player, i = player_index(args[0])
+                user = self.state[player]["board"][i]
+                return f"{user['name']}'s {args[1]} activated."
+            case "-formechange":
+                player, i = player_index(args[0])
+                target = self.state[player]["board"][i]
+                pre_name = target["name"]
+                target["name"] = args[1]
+                raw_hp, max_hp = args[2].split('/')
+                raw_hp = int(raw_hp)
+                max_hp = int(max_hp)
+                target["hp"] = raw_hp
+                target["max_hp"] = max_hp
+                target["element"] = args[3]
+                return f"{pre_name} changed to {args[1]}."
+                # -element not yet supported as useless.
+            case "-hypno":
+                owner, i = player_index(args[0])
+                oppon, j = player_index(args[1])
+                self.state[oppon]["board"][j] = self.state[owner]["board"][i]
+                self.state[owner]["board"][i] = None
+                return f"{self.state[oppon]['board'][j]['name']} changed of side."
+            case "win":
+                self.ongoing = False
+                return f"{args[1]} won the game!"
+            case "raw":
+                return args[0]
+            case "energy":
+                player = self.state[args[0]]
+                energy, max_energy = args[1].split('/')
+                prev_energy = player["energy"]
+                energy = int(energy)
+                max_energy = int(max_energy)
+                player["energy"] = energy
+                player["max_energy"] = max_energy
+                player["energy_per_turn"] = int(args[2])
+                return f"{player['name']} gained {energy-prev_energy}/{max_energy} energy."
+            case "turn":
+                self.state["turn"] = int(args[0])
+                if self.state["activep"] == "p1":
+                    self.state["activep"] = "p2"
+                else:
+                    self.state["activep"] = "p1"
+                return f"{self.state[self.state['activep']]['name']}'s turn started."
+            case "-ccharge":
+                self.state[args[0]]["commander"]["charges"] = int(args[1])
 
 def player_index(index: str):
     "Parse an index in the form pix with i int and x letter (e.g. p1a)."
