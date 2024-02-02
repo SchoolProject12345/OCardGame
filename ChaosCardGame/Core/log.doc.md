@@ -3,7 +3,7 @@ Player are refered as `p{i}` (e.g. `p1` is player1, i.e. server) and board index
 Note: field size of 27 or more is not supported.\
 Note: commander are refered through `p{i}@`
 
-`{element}` and `{target_mode}` are given as integers.
+`{element}`, `{return_code}` and `{target_mode}` are given as integers.
 
 # Initialization
 For each player:
@@ -17,12 +17,12 @@ For each player:
 `draw|p{i}|{Card Name}`\
 `defeat|p{i}{j}`\
 `spell|{Spell Name}|p{i}{j}|{target_mode}`
-`attack|p{i1}{j2}|{Attack Name}|p{i2}{j2}|{target_mode}`\
+`attack|p{i1}{j2}|{Attack Name}|p{i2}{j2}|{target_mode}|{return_code}`\
 `-damage|p{i}{j}|{current_hp}/{max_hp}`\
 `-heal|p{i}{j}|{current_hp}/{max_hp}`\
 `passive|p{i}{j}|{Passive Name}`\
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
-`-element|p{i}{j}|{new_element}`
+`-element|p{i}{j}|{new_element}`\
 `-hypno|p{i}{j}|p{i'}{j'}`
 
 # Misc
@@ -30,5 +30,5 @@ For each player:
 `win|p{i}|{Player Name}`\
 `raw|{msg}`\
 `energy|{current}/{max}+{per_turn}`\
-`turn|{turn}`
+`turn|{turn}`\
 `-ccharge|p{i}|{amount}`
