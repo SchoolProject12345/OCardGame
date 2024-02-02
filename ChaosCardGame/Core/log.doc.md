@@ -12,7 +12,7 @@ For each player:
 `hand|p{i}|{Card Name}|{...}`
 
 # Actions
-`place|p{i}{j}|{Card Name}|{max_hp}|{element}|`\
+`place|p{i}{j}|{Card Name}|{max_hp}|{element}`\
 `discard|p{i}|{Card Name}`\
 `draw|p{i}|{Card Name}`\
 `defeat|p{i}{j}`\
