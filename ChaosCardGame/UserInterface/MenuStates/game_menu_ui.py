@@ -18,9 +18,9 @@ class GameMenu(State):
         self.is_paused = False
         self.is_decked = False
         self.is_handed = False
-        
+
         self.ger_font_path = os.path.join(
-        cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
 
         self.player_max_energy = 5
         self.player_health = 500
@@ -39,27 +39,26 @@ class GameMenu(State):
         self.deck_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.deck_button_image), position_type="topleft", position=(815, 706))
 
-        self.player_health_bar = DualBarVerti(self.screen, position=(557, 706),position_type="topleft", width=96, height=52,
-            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
-        self.player_energy_bar = DualBarVerti(self.screen, position=(674, 706),position_type="topleft", width=96, height=52,
-            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255),max_value=self.player_max_energy)
-        self.enemy_health_bar = DualBarVerti(self.screen, position=(557, 0),position_type="topleft", width=96, height=52,
-            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
-        self.enemy_energy_bar = DualBarVerti(self.screen, position=(674, 0),position_type="topleft", width=96, height=52,
-            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255),max_value=self.enemy_max_energy)
+        self.player_health_bar = DualBarVerti(self.screen, position=(557, 706), position_type="topleft", width=96, height=52,
+                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
+        self.player_energy_bar = DualBarVerti(self.screen, position=(674, 706), position_type="topleft", width=96, height=52,
+                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.player_max_energy)
+        self.enemy_health_bar = DualBarVerti(self.screen, position=(557, 0), position_type="topleft", width=96, height=52,
+                                             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
+        self.enemy_energy_bar = DualBarVerti(self.screen, position=(674, 0), position_type="topleft", width=96, height=52,
+                                             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.enemy_max_energy)
 
         self.player_health_bar_text = TextBox(self.screen, (557, 706), 96, 52, pygame.font.Font(
-            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center",text="")
+            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
         self.player_energy_bar_text = TextBox(self.screen, (674, 706), 96, 52, pygame.font.Font(
-            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center",text="")
+            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
         self.enemy_health_bar_text = TextBox(self.screen, (557, 0), 96, 52, pygame.font.Font(
-            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center",text="")
+            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
         self.enemy_energy_bar_text = TextBox(self.screen, (675, 0), 96, 52, pygame.font.Font(
-            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center",text="")
-        
-        self.player_username_text = TextBox(self.screen, (72, 726), 96, 52, pygame.font.Font(
-            self.ger_font_path, 18), (255, 255, 255), position_type="topleft", text_center="center",text="")
+            self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
 
+        self.player_username_text = TextBox(self.screen, (72, 726), 96, 52, pygame.font.Font(
+            self.ger_font_path, 18), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
         # Pause Menu
         self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
@@ -73,22 +72,20 @@ class GameMenu(State):
         self.surrender_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.surrender_button_image), postion_type="center", position=(SCREEN_CENTER[0], 490))
 
-
         # Deck Menu
         self.bg_deck_menu_image = MenuBackgrounds.bg_deck_menu_image.convert_alpha()
         self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
             center=SCREEN_CENTER)
-        
+
         self.deckback_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.back_button_image), position_type="center",position=(SCREEN_CENTER[0], 555))
-        
+            MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
 
         # Hand Menu
         self.bg_hand_menu_image = MenuBackgrounds.bg_hand_menu_image.convert_alpha()
         self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
             center=SCREEN_CENTER)
-        
-        self.handback_button = ImageButton(self.screen,True,image=alpha_converter(
+
+        self.handback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
 
     def is_paused_toggle(self):
@@ -100,7 +97,6 @@ class GameMenu(State):
     def is_handed_toggle(self):
         self.is_handed = not self.is_handed
 
-
     def game_menu(self):
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
 
@@ -108,13 +104,13 @@ class GameMenu(State):
         self.player_energy_bar.render(self.player_energy, False)
         self.enemy_health_bar.render(self.enemy_health, True)
         self.enemy_energy_bar.render(self.enemy_energy, True)
-        
+
         self.player_health_bar_text.render(str(self.player_health))
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
-        #self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
+        # self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
 
         self.deck_button.render()
         if self.deck_button.answer():
@@ -125,7 +121,6 @@ class GameMenu(State):
             if self.deckback_button.answer():
                 self.is_decked_toggle()
 
-
         self.hand_button.render()
         if self.hand_button.answer():
             self.is_handed_toggle()
@@ -135,12 +130,11 @@ class GameMenu(State):
             if self.handback_button.answer():
                 self.is_handed_toggle()
 
-
         if self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.is_paused_toggle()
 
         if self.is_paused:
-            self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)          
+            self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)
             self.pauseback_button.render()
             self.settings_button.render()
             self.surrender_button.render()
