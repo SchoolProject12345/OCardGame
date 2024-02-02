@@ -1,30 +1,28 @@
 ## Berda's Soung engine v0.1
-from pygame import mixer, mixer_music
+from pygame import mixer
 import pygame
-from pygame.locals import *
 import os
 from random import randint
 
-devmode = False
+def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5):
+    # a terminer
 
-def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5, ambient_channel:int=6):
+    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "Assets", "SFX", str(track) + ".wav")
     
-    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "SfxEngine", "SFX", str(track) + ".wav")
-
     sfxchannel = pygame.mixer.Channel(sfx_channel)
     sound = pygame.mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
 
+    pygame.mixer.music.load(sfx_path)
+    pygame.mixer.music.set_volume(volume/100)
 
     if action_type == "play":
         sfxchannel.play(sound)
 
-    if action_type == "pause":
-        sfxchannel.stop()
+    if action_type == "ambient_pause":
+        pygame.mixer.music.pause()
 
     if action_type == "ambient_play":
-        pygame.mixer.music.load(sfx_path)
-        pygame.mixer.music.set_volume(volume/100)
         pygame.mixer.music.play()
 
     #    ambientchannel = pygame.mixer.Channel(ambient_channel)
@@ -37,8 +35,6 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_chann
 
 
 if devmode:
-    print(pygame.__version__)
-    pygame.init()
     #experimental window with a button to test if work or no
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600

@@ -160,7 +160,7 @@ class ImageButton:
         
         if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
             #On click sound handler
-            sound_handle("ClickSound1-2", "play",50)
+            sound_handle("ClickSound1-2", "play", 40)
 
     def check_state(self) -> None:
         """
@@ -194,7 +194,8 @@ class ImageButton:
         ):
         #-------------------------------------------RELEASE SOUND THING-------------------------------------------------
 
-            sound_handle("ClickSound2-1", "play",50)
+            sound_handle("ClickSound2-1", "play",40)
+
             if inspect.isfunction(self.call_back):
                 return self.call_back()
             elif type(self.call_back) == pygame.event.Event:
@@ -678,14 +679,14 @@ class SelectTextBox:
 
 
 class TextBox:
-    def __init__(self, screen: pygame.surface.Surface,
-                 position: tuple,
-                 width: int, height: int,
-                 font: pygame.font.Font,
-                 color: tuple,
-                 position_type: str = "topleft",
-                 text_center: str = "left",
-                 text: str = ""):
+    def __init__(self, screen : pygame.surface.Surface,
+                position : tuple,
+                width : int, height : int,
+                font : pygame.font.Font,
+                color : tuple,
+                position_type : str = "topleft",
+                text_center : str = "left",
+                text : str = ""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -696,8 +697,30 @@ class TextBox:
         self.text_center = text_center
         self.text = text
 
+        self.input_rect = pygame.Rect(coord_converter(
+            self.position_type, self.position, self.width, self.height), (self.width, self.height))
+
+    def calc_left(self):
+        self.text_rect = self.text_surface.get_rect(
+            midleft=(self.input_rect.x, self.input_rect.y+(self.height//2)))
+
+    def calc_center(self):
+        self.text_rect = self.text_surface.get_rect(
+            center=(self.input_rect.x+(self.width//2), self.input_rect.y+(self.height//2)))
+
+    def calc_right(self):
+        self.text_rect = self.text_surface.get_rect(
+            midright=(self.input_rect.x+self.width,
+                    self.input_rect.y+(self.height//2))
+        )
+
     def render(self, new_text :str):
         self.text = new_text
-        text_surface = self.font.render(self.text, True, self.color)
-        text_rect = text_surface.get_rect(**{self.position_type: self.position})
-        self.screen.blit(text_surface, text_rect)
+        self.text_surface = self.font.render(self.text, True, self.color)
+        self.text_rect = self.text_surface.get_rect(**{self.position_type: self.position})
+        match self.text_center:
+            case "left": self.calc_left()
+            case "center": self.calc_center()
+            case "right": self.calc_right()
+            case _: raise ValueError(f"Wrong argument {self.text_center}")
+        self.screen.blit(self.text_surface, self.text_rect)
