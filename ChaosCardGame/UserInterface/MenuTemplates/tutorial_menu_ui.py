@@ -45,15 +45,17 @@ class TutorialMenu(State):
 
     def tutorial_menu(self):
         self.screen.blit(self.bg_tutorial_images[self.tutorial_index],self.bg_tutorial_menu_rect)
-        
         self.skiptutorial_button.render()
-        self.nexttutorial_button.render()
+
+        if self.tutorial_index < 8:
+            self.nexttutorial_button.render()
+            if self.nexttutorial_button.answer():
+                self.tutorial_index = (self.tutorial_index + 1)
 
         if self.skiptutorial_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.tutorial_index = 0
             self.revert_state()
-        if self.nexttutorial_button.answer():
-            self.tutorial_index = (self.tutorial_index + 1) % (len(self.bg_tutorial_images))
+        
 
     def state_manager_hook(self):
         if State.state_tree[1] == self.local_options[0]:

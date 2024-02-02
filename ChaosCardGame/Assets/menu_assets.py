@@ -195,6 +195,43 @@ class MenuBackgrounds:
     bg_tutorial9_path = bg_dir + "tutorial9_empty.png"
     bg_tutorial9_image = pygame.image.load(bg_tutorial9_path)
 
+    # Lore
+    bg_lore1_path = bg_dir + "lore_1_empty.png"
+    bg_lore1_image = pygame.image.load(bg_lore1_path)
+
+    bg_lore2_path = bg_dir + "lore_2_empty.png"
+    bg_lore2_image = pygame.image.load(bg_lore2_path)
+
+    bg_lore3_path = bg_dir + "lore_3_empty.png"
+    bg_lore3_image = pygame.image.load(bg_lore3_path)
+
+    bg_lore4_path = bg_dir + "lore_4_empty.png"
+    bg_lore4_image = pygame.image.load(bg_lore4_path)
+
+    bg_lore5_path = bg_dir + "lore_5_empty.png"
+    bg_lore5_image = pygame.image.load(bg_lore5_path)
+
+    bg_lore6_path = bg_dir + "lore_6_empty.png"
+    bg_lore6_image = pygame.image.load(bg_lore6_path)
+
+    bg_lore7_path = bg_dir + "lore_7_empty.png"
+    bg_lore7_image = pygame.image.load(bg_lore7_path)
+
+    bg_lore8_path = bg_dir + "lore_8_empty.png"
+    bg_lore8_image = pygame.image.load(bg_lore8_path)
+
+    bg_lore9_path = bg_dir + "lore_9_empty.png"
+    bg_lore9_image = pygame.image.load(bg_lore9_path)
+
+    bg_lore10_path = bg_dir + "lore_10_empty.png"
+    bg_lore10_image = pygame.image.load(bg_lore10_path)
+
+    bg_lore11_path = bg_dir + "lore_11_empty.png"
+    bg_lore11_image = pygame.image.load(bg_lore11_path)
+
+    bg_lore12_path = bg_dir + "lore_12_empty.png"
+    bg_lore12_image = pygame.image.load(bg_lore12_path)
+
 
 @dataclass
 class MenuButtons:

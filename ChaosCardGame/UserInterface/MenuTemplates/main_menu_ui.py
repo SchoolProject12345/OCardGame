@@ -5,6 +5,7 @@ from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
 from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
 from UserInterface.MenuTemplates.tutorial_menu_ui import TutorialMenu
+from UserInterface.MenuTemplates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 import os 
 
@@ -74,7 +75,7 @@ class MainMenu(State):
         self.play_menu = PlayMenu(self.screen)
         self.cards_menu = CardsMenu(self.screen)
         self.credits_menu = CreditsMenu(self.screen)
-        #self.lore_menu = LoreMenu(self.screen)
+        self.lore_menu = LoreMenu(self.screen)
         self.tutorial_menu = TutorialMenu(self.screen)
 
     def main_menu(self):
