@@ -9,32 +9,52 @@ class TutorialMenu(State):
         self.screen = screen
         self.is_anchor = False
         self.local_options = ["TutorialMenu"]
+        
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
+        self.tutorial_index = 0
+
         self.bg_tutorial1_menu_image = MenuBackgrounds.bg_tutorial1_image.convert_alpha()
-        self.bg_tutorial1_menu_rect = self.bg_tutorial1_menu_image.get_rect()
-
         self.bg_tutorial2_menu_image = MenuBackgrounds.bg_tutorial2_image.convert_alpha()
-        self.bg_tutorial2_menu_rect = self.bg_tutorial2_menu_image.get_rect()
-
         self.bg_tutorial3_menu_image = MenuBackgrounds.bg_tutorial3_image.convert_alpha()
-        self.bg_tutorial3_menu_rect = self.bg_tutorial3_menu_image.get_rect()
-
         self.bg_tutorial4_menu_image = MenuBackgrounds.bg_tutorial4_image.convert_alpha()
-        self.bg_tutorial4_menu_rect = self.bg_tutorial4_menu_image.get_rect()
-
         self.bg_tutorial5_menu_image = MenuBackgrounds.bg_tutorial5_image.convert_alpha()
-        self.bg_tutorial5_menu_rect = self.bg_tutorial5_menu_image.get_rect()
-
         self.bg_tutorial6_menu_image = MenuBackgrounds.bg_tutorial6_image.convert_alpha()
-        self.bg_tutorial6_menu_rect = self.bg_tutorial6_menu_image.get_rect()
-
         self.bg_tutorial7_menu_image = MenuBackgrounds.bg_tutorial7_image.convert_alpha()
-        self.bg_tutorial7_menu_rect = self.bg_tutorial7_menu_image.get_rect()
-
         self.bg_tutorial8_menu_image = MenuBackgrounds.bg_tutorial8_image.convert_alpha()
-        self.bg_tutorial8_menu_rect = self.bg_tutorial8_menu_image.get_rect()
-
         self.bg_tutorial9_menu_image = MenuBackgrounds.bg_tutorial9_image.convert_alpha()
-        self.bg_tutorial9_menu_rect = self.bg_tutorial9_menu_image.get_rect()
+        self.bg_tutorial_menu_rect = self.bg_tutorial1_menu_image.get_rect()
+        
+        self.bg_tutorial_images = []
+        self.bg_tutorial_images.append(self.bg_tutorial1_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial2_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial3_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial4_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial5_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial6_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial7_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial8_menu_image)
+        self.bg_tutorial_images.append(self.bg_tutorial9_menu_image)
+        
+        # Buttons
+        self.skiptutorial_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.skiptutorial_button_image),position_type="topleft", position=(1105,632))
+        self.nexttutorial_button = ImageButton(self.screen, True, image=alpha_converter(
+            MenuButtons.nexttutorial_button_image),position_type="topleft",position=(1105,691))
+
+    def tutorial_menu(self):
+        self.screen.blit(self.bg_tutorial_images[self.tutorial_index],self.bg_tutorial_menu_rect)
+        
+        self.skiptutorial_button.render()
+        self.nexttutorial_button.render()
+
+        if self.skiptutorial_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+            self.tutorial_index = 0
+            self.revert_state()
+        if self.nexttutorial_button.answer():
+            self.tutorial_index = (self.tutorial_index + 1) % (len(self.bg_tutorial_images))
+
+    def state_manager_hook(self):
+        if State.state_tree[1] == self.local_options[0]:
+            self.tutorial_menu()

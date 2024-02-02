@@ -171,28 +171,28 @@ class MenuBackgrounds:
     bg_tutorial1_path = bg_dir + "tutorial1_empty.png"
     bg_tutorial1_image = pygame.image.load(bg_tutorial1_path)
 
-    bg_tutorial2_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial2_path = bg_dir + "tutorial2_empty.png"
     bg_tutorial2_image = pygame.image.load(bg_tutorial2_path)
 
-    bg_tutorial3_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial3_path = bg_dir + "tutorial3_empty.png"
     bg_tutorial3_image = pygame.image.load(bg_tutorial3_path)
 
-    bg_tutorial4_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial4_path = bg_dir + "tutorial4_empty.png"
     bg_tutorial4_image = pygame.image.load(bg_tutorial4_path)
 
-    bg_tutorial5_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial5_path = bg_dir + "tutorial5_empty.png"
     bg_tutorial5_image = pygame.image.load(bg_tutorial5_path)
 
-    bg_tutorial6_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial6_path = bg_dir + "tutorial6_empty.png"
     bg_tutorial6_image = pygame.image.load(bg_tutorial6_path)
 
-    bg_tutorial7_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial7_path = bg_dir + "tutorial7_empty.png"
     bg_tutorial7_image = pygame.image.load(bg_tutorial7_path)
 
-    bg_tutorial8_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial8_path = bg_dir + "tutorial8_empty.png"
     bg_tutorial8_image = pygame.image.load(bg_tutorial8_path)
 
-    bg_tutorial9_path = bg_dir + "tutorial1_empty.png"
+    bg_tutorial9_path = bg_dir + "tutorial9_empty.png"
     bg_tutorial9_image = pygame.image.load(bg_tutorial9_path)
 
 
