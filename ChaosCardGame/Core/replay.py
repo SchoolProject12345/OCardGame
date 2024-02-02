@@ -89,6 +89,44 @@ class ReplayHandler:
                 self.state[player]["discard"].append(defeated := self.state[player]["board"][i]["name"])
                 self.state[player]["board"][i] = None
                 return f"{defeated} has been defeated."
+            case "spell":
+                # Spell discard is treated independently so that it's easier.
+                # Actually using a spell launch an attack, so that's kinda pointless
+                # Just ignore this.
+                player, i = player_index(args[1])
+                target = self.state[player]["board"][i]["name"]
+                return f"{args[0]} has been launched on {core.TargetMode(args[2]).name}, specifically {target}."
+            case "attack":
+                owner, i = player_index(args[0])
+                user = self.state[owner]["board"][i]["name"]
+                oppon, j = player_index(args[2])
+                target = self.state[oppon]["board"][j]["name"]
+                if args[3] < 299:
+                    return f"{user} sucessfully used {args[1]} against {target}."
+                return f"{user}'s {args[1]} failed."
+            case "-damage":
+                raw_hp, max_hp = args[1].split("/")
+                # No handling at all
+                raw_hp = int(raw_hp)
+                max_hp = int(max_hp)
+                player, i = player_index(args[0])
+                pre_hp = self.state[player]["board"][i]["hp"]
+                target = self.state[player]["board"][i]
+                target["hp"] = raw_hp
+                target["max_hp"] = max_hp
+                return f"{target['name']} took {pre_hp - raw_hp} damages."
+            case "-heal":
+                raw_hp, max_hp = args[1].split("/")
+                # No handling at all
+                raw_hp = int(raw_hp)
+                max_hp = int(max_hp)
+                player, i = player_index(args[0])
+                pre_hp = self.state[player]["board"][i]["hp"]
+                target = self.state[player]["board"][i]
+                target["hp"] = raw_hp
+                target["max_hp"] = max_hp
+                return f"{target['name']} healed {pre_hp - raw_hp} damages."
+
 
 def player_index(index: str):
     "Parse an index in the form pix with i int and x letter (e.g. p1a)."
@@ -99,6 +137,7 @@ def stringclr(string: str):
     t = sum([ord(c) for c in string])
     # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
     # But I'm not 100% sure.
+    # And I should've mod 256 but whatever.
     r = t % 255
     g = 2*t % 255
     b = 7*t % 255
