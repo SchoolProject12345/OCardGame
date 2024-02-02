@@ -16,7 +16,7 @@ For each player:
 `discard|p{i}|{Card Name}`\
 `draw|p{i}|{Card Name}`\
 `defeat|p{i}{j}`\
-`spell|{Spell Name}|p{i}{j}|{target_mode}`
+`spell|{Spell Name}|p{i}{j}|{target_mode}`\
 `attack|p{i1}{j2}|{Attack Name}|p{i2}{j2}|{target_mode}|{return_code}`\
 `-damage|p{i}{j}|{current_hp}/{max_hp}`\
 `-heal|p{i}{j}|{current_hp}/{max_hp}`\
