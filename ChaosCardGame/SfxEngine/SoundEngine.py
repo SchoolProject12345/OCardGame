@@ -1,4 +1,4 @@
-## Berda's Soung engine v0.1
+## Berda's Soung engine v0.5
 from pygame import mixer
 import pygame
 import os
