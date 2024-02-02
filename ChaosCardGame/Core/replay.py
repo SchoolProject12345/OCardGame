@@ -8,8 +8,15 @@ class ReplayHandler:
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = False
+    def isp1(self):
     def get_state(self):
-        return self.state
+        return {
+         "remote":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]),
+         "local":core.ifelse(self.isp1(), self.state["p2"], self.state["p1"]),
+         "turn":self.state.turn,
+         "isactive":core.ifelse(self.isp1() ^ self.state["activep"] == "p1", False, True),
+         "arena":self.state["arena"]
+        }
     def get_replay(self):
         replay = ""
         for log in self.replay:
