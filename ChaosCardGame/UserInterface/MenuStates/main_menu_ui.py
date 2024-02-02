@@ -1,11 +1,11 @@
 import pygame
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
-from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
-from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
-from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
-from UserInterface.MenuTemplates.tutorial_menu_ui import TutorialMenu
-from UserInterface.MenuTemplates.lore_menu_ui import LoreMenu
+from UserInterface.MenuStates.play_menu_ui import PlayMenu
+from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
+from UserInterface.MenuStates.cards_menu_ui import CardsMenu
+from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
+from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 import os 
 

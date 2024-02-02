@@ -2,8 +2,8 @@ import pygame
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
 from UserInterface.OcgVision.vision_io import KeyRel
-from UserInterface.MenuTemplates.join_menu_ui import JoinMenu
-from UserInterface.MenuTemplates.host_menu_ui import HostMenu
+from UserInterface.MenuStates.join_menu_ui import JoinMenu
+from UserInterface.MenuStates.host_menu_ui import HostMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
  
 class PlayMenu(State):
