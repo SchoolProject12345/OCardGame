@@ -22,7 +22,7 @@ For each player:
 `-heal|p{i}{j}|{current_hp}/{max_hp}`\
 `passive|p{i}{j}|{Passive Name}`\
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
-`-element|p{i}{j}|{new_element}`\
+`-element|p{i}{j}|{new_element}` Note: not yet supported as useless.\
 `-hypno|p{i}{j}|p{i'}{j'}`
 
 # Misc
