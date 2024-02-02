@@ -126,7 +126,7 @@ def process_card_dir(path):
     return curated_list
 
 
-def iterate_over_directories(directory_path):
+def handle_card_assets(directory_path):
     cards_assets = {}
     for dirpath, dirname, filename in os.walk(directory_path):
         if filename:
@@ -380,4 +380,4 @@ class TextBoxes:
 if load_cards:
     @dataclass
     class CardAssets:
-        cards_assets = iterate_over_directories(os.path.join(graphics_path,"Cards"))
+        cards_assets = handle_card_assets(os.path.join(graphics_path,"Cards"))
