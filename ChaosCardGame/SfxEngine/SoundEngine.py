@@ -4,9 +4,6 @@ import pygame
 from pygame.locals import *
 import os
 from random import randint
-print(pygame.__version__)
-
-pygame.init()
 
 devmode = False
 
@@ -40,6 +37,8 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_chann
 
 
 if devmode:
+    print(pygame.__version__)
+    pygame.init()
     #experimental window with a button to test if work or no
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600
