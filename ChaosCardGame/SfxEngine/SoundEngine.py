@@ -4,6 +4,8 @@ import pygame
 import os
 from random import randint
 
+devmode = False
+
 def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5):
     # a terminer
 
