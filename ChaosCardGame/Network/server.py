@@ -1,7 +1,7 @@
 import Network.network as net
 import re
 from time import time_ns
-from Core.logging import * # includes core
+from Core.replay import * # includes core
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
@@ -55,7 +55,7 @@ def ansi_card(card: dict | None, trailing="") -> str:
     return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
 
 @core.dataclass
-class ServerHandler:
+class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
     ongoing = True
@@ -196,10 +196,9 @@ class ServerHandler:
 
         self.client_socket.send(("sync|" + net.json.dumps(data, separators=(',', ':'))).encode())
         return self
-    def get_state(self):
-        return net.get_data()
+
 @core.dataclass
-class ClientHandler:
+class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
     ongoing: bool = True
     synced: bool = False
@@ -215,7 +214,7 @@ class ClientHandler:
             net.get_data().update(net.json.loads(datas[1]))
             self.synced = True
             return True
-        logplay(self, data)
+        self.play_log(data)
         return True
     def run_action(self, action: str):
         args = action.split('|')
@@ -293,8 +292,6 @@ class ClientHandler:
                 self.sync(False)
                 return self
         return self
-    def get_state(self):
-        return net.get_data()
 
 def sendblock(socket: net.socket.socket, *args):
     size = socket.send(*args)
@@ -384,6 +381,7 @@ def str2target_client(index: str) -> core.ActiveCard | None:
         case "foecommander": return foec
         case "commander": return foec
         case _: return None
+
 def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
     m = re.match("foe(\d+)", index)
     if m:
@@ -593,62 +591,3 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         return False
     core.warn("Tried to run unrecognized action.")
     return True
-
-def logplay(handle: ClientHandler, log: str):
-    if not bool(log):
-        return
-    if "\n" in log:
-        for _log in log.split("\n"):
-            logplay(handle, _log)
-    log: list[str] = log.split('|')
-    args = [handle] + log[1:]
-    match core.cleanstr(log[0]):
-        case "attack": log_attack(*args)
-#       case "damage": log_damage(*args)
-#       case "heal": log_heal(*args)
-        case "defeat": log_defeat(*args)
-        case "win": log_win(*args)
-        case "endturn": log_endturn(*args)
-        case "draw": log_draw(*args)
-        case "discard": log_discard(*args)
-        case "place": log_place(*args)
-        case "error": devlog(f"Error: {args[1]}")
-        case "chat":
-            name = net.get_data()["server"]["name"]
-            # bold probably only works in VSCode as interpreted as bright in other terminal
-            name = "\033[1m" + stringclr(name) + name + "\033[0m"
-            devlog(name + ":", *log[1:])
-        case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
-
-def log_attack(game: None, user: str,
-               target: str, attackname: str, cost: str,
-               return_code: str, damage_dealt: str, healing_done: str):
-    if int(return_code) != core.ReturnCode.ok:
-        devlog(f"Attack {attackname} of {user} failed ({return_code}).")
-    else:
-        devlog(f"{user} successfully used {attackname} against {target} dealing {damage_dealt} and healing {healing_done} damages")
-    return f"attack|{user}|{target}|{attackname}|{cost}|{return_code}|{damage_dealt}|{healing_done}"
-
-def log_endturn(game: None, player_name: str, energy: str, max_energy: str, energy_per_turn: str):
-    devlog(f"{player_name} ends their turn. Their current energy is {energy}/{max_energy} after they gained {energy_per_turn}.")
-    return f"endturn|{player_name}|{energy}|{max_energy}|{energy_per_turn}"
-
-def log_place(game: None, cardname: str, index: str, cardcost: str):
-    devlog(f"A {cardname} has been placed at the {index}th index.") # 1th > 1st
-    return f"place|{cardname}|{index}|{cardcost}"
-
-def log_draw(handle: ServerHandler | ClientHandler, card_drawn: str):
-    if isinstance(handle, ClientHandler):
-        devlog(f"You have drawn a {card_drawn}.")
-    return f"draw|{card_drawn}"
-def log_discard(game: None, card_discarded: str):
-    devlog(f"The active player discarded {card_discarded}")
-    return f"discard|{card_discarded}"
-
-def log_win(game: None, winner: str):
-    devlog(f"The winner is {winner}.")
-    return f"win|{winner}"
-
-def log_defeat(game: None, index: str):
-    devlog(f"Creature at index {index} has been defeated.")
-    return f"defeat|{index}"
