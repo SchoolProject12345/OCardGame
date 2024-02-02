@@ -83,6 +83,19 @@ class ReplayHandler:
                 self.state[args[0]]["discard"].append(args[1])
                 name = self.state[args[0]]["name"]
                 return f"{name} discarded {args[1]} of their hand."
+            case "place":
+                player, i = player_index(args[0])
+                self.state[player]["board"][i] = {
+                    "name":args[1],
+                    "hp":int(args[2]),
+                    "max_hp":int(args[2]),
+                    "element":int(args[3])
+                }
+                if args[1] in self.state[i]:
+                    self.state[player]["hand"].remove(args[1])
+                else:
+                    self.state[player]["hand"].pop()
+                return f"{self.state[player]['name']} placed a {args[1]} at the {nth(i)} position."
             case "draw":
                 self.state[args[0]]["hand"].append(args[1])
                 self.state[args[0]]["deck_length"] -= 1
@@ -182,6 +195,18 @@ class ReplayHandler:
                 return f"{self.state[self.state['activep']]['name']}'s turn started."
             case "-ccharge":
                 self.state[args[0]]["commander"]["charges"] = int(args[1])
+
+def nth(x: int) -> str:
+    x = str(x)
+    if len(x) > 1 and x[-2] == "1":
+        return x + "th"
+    if x[-1] == "1":
+        return x + "st"
+    if x[-1] == "2":
+        return x + "nd"
+    if x[-1] == "3":
+        return x + "rd"
+    return x + "th"
 
 def player_index(index: str):
     "Parse an index in the form pix with i int and x letter (e.g. p1a)."
