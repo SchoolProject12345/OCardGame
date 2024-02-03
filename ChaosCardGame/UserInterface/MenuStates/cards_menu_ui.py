@@ -87,6 +87,6 @@ class CardsMenu(State):
         if self.active_toggle == 2:
             self.earth_grid.render()
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app):
         if State.state_tree[1] == self.local_options[0]:
             self.cards_menu()
