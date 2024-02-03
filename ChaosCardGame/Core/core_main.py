@@ -488,8 +488,7 @@ class DamageRedirect(AbstractEffect):
             while len(sources) != 0:
                 source = sources.pop()
                 redirected = min(source.card.max_hp - source.hp, try_amount // (len(sources) + 1))
-                source.hp += redirected
-                target.hp -= redirected
+                source.heal(target.indirectdamage(redirected))
         return True
     def from_json(json: dict):
         return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
