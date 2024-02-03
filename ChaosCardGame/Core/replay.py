@@ -104,6 +104,8 @@ class ReplayHandler:
                 self.state[ind]["commander"]["hp"] = self.state[ind]["commander"]["max_hp"] = commander.max_hp
                 self.state[ind]["commander"]["element"] = commander.element.value
                 return ""
+            case "boardsize":
+                self.state[args[0]]["board"] += [None]*(int(args[1]) - len(self.state[args[0]]["board"]))
             case "discard":
                 # No error handling AT ALL
                 if args[1] in self.state[args[0]]["hand"]:
