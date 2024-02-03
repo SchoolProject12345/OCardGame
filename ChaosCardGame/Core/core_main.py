@@ -799,10 +799,12 @@ class HypnotizeEffect(AbstractEffect):
                     break
             if i == -1:
                 return False and warn("Hypnotization couldn't find the index of the target.")
+            ppos = target.namecode() # logging
             target.owner.active[j] = None
             # I could have just done kwargs["player"] but it seems safer this way.
             target.owner = kwargs["user"].owner
             kwargs["user"].owner.active[valids.pop()] = target
+            kwargs["board"].logs.append(f"-hypno|{ppos}|{target.namecode()}")
         return True
     def from_json(_):
         return HypnotizeEffect()
@@ -829,6 +831,8 @@ class FormeChange(AbstractEffect):
         actives = AbstractEffect.targeted_objects(**kwargs)
         for active in actives:
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+            active.element = self.new_forme.element
+            kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
         return len(actives) != 0
     def from_json(json: dict):
         return FormeChange(CreatureCard.from_json(json["new_forme"], 1j))
@@ -1101,6 +1105,7 @@ class ActiveCard:
         else:
             self.owner.energy -= attack.cost
             self.owner.commander_charges += kwargs["survey"].damage
+            self.board.logs.append(f"-charges|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
@@ -1325,7 +1330,9 @@ class Player:
             self.deck.extend(self.discard)
             rng.shuffle(self.deck)
             self.discard.clear()
-        return self.deck.pop()
+        card = self.deck.pop()
+        self.commander.board.logs.append(f"draw|{self.namecode()}|{card.name}")
+        return card
     def draw(self) -> list:
         # Please note that the top of the deck is the end of the self.deck list.
         new = [self.singledraw() for _ in range(Constants.default_hand_size + ifelse(
@@ -1335,7 +1342,8 @@ class Player:
     def add_energy(self, amount: int) -> int:
         amount = min(amount, self.max_energy - self.energy)
         self.energy += amount
-        return amount  # for displaying
+        self.commander.board.logs.append(f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}")
+        return amount # used by effect survey
     def haslost(self) -> bool:
         "Return True is this Player's CommanderCard is defeated, False otherwise."
         if self.commander.hp <= 0:
@@ -1344,6 +1352,7 @@ class Player:
     def handdiscard(self, i: int):
         "Discard the `i`th card in `self`'s `hand`, returning it."
         card = self.hand.pop(i)
+        self.commander.board.logs.append(f"discard|{self.namecode()}|{card.name}")
         self.discard.append(card)
         return card
     def iddiscard(self, id: int):
@@ -1368,7 +1377,7 @@ class Player:
                 cards[i].state = State.discarded
                 discards.append(cards[i])
                 self.discard.append(cards[i].card)
-                board.logs.append(f"defeat|{self.namecode()}|{i}")
+                board.logs.append(f"defeat|{cards[i].namecode()}")
                 cards[i] = None
         return discards
     def place(self, i: int, j: int):
@@ -1396,7 +1405,7 @@ class Player:
             "survey": EffectSurvey()
         }
         # TODO: give important informations on card instead of just name.
-        board.logs.append(f"place|{self.namecode()}|{j}|{kwargs['main_target'].card.name}")
+        board.logs.append(f"place|{self.active[j].namecode()}|{self.active[j].card.name}|{self.active[j].card.max_hp}|{self.active[j].element.value}")
         for passive in self.active[j].card.passives:
             if passive.trigger != PassiveTrigger.whenplaced:
                 continue
@@ -1487,6 +1496,7 @@ class Board:
         self.active_player.commander.endturn()
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
+        self.logs.append(f"turn|{self.turn}")
         ret = (self.unactive_player, self.unactive_player.add_energy(
             self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
         if DEV():
