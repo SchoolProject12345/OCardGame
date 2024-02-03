@@ -7,6 +7,7 @@ from UserInterface.MenuStates.cards_menu_ui import CardsMenu
 from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
+from SfxEngine.SoundEngine import sound_handle
 import os
 
 
@@ -91,6 +92,9 @@ class MainMenu(State):
             self.change_state("CardsMenu")
         elif self.starttutorial_button.answer():
             self.change_state("TutorialMenu")
+            sound_handle("TutorialSpeech1", sfx_channel=7)
+            # je suis oblige de mettre ca ici, sinon si je met dans le file tuto menu ca loop a linfini et ca earrape
+            # cest chelou, cest que avec celui ci que ca fait ca mais bon c marche
         elif self.viewlore_button.answer():
             self.change_state("LoreMenu")
         self.exit_button.answer()

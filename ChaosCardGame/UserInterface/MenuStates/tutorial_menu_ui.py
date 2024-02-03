@@ -43,12 +43,11 @@ class TutorialMenu(State):
             MenuButtons.skiptutorial_button_image),position_type="topleft", position=(1105,632))
         self.nexttutorial_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.nexttutorial_button_image),position_type="topleft",position=(1105,691))
+        
 
     def tutorial_menu(self):
         self.screen.blit(self.bg_tutorial_images[self.tutorial_index], self.bg_tutorial_menu_rect)
         self.skiptutorial_button.render()
-        
-
 
         if self.tutorial_index < 8:
             self.nexttutorial_button.render()
@@ -56,8 +55,7 @@ class TutorialMenu(State):
                 self.tutorial_index += 1
                 # Play the corresponding TutorialSpeech sound
                 sound_handle(f"TutorialSpeech{self.tutorial_index + 1}", sfx_channel= 7)
-            elif self.tutorial_index == 0:
-                sound_handle("TutorialSpeech1", sfx_channel=7)
+
 
         if self.skiptutorial_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.tutorial_index = 0
