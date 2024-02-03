@@ -1,4 +1,6 @@
 import Core.core_main as core
+from datetime import datetime # ???
+from time import sleep
 
 class ReplayHandler:
     state: dict[str, any]
@@ -22,12 +24,40 @@ class ReplayHandler:
         for log in self.replay:
             replay += log + "\n"
         return replay.strip()
-    def save_replay_as(self, name: str):
-        if "Replay" not in core.os.listdir():
-            core.os.mkdir(core.os.path.join(core.Constants.cwd_path, "Replay"))
-        with open(core.os.path.join(core.Constants.cwd_path, "Replay", name), "w") as io:
-            io.write(self.get_replay())
+    def read_replay(self, name: str, delay: float = 0.0):
+        """
+        Try to read replay contained at `./Replays/name`, mutating `self`'s game state and printing logs to the terminal if in DEV()-mode.
+        If `delay` is specified, wait `delay` seconds between each log.
+        """
+        with open(core.os.path.join(core.Constants.cwd_path, "Replays", name), "r") as io:
+            try:
+                logs = io.read()
+            except:
+                warn(f"An error occured while trying to load {name}.")
+                io.close()
+                return self
             io.close()
+        logs = logs.split("\n")
+        for log in logs:
+            devlog(self.play_log(log))
+            sleep(delay)
+        return self
+    def save_replay(self):
+        "Save replay as a `.log` in the `./Replays/` folder"
+        name = (core.cleanstr(self.state["p1"]["name"]) +
+                "-vs-" +
+                core.cleanstr(self.state["p2"]["name"]) +
+                str(datetime.now()) + # datetime avoids duplicates.
+                ".log")
+        return self.save_replay_as(name)
+    def save_replay_as(self, name: str):
+        if "Replays" not in core.os.listdir():
+            core.os.mkdir(core.os.path.join(core.Constants.cwd_path, "Replays"))
+        with open(core.os.path.join(core.Constants.cwd_path, "Replays", name), "x") as io:
+            try:
+                io.write(self.get_replay())
+            finally:
+                io.close()
         return self
     def default_state():
         return {
@@ -62,6 +92,7 @@ class ReplayHandler:
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
         Note: `log` is considered to be a correctly formed log, if not there is no guarantee that it will return without crash/bug.
         """
+        log = log.strip() # might always be useful
         self.replay.append(log)
         head, *args = log.split('|')
         match head:
