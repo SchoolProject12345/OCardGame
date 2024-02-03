@@ -5,7 +5,6 @@ from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox, coord_grid
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER
-from Debug.DEV_debug import ValueWatcher
 
 
 class GameMenu(State):
@@ -32,7 +31,8 @@ class GameMenu(State):
 
         # Game Menu
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
-        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0,0))
+        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
+            topleft=(0, 0))
 
         self.hand_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.hand_button_image), position_type="topleft", position=(296, 706))
@@ -87,8 +87,8 @@ class GameMenu(State):
 
         self.handback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
-        
-        self.coords = coord_grid(SCREEN_CENTER,"center",(300,300),(2,2))
+
+        self.coords = coord_grid(SCREEN_CENTER, "center", (300, 300), (2, 2))
 
     def is_paused_toggle(self):
         self.is_paused = not self.is_paused
@@ -100,9 +100,7 @@ class GameMenu(State):
         self.is_handed = not self.is_handed
 
     def game_menu(self):
-        
-        
-        
+
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
 
         self.player_health_bar.render(self.player_health, False)
@@ -114,9 +112,9 @@ class GameMenu(State):
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
-        
+
         for coord in self.coords:
-            pygame.draw.circle(self.screen,(255,255,255),coord,10)
+            pygame.draw.circle(self.screen, (255, 255, 255), coord, 10)
 
         # self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
 
@@ -154,7 +152,7 @@ class GameMenu(State):
                 self.is_paused_toggle()
                 self.revert_state(2)
 
-    def state_manager_hook(self,app):
+    def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
             raise ValueError("Bro what?")
         elif State.state_tree[3] == self.local_options[0]:
