@@ -23,7 +23,8 @@ class HostMenu(State):
 
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
         self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
-        self.hostmenu_username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
+        self.hostmenu_username_tb_rect = self.tb_image.get_rect(
+            topleft=(438, 429))
 
         self.tb_roomname = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
@@ -34,9 +35,6 @@ class HostMenu(State):
             MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
         self.hostmenu_exit_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.exit_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))
-
-        # Options
-        self.game_menu = GameMenu(self.screen)
 
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)
@@ -55,11 +53,10 @@ class HostMenu(State):
             self.change_state("GameMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state()
-            print("Here")
 
-    def state_manager_hook(self):
+    def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:
-                self.game_menu.state_manager()
+                app.menu_instances["game_menu"].state_manager(app)
         elif State.state_tree[2] == self.local_options[0]:
             self.host_menu()

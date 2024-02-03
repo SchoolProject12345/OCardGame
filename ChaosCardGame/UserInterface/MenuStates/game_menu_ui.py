@@ -2,7 +2,7 @@ import pygame
 from utility import cwd_path
 import os
 from UserInterface.OcgVision.vision_io import KeyRel
-from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarHori, DualBarVerti, TextBox
+from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox, coord_grid
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER
 from Debug.DEV_debug import ValueWatcher
@@ -87,6 +87,8 @@ class GameMenu(State):
 
         self.handback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
+        
+        print(coord_grid(SCREEN_CENTER,"center",(100,100),(2,2)))
 
     def is_paused_toggle(self):
         self.is_paused = not self.is_paused
@@ -146,7 +148,7 @@ class GameMenu(State):
                 self.is_paused_toggle()
                 self.revert_state(2)
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app):
         if len(State.state_tree) >= 5:
             raise ValueError("Bro what?")
         elif State.state_tree[3] == self.local_options[0]:

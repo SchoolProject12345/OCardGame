@@ -1,4 +1,4 @@
-from UserInterface.ocg_launcher import OcgGame
+from UserInterface.ocg_app import OcgGame
 import utility
 
 if __name__ == "__main__":

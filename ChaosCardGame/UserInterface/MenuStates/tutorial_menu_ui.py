@@ -57,6 +57,6 @@ class TutorialMenu(State):
             self.revert_state()
         
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app):
         if State.state_tree[1] == self.local_options[0]:
             self.tutorial_menu()

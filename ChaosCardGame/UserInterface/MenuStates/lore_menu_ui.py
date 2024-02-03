@@ -46,7 +46,7 @@ class LoreMenu(State):
 
     def lore_menu(self):
         self.screen.blit(self.bg_lore_images[self.lore_index],self.bg_lore_menu_rect)
-        events = pygame.event.get()
+        events = pygame.event.get(pygame.KEYUP)
         if self.escp_rel.update([e for e in events if e.type == pygame.KEYUP]):
             self.lore_index = 0
             self.revert_state()
@@ -59,6 +59,6 @@ class LoreMenu(State):
 
         
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app):
         if State.state_tree[1] == self.local_options[0]:
             self.lore_menu()

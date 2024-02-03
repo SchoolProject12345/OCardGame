@@ -1,6 +1,7 @@
 import pygame
 # Debug Settings
 load_cards = False
+load_menus = True
 
 
 def ValueWatcher(surface, value):
