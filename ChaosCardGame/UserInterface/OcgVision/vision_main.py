@@ -175,9 +175,9 @@ class ImageButton:
         elif self.state == self.all_states[2]:
             self.screen.blit(self.button_image[2], self.button_rect)
 
-        if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
-            # On click sound handler
-            sound_handle("ClickSound1-2", "play", 40)
+        # if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
+        #     # On click sound handler
+        #     sound_handle("ClickSound1-2", "play", 40)
 
     def check_state(self) -> None:
         """
