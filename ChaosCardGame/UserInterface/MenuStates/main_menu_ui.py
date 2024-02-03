@@ -1,17 +1,20 @@
 import pygame
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
-from UserInterface.MenuTemplates.play_menu_ui import PlayMenu
-from UserInterface.MenuTemplates.credits_menu_ui import CreditsMenu
-from UserInterface.MenuTemplates.cards_menu_ui import CardsMenu
+from UserInterface.MenuStates.play_menu_ui import PlayMenu
+from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
+from UserInterface.MenuStates.cards_menu_ui import CardsMenu
+from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
+from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-import os 
+import os
 
 
 class MainMenu(State):
     def __init__(self, screen):
         super().__init__(
-            screen, True, ["MainMenu", "PlayMenu", "CardsMenu", "CreditsMenu"]
+            screen, True, ["MainMenu", "PlayMenu", "CardsMenu",
+                           "CreditsMenu", "TutorialMenu", "LoreMenu"]
         )
 
         self.bg_main_menu_image = MenuBackgrounds.bg_main_menu_image.convert_alpha()
@@ -69,13 +72,9 @@ class MainMenu(State):
             position=(1065, 685),
         )
 
-        # Options
-        self.play_menu = PlayMenu(self.screen)
-        self.cards_menu = CardsMenu(self.screen)
-        #self.lore_menu = LoreMenu(self.screen)
-        #self.tutorial_menu = TutorialMenu(self.screen)
 
     def main_menu(self):
+
         self.screen.blit(self.bg_main_menu_image, self.bg_main_menu_rect)
         self.play_button.render()
         self.cards_button.render()
@@ -88,18 +87,25 @@ class MainMenu(State):
             self.change_state("CreditsMenu")
         elif self.play_button.answer():
             self.change_state("PlayMenu")
-
         elif self.cards_button.answer():
             self.change_state("CardsMenu")
+        elif self.starttutorial_button.answer():
+            self.change_state("TutorialMenu")
+        elif self.viewlore_button.answer():
+            self.change_state("LoreMenu")
         self.exit_button.answer()
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app):
         if len(State.state_tree) >= 2:
             if State.state_tree[1] == self.local_options[1]:
-                self.play_menu.state_manager()
+                app.menu_instances["play_menu"].state_manager(app)
             elif State.state_tree[1] == self.local_options[2]:
-                self.cards_menu.state_manager()
+                app.menu_instances["cards_menu"].state_manager(app)
             elif State.state_tree[1] == self.local_options[3]:
-                self.credits_menu.state_manager()
+                app.menu_instances["credits_menu"].state_manager(app)
+            elif State.state_tree[1] == self.local_options[4]:
+                app.menu_instances["tutorial_menu"].state_manager(app)
+            elif State.state_tree[1] == self.local_options[5]:
+                app.menu_instances["lore_menu"].state_manager(app)
         elif State.state_tree[0] == self.local_options[0]:
             self.main_menu()

@@ -6,6 +6,23 @@ from Assets.menu_assets import smoothscale_converter
 from SfxEngine.SoundEngine import sound_handle
 
 
+def coord_grid(position: tuple, position_type: str, dimensions: tuple, alignement: tuple) -> None:
+    x_div_factor = dimensions[0] / alignement[0]
+    y_div_factor = dimensions[1] / alignement[1]
+    adapted_position = coord_converter(
+        position_type, position, dimensions[0], dimensions[1])
+
+    x_grid_coord = [(x_div_factor * factor) + (x_div_factor / 2) +
+                    adapted_position[0] for factor in range(alignement[0])]
+    y_grid_coord = [(y_div_factor * factor) + (y_div_factor / 2) +
+                    adapted_position[1] for factor in range(alignement[1])]
+
+    assembled_grid_coord = [[x_layer, y_layer]
+                            for y_layer in y_grid_coord for x_layer in x_grid_coord]
+
+    return assembled_grid_coord
+
+
 class State:
     """
     A class to represent a state.
@@ -77,19 +94,19 @@ class State:
 
         State.new_menu = True
 
-    def state_manager_hook(self):
+    def state_manager_hook(self,app=0):
         """
         Placeholder method to be overridden by subclasses.
 
         """
         pass
 
-    def state_manager(self):
+    def state_manager(self,app):
         """
         Checks state ownership and runs the state_manager_hook.
 
         """
-        self.state_manager_hook()
+        self.state_manager_hook(app)
 
 
 class ImageButton:
@@ -157,9 +174,9 @@ class ImageButton:
             self.screen.blit(self.button_image[1], self.button_rect)
         elif self.state == self.all_states[2]:
             self.screen.blit(self.button_image[2], self.button_rect)
-        
+
         if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
-            #On click sound handler
+            # On click sound handler
             sound_handle("ClickSound1-2", "play", 40)
 
     def check_state(self) -> None:
@@ -192,10 +209,6 @@ class ImageButton:
             self.previous_state == self.all_states[2]
             and self.state == self.all_states[1]
         ):
-        #-------------------------------------------RELEASE SOUND THING-------------------------------------------------
-
-            sound_handle("ClickSound2-1", "play",40)
-
             if inspect.isfunction(self.call_back):
                 return self.call_back()
             elif type(self.call_back) == pygame.event.Event:
@@ -380,7 +393,7 @@ class ToggleGridFour:
             for i_2, image_type in enumerate(toggle):
                 match i_2:
                     case 0:
-                        local_factor = factor 
+                        local_factor = factor
                     case 1:
                         local_factor = factor_T
                 self.all_images[i_1][i_2] = smoothscale_converter(
@@ -679,14 +692,14 @@ class SelectTextBox:
 
 
 class TextBox:
-    def __init__(self, screen : pygame.surface.Surface,
-                position : tuple,
-                width : int, height : int,
-                font : pygame.font.Font,
-                color : tuple,
-                position_type : str = "topleft",
-                text_center : str = "left",
-                text : str = ""):
+    def __init__(self, screen: pygame.surface.Surface,
+                 position: tuple,
+                 width: int, height: int,
+                 font: pygame.font.Font,
+                 color: tuple,
+                 position_type: str = "topleft",
+                 text_center: str = "left",
+                 text: str = ""):
         self.screen = screen
         self.position = position
         self.width = width
@@ -711,13 +724,14 @@ class TextBox:
     def calc_right(self):
         self.text_rect = self.text_surface.get_rect(
             midright=(self.input_rect.x+self.width,
-                    self.input_rect.y+(self.height//2))
+                      self.input_rect.y+(self.height//2))
         )
 
-    def render(self, new_text :str):
+    def render(self, new_text: str):
         self.text = new_text
         self.text_surface = self.font.render(self.text, True, self.color)
-        self.text_rect = self.text_surface.get_rect(**{self.position_type: self.position})
+        self.text_rect = self.text_surface.get_rect(
+            **{self.position_type: self.position})
         match self.text_center:
             case "left": self.calc_left()
             case "center": self.calc_center()
