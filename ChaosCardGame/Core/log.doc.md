@@ -9,6 +9,7 @@ Note: commander are refered through `p{i}@`
 For each player:
 
 `player|p{i}|{Player Name}|{commandername}|{max_hp}|{element}`\
+`boardsize|p{i}|{size}`\
 `hand|p{i}|{Card Name}|{...}`
 
 # Actions
