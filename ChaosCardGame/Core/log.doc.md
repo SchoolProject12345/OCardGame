@@ -10,7 +10,7 @@ For each player:
 
 `player|p{i}|{Player Name}|{commandername}|{max_hp}|{element}`\
 `boardsize|p{i}|{size}`\
-`hand|p{i}|{Card Name}|{...}`
+`hand|p{i}|{Card Name}|{...}` Note: not yet supported as useless.
 
 # Actions
 `place|p{i}{j}|{Card Name}|{max_hp}|{element}`\
