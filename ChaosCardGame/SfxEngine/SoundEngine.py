@@ -4,10 +4,10 @@ import pygame
 import os
 from random import randint
 
-def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_channel:int=5):
+def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, sfx_channel:int=5):
     # a terminer
 
-    sfx_path = os.path.join(os.getcwd(), "ChaosCardGame", "Assets", "SFX", str(track) + ".wav")
+    sfx_path = os.path.join(os.getcwd(), "Assets", "SFX", str(track) + ".wav")
     
     sfxchannel = pygame.mixer.Channel(sfx_channel)
     sound = pygame.mixer.Sound(sfx_path)
@@ -24,6 +24,10 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, sfx_chann
 
     if action_type == "ambient_play":
         pygame.mixer.music.play()
+
+    if action_type == "break":
+        pygame.mixer.music.stop()
+        pygame.mixer.Sound.stop()
 
     #    ambientchannel = pygame.mixer.Channel(ambient_channel)
     #    ambient_sound = pygame.mixer.Sound(sfx_path)
