@@ -179,6 +179,10 @@ class ImageButton:
             # On click sound handler
             sound_handle("ClickSound1-2", "play", 40)
 
+        if self.state == self.all_states[1] and self.previous_state == self.all_states[2]:
+            # On click sound handler
+            sound_handle("ClickSound2-1", "play", 40)
+
     def check_state(self) -> None:
         """
         Checks mouse position and click state to decide the state of the button.

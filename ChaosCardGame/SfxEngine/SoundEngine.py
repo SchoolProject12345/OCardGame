@@ -3,10 +3,12 @@ from pygame import mixer
 import pygame
 import os
 from utility import cwd_path
-from random import randint
+
 
 def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, sfx_channel:int=5):
     # a terminer
+    mutedsfx = False
+    mutedmusic = False
 
     sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
     
@@ -20,11 +22,15 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
     if action_type == "play":
         sfxchannel.play(sound)
 
-    if action_type == "ambient_pause":
-        pygame.mixer.music.pause()
+    if action_type == "stop":
+        pygame.mixer.Channel(sfx_channel).stop()
 
     if action_type == "ambient_play":
         pygame.mixer.music.play()
+
+    if action_type == "ambient_pause":
+        pygame.mixer.music.pause()
+
 
     if action_type == "break":
         pygame.mixer.music.stop()
