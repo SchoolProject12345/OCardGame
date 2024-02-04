@@ -40,25 +40,26 @@ def get_settings(settings: dict = {}) -> dict:
                     return False
             return True
         if value[0] == value[-1] == '"':
-            value = value[2:-1] # no strip after as spaces may be intentional
+            value = value[1:-1] # no strip after as spaces may be intentional
         elif value == "true":
             value = True
         elif value == "false":
             value = False
         elif value.isdigit():
+            # Note: doesn't support negative numbers (should be fixed)
             value = int(value)
         elif isfloat(value):
             value = float(value)
         # technically valid string option even without "", they are only needed for numeric values (e.g. "1", "true")
         settings[key.strip()] = value # value is already stripped/parsed
-    if ltsemver(settings["version"], version):
+    if "version" not in settings or ltsemver(settings["version"], version):
         # relevant even to non-dev users, so a print is fine.
         print("Detected outdated options, updating to new defaults. \033[1;31mNote\033[0m: this overrides all previous options.")
         with open(os.path.join(cwd_path, "options.txt"), "w") as io:
             io.write(default)
             io.close()
-        print("Warning (I haven't imported `warn`): spaghetti at line 52 of `utility.py`, this might break your code.")
         settings.clear() # I admit this is really spaghetti and another solution should be done.
+        # Nonetheless it shouldn't break anything
         return get_settings(settings)
     return settings
 
@@ -122,6 +123,11 @@ def get_setting(key: str, default: bool | int | str):
         # It should be at the beginning for safety, but that'd impact performances, so please just don't use invalid types fpr default.
         raise ValueError("`get_setting`'s default excepted either a `bool`, `int` or `str`")
     settings[key] = default
+    if isinstance(default, bool):
+        if default:
+            default = "true"
+        else:
+            default = "false"
     with open(os.path.join(cwd_path, "options.txt"), "a") as io:
         io.write(f"\n{key}:{default}")
         io.close()

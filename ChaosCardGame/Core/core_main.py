@@ -17,7 +17,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_deck_size = max(1, get_setting("deck_size", 15))
     strong_increase = max(0, get_setting("strong_percent_increase", 20)) // 10 # percent are overrated
     passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
-    commander_heal = max(0, get_setting("passive_commander_heal", 30))
+    commander_heal = max(0, get_setting("passive_commander_heal", 20))
     commander_power = 65
     base_power = 3
     power_increase = 7
@@ -38,6 +38,7 @@ class Numeric:
             case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
+            case "damagetaken": return DamageTaken()
             case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
@@ -48,6 +49,13 @@ class TurnNumeric(Numeric):
         return kwargs["board"].turn
     def __str__(self):
         return "current turn"
+
+@dataclass
+class DamageTaken(Numeric):
+    def eval(self, **kwargs):
+        return getordef(kwargs, "damage_taken", 0)
+    def __str__(self):
+        return "damage taken"
 
 @dataclass
 class RawNumeric(Numeric):
@@ -368,8 +376,6 @@ class EffectSurvey:
         return self
 
 class AbstractEffect:
-    def __init__(self):
-        warn("AbstractEffect class serves only as a superclass; initialize object of more specific classes instead.")
     def execute(self, **_) -> bool:
         "`kwargs` needed for execution: player, board, main_target, target_mode, user, survey"
         warn(
@@ -429,7 +435,7 @@ class AbstractEffect:
             case "loop": return LoopEffect.from_json(json)
             case "randomtarget": return RandomTargets.from_json(json)
             case "randomtargets": return RandomTargets.from_json(json)
-            case "repeat": return warn("RepeatEffect may be deprecated soon.") and RepeatEffect.from_json(json)
+            case "repeat": return RepeatEffect.from_json(json)
             # .from_json is useless but it allows more flexibility if we want to add something
             case "hypnotize": return HypnotizeEffect.from_json(json)
             case "summon": return SummonEffect.from_json(json)
@@ -441,14 +447,14 @@ class AbstractEffect:
             case "cleanse": return CleanseEffect.from_json(json)
             case "redirect": return DamageRedirect.from_json(json)
             case "if": return IfEffect.from_json(json)
+            case "hardcoded": return HardCodedEffect(getordef(json, "desc", ""))
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
-            case _: return warn(f"Tried to parse an effect with type {type}. Returning NullEffect instead.") and NullEffect()
+            case _: return warn(f"Tried to parse an effect with type {type} in {json}. Returning NullEffect instead.") and NullEffect()
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
-    def __init__(self): return
     def execute(self, **_) -> bool:
         return False
     def from_json():
@@ -457,16 +463,29 @@ class NullEffect(AbstractEffect):
         return "nothing"
 
 @dataclass
+class HardCodedEffect(AbstractEffect):
+    desc: str
+    def execute(self, **_) -> bool:
+        return True
+    def from_json(json):
+        return HardCodedEffect(getordef(json, "desc", ""))
+    def __str__(self):
+        return self.desc
+
+@dataclass
 class IfEffect(AbstractEffect):
-    "Evaluate `effect` only if `value` is non-zero"
+    "Evaluate `effect` only if `value` is greater or equal than `cond`, `other` otherwise."
     effect: AbstractEffect
+    other: AbstractEffect
     value: Numeric
+    cond: Numeric
     def execute(self, **kwargs) -> bool:
-        if not self.value.eval(**kwargs):
+        if not self.value.eval(**kwargs) < self.cond.eval(**kwargs):
             return self.effect.execute(**kwargs)
-        return False
+        else:
+            return self.other.execute(**kwargs)
     def from_json(json: dict):
-        return IfEffect(AbstractEffect.from_json(json["effect"]), Numeric.from_json(json["value"]))
+        return IfEffect(AbstractEffect.from_json(json["effect"]), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
         return f"{self.effect} if {self.value} is non-zero."
 
@@ -864,9 +883,11 @@ class PassiveTrigger(IntEnum):
     whendefeated = 2 # main_target => attacker / only work when defeated by attack (feature not bug)
     whenattack = 3   # same kwargs as attack
     whenattacked = 4 # main_target => atatcker
+    whendamaged = 5  # main_target => self
+    never = 6        # to hardcode
     # Must improve code before implementing those:
-    whendiscarded = 5  # main_target => allied_commander
-    whendrawn = 6  # main_target => allied_commander
+    whendiscarded = 7  # main_target => allied_commander
+    whendrawn = 8  # main_target => allied_commander
     def from_str(name: str):
         match cleanstr(name):
             case "endofturn": return PassiveTrigger.endofturn
@@ -874,6 +895,7 @@ class PassiveTrigger(IntEnum):
             case "whendefeated": return PassiveTrigger.whendefeated
             case "whenattack": return PassiveTrigger.whenattack
             case "whenattacking": return PassiveTrigger.whenattack
+            case "never": return PassiveTrigger.never
     def to_str(self):
         match self:
             case PassiveTrigger.endofturn: return "the turn end"
@@ -889,6 +911,8 @@ class Passive:
     def from_json(json: dict):
         if not isinstance(json, dict):
             warn(json)
+        if not "trigger" in json:
+            warn(f"Passive with name {json['name']} has no trigger.")
         return Passive(
                        getordef(json, "name", ""),
                        PassiveTrigger.from_str(json["trigger"]),
@@ -1087,11 +1111,20 @@ class ActiveCard:
             else:
                 kwargs["target_mode"] = TargetMode.target
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
+        # Gravitational Lensing - start
+        # overrides everything
+        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
+            kwargs["main_target"] = self.board.unactive_player.commander
+        # Gravitational Lensing - end
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
+            for passive in card.card.passives:
+                if passive.trigger != PassiveTrigger.whenattack:
+                    continue
+                passive.execute(**kwargs)
         if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
             kwargs["survey"].return_code = ReturnCode.failed
             if cleanstr(attack.name) != "splishsplosh":
@@ -1145,7 +1178,12 @@ class ActiveCard:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         if mode == DamageMode.indirect:
-            return self.indirectdamage(amount)
+            amount = self.indirectdamage(amount)
+            for passive in self.card.passives:
+                if passive.trigger != PassiveTrigger.whendamaged:
+                    continue
+                passive.execute(**withfield(kwargs, "damage_taken", amount))
+            return amount
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
                          and attacker.element.effectiveness(self.element), 12, 10)
@@ -1153,7 +1191,12 @@ class ActiveCard:
                           and self.element.resist(attacker.element), 12, 10)
         if self.card.iscommander() and mode.can_weak():
             amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
-        return self.indirectdamage(amount)
+        amount = self.indirectdamage(amount)
+        for passive in self.card.passives:
+            if passive.trigger != PassiveTrigger.whendamaged:
+                continue
+            passive.execute(**withfield(kwargs, "damage_taken", amount))
+        return amount
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if self.state == State.damageless:

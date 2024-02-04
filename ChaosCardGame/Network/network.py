@@ -4,6 +4,16 @@ import threading
 import utility
 
 def get_data(loaded_data = {}):
+    """
+    Retrieves data from a specified JSON template file. If data is already loaded, it returns the loaded data;
+    otherwise, it reads from the file and updates the loaded data.
+
+    Parameters:
+    - loaded_data (dict, optional): A dictionary to hold the loaded data. Defaults to an empty dict.
+
+    Returns:
+    - dict: The loaded data from the JSON file or the input loaded_data if it was not empty.
+    """
     if bool(loaded_data):
         return loaded_data
     with open(utility.os.path.join(utility.cwd_path, 'Network/template.json')) as file:

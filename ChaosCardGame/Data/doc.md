@@ -169,10 +169,11 @@ With possible values for field `"trigger"` being:
 - `"whenattack"` or `"whenattacking"`: applied with same property as the attack whenever attacking (before damages).
 - `"whenplaced"`: applied on self when card is placed for the first time.
 - `"whendefeated"`: applied on attacker when defeated directly.
+- `"whenattacked"`: applied on attacker when attacked.
+- `"whendamaged"`: applied on damager when damaged only, damage taken can be retrieved through Numeric `"damage_taken"`.
 - (***upcoming***)
 - `"whendiscarded"`: applied on allied commander when discarded, either when defeated or from hand.
 - `"whendrawn"`: applied on allied commander when drawn.
-- `"whenattacked"`: applied on attack when attacked.
 
 Effect objects exists through different type as follow:
 
@@ -352,12 +353,14 @@ Apply `effect` at the end of every turn, until the user is defeated if `"infinit
  "tags":[]
 }
 ```
-Evaluate expression if `value` is evalutated to non-zero.
+Evaluate `effect` if `value` is evalutated greater or equal than `cond`, evaluate `else` otherwise.
 ```
 {
  "type":"if",
  "value":{/*Numeric expr*/},
+ "cond":/*Numeric expr or int, defaults to 0*/
  "effect":{/*effect object*/}
+ "else":  {/*effect object*/}
 }
 ```
 
@@ -421,4 +424,10 @@ Multiply evaluate numeric by rational.
 ### Current turn
 ```js
 {"type":"turn"}
+```
+
+### Damage Taken
+For passive whendamaged.
+```js
+{"type":"damage_taken"}
 ```

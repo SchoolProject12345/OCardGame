@@ -57,18 +57,15 @@
   "attacks": [
    {
     "name":"Terrorising Screech",
-    "cost":2,
+    "cost":3,
     "target_mode":"foes",
     "power":0,
     "effect":{
-     "type":"random_target",
-     "effect":{
       "type":"union",
-      "effect1":{"type":"damage","damage_mode":"indirect","amount":11},
+      "effect1":{"type":"damage","damage_mode":"indirect","amount":40},
       "effect2":{"type":"hypnotize"}
      }
     }
-   }
   ]
  },
  {
@@ -119,8 +116,8 @@
  {
   "name": "Gargoyle of the Void",
   "element": "Chaos",
-  "cost": 2,
-  "hp": 115,
+  "cost": 1,
+  "hp": 120,
   "type": "creature",
   "attacks":[{
    "name":"Shadow Realm",
@@ -1069,9 +1066,9 @@
   "tag": "support",
   "hp": 70,
   "attacks":[{
-   "name":"Litoff",
+   "name":"Liftoff",
    "cost":2,
-   "Target_mode":"target",
+   "target_mode":"target",
    "power":0,
    "effect":{
     "type":"state_change",
@@ -1086,7 +1083,6 @@
     "type":"state_change",
     "state_change":"invisble",
     "for":2
-    
    }
   }],
   "type": "creature"

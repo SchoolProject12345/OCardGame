@@ -8,17 +8,11 @@ core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even 
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 core.Constants.progressbar_sytle = 1
 
-def clamp(x, min, max):
-    if x < min:
-        return min
-    if x > max:
-        return max
-    return x
 def gradient(x: float):
     x = 5.0*x
-    r = int(255 * (clamp(2.0 - x, 0.0, 1.0) + clamp(x - 4.0, 0.0, 1.0)))
-    g = int(255 * (clamp(x, 0.0, 1.0) - clamp(x - 3.0, 0.0, 1.0)))
-    b = int(255 * clamp(x - 2.0, 0.0, 1.0))
+    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
+    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
+    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
     return f"\033[38;2;{r};{g};{b}m"
 def progressbar(total: int, on: int, size: int = 15, style = 0):
     total = min(total, on)
@@ -220,13 +214,16 @@ class ServerHandler(ReplayHandler):
 @core.dataclass
 class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
+    waiting: bool = False
     synced: bool = False
-    def __init__(self, server_socket: net.socket.socket, synced: bool = False):
+    def __init__(self, server_socket: net.socket.socket, waiting: bool = False, synced: bool = False):
         ReplayHandler.__init__(self)
         self.server_socket = server_socket
         self.synced = synced
+        self.waiting = False
         del self.state["pov"]
     def __call__(self, data: str) -> bool:
+        self.waiting = False
         if data == "":
             self.ongoing = False
             return False
@@ -244,7 +241,20 @@ class ClientHandler(ReplayHandler):
             print("Error with:", data)
         return True
     def isp1(self): return False
+    def sendblock(self, *args, max_wait: int = 100_000_000):
+        self.waiting = True
+        start = time_ns()
+        self.server_socket.send(*args)
+        while self.waiting:
+            if time_ns() - start > max_wait:
+                core.warn(f"Response undetected after {max_wait/1_000_000_000:.4}s. Continuing thread anyway.")
+                return self
+        return self
+    def send(self, *args):
+        self.server_socket.send(*args)
+        return self
     def run_action(self, action: str):
+        "Request server to run action, returning `True` if sucessfully sent and `False` if clientside check failed."
         args = action.split('|')
         head = args[0]
         if head in core.Constants.clientside_actions:
@@ -253,11 +263,15 @@ class ClientHandler(ReplayHandler):
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        self.sync(False) 
         if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
             core.warn("Wrong turn.")
             return False
-        self.server_socket.send(action.encode())
+        if head == "chat":
+            if len(args) < 2:
+                devlog("Missing message in `chat` request.")
+                return False
+            action = f"chat|{self.get_state()['client']['name']}|{args[1]}"
+        self.sendblock(action.encode(), max_wait=300_000_000).sync()
         return True
     def get_required_charges(commander: str):
         commander: str = core.cleanstr(commander)
@@ -322,13 +336,19 @@ class ClientHandler(ReplayHandler):
         return self
 
 def sendblock(socket: net.socket.socket, *args):
+    "Send and block until receiving 'ok' or any two-byte message."
     size = socket.send(*args)
     socket.recv(2)
     return size
 def recvok(socket: net.socket.socket, *args):
+    "Send 'ok' after receiving to release `sendblock`."
     data = socket.recv(*args)
     socket.send(b"ok")
     return data
+def sendrecv(socket: net.socket.socket, size: int, *args):
+    "Send `*args` to `socket` then wait until a message with up to `size` size is received, returning it as `bytes`."
+    socket.send(*args)
+    return socket.recv(size)
 
 def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
     if len(hostname) > 64:
@@ -436,7 +456,10 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             devlog("Missing `card name` argument.")
             return
         cardname = core.cleanstr(args[0])
-        card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
+        if cardname in core.getCOMMANDERS():
+            card: core.AbstractCard = core.getCOMMANDERS()[cardname]
+        else:
+            card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
             with open(net.utility.os.path.join(net.utility.cwd_path, "Data/textsprites.json")) as io:
@@ -532,7 +555,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         except:
             if isclientturn:
                 client_socket.send(f'error|{user.name} has no such attack "{args[1]}".')
-                return devlog(f'Warning: {user.name} has no such attack "{args[1]}".')
+            return devlog(f'Warning: {user.name} has no such attack "{args[1]}".')
         target = str2target(board, args[2])
         if target is None:
             if isclientturn:
@@ -543,10 +566,12 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             client_socket.send(f"error|Attack failed ({survey.return_code.value})".encode())
         return True
     if head == "chat":
-        if len(args) < 1:
+        if len(args) == 0:
             return devlog("Warning: Message not found.")
-        # imma fix chat later
-        log = f"chat|{core.ifelse(source, board.player2.name, board.player1.name)}|{args[0]}"
+        if len(args) == 1:
+            log = f"chat|{core.ifelse(source, board.player2.name, board.player1.name)}|{args[0]}"
+        else:
+            log = f"chat|{args[0]}|{args[1]}"
         board.logs.append(log) # are sent through `handle.log_sync()`
         return True
     if head == "place":
@@ -579,6 +604,10 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             if isclientturn:
                 client_socket.send("error|discard expected a number.".encode())
             return devlog("Warning: discard expected a number.")
+        if i >= len(board.active_player.hand):
+            if isclientturn:
+                client_socket.send("error|out of bound discard.".encode())
+            return devlog("Warning: out of bound discard.")
         card: core.AbstractCard = board.active_player.handdiscard(i)
         #client_socket.send(log_discard(None, card.name).encode())
         return True
@@ -615,3 +644,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         return False
     core.warn("Tried to run unrecognized action.")
     return True
+
+def showchat(name: str, msg: str):
+    name = "\033[1m" + stringclr(name) + name + "\033[0m"
+    devlog(name + ":", msg)
