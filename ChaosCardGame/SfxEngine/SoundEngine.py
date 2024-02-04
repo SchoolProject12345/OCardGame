@@ -7,8 +7,7 @@ from utility import cwd_path
 
 def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, sfx_channel:int=5):
     # a terminer
-    mutedsfx = False
-    mutedmusic = False
+
 
     sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
     
@@ -36,7 +35,13 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
         pygame.mixer.music.stop()
         pygame.mixer.Sound.stop()
 
-    #    ambientchannel = pygame.mixer.Channel(ambient_channel)
-    #    ambient_sound = pygame.mixer.Sound(sfx_path)
-    #    ambient_sound.set_volume(volume/100)
-    #    ambientchannel.play(ambient_sound)
+# faut test
+    if action_type == "mute_all":
+        previous_volume = volume
+        sound.set_volume(0)
+        pygame.mixer.music.set_volume(0)
+
+    if action_type == "unmute_all":
+        sound.set_volume(previous_volume)
+        pygame.mixer.music.set_volume(previous_volume)
+
