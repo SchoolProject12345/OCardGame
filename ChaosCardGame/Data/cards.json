@@ -990,6 +990,7 @@
   "passives":[
    {
     "name":"Last-Blast",
+    "trigger":"whendefeated",
     "effect":{
      "type":"target_change",
      "new_target":"foes",
