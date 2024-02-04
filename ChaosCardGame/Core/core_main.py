@@ -1558,6 +1558,11 @@ class Board:
         elif self.autoplay and self.active_player.isai():
             return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
+    def get_replay(self):
+        replay = ""
+        for log in self.logs:
+            replay += log + "\n"
+        return replay.strip()
     def devprint(self):
         you = self.player1
         them = self.player2
