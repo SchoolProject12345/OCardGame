@@ -1,10 +1,12 @@
 import pygame
 from utility import cwd_path
 import os
+from Assets.menu_assets import CardAssets
 from UserInterface.OcgVision.vision_io import KeyRel
-from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox, coord_grid
+from UserInterface.OcgVision.vision_coordadapter import rect_grid
+from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from UserInterface.ui_settings import SCREEN_CENTER
+from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class GameMenu(State):
@@ -88,7 +90,8 @@ class GameMenu(State):
         self.handback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
 
-        self.coords = coord_grid(SCREEN_CENTER, "center", (300, 300), (2, 2))
+        self.coords = rect_grid((271, 405), "topleft", (804, 124), (6, 1), 12)
+        self.random_card = CardAssets.card_sprites["debug_cards"]["processed_img"][0]
 
     def is_paused_toggle(self):
         self.is_paused = not self.is_paused
@@ -100,24 +103,21 @@ class GameMenu(State):
         self.is_handed = not self.is_handed
 
     def game_menu(self):
-
+        # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
-
         self.player_health_bar.render(self.player_health, False)
         self.player_energy_bar.render(self.player_energy, False)
         self.enemy_health_bar.render(self.enemy_health, True)
         self.enemy_energy_bar.render(self.enemy_energy, True)
-
         self.player_health_bar_text.render(str(self.player_health))
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
         for coord in self.coords:
-            pygame.draw.circle(self.screen, (255, 255, 255), coord, 10)
+            self.screen.blit(self.random_card, coord)
 
-        # self.player_username_text.render(str(self.player_username)) # Need to import player_username from host_menu and join_menu
-
+        # User buttons
         self.deck_button.render()
         if self.deck_button.answer():
             self.is_decked_toggle()
@@ -126,7 +126,6 @@ class GameMenu(State):
             self.deckback_button.render()
             if self.deckback_button.answer():
                 self.is_decked_toggle()
-
         self.hand_button.render()
         if self.hand_button.answer():
             self.is_handed_toggle()
@@ -135,10 +134,9 @@ class GameMenu(State):
             self.handback_button.render()
             if self.handback_button.answer():
                 self.is_handed_toggle()
-
+        # Toggles
         if self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.is_paused_toggle()
-
         if self.is_paused:
             self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)
             self.pauseback_button.render()

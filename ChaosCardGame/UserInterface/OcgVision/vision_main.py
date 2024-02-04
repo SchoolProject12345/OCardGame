@@ -6,23 +6,6 @@ from Assets.menu_assets import smoothscale_converter
 from SfxEngine.SoundEngine import sound_handle
 
 
-def coord_grid(position: tuple, position_type: str, dimensions: tuple, alignement: tuple) -> None:
-    x_div_factor = dimensions[0] / alignement[0]
-    y_div_factor = dimensions[1] / alignement[1]
-    adapted_position = coord_converter(
-        position_type, position, dimensions[0], dimensions[1])
-
-    x_grid_coord = [(x_div_factor * factor) + (x_div_factor / 2) +
-                    adapted_position[0] for factor in range(alignement[0])]
-    y_grid_coord = [(y_div_factor * factor) + (y_div_factor / 2) +
-                    adapted_position[1] for factor in range(alignement[1])]
-
-    assembled_grid_coord = [[x_layer, y_layer]
-                            for y_layer in y_grid_coord for x_layer in x_grid_coord]
-
-    return assembled_grid_coord
-
-
 class State:
     """
     A class to represent a state.
@@ -94,14 +77,14 @@ class State:
 
         State.new_menu = True
 
-    def state_manager_hook(self,app=0):
+    def state_manager_hook(self, app=0):
         """
         Placeholder method to be overridden by subclasses.
 
         """
         pass
 
-    def state_manager(self,app):
+    def state_manager(self, app):
         """
         Checks state ownership and runs the state_manager_hook.
 

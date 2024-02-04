@@ -116,10 +116,12 @@ def transform_card_files(path: str):
 
 
 def process_card_dir(path):
-    curated_list = ["plchldr", "plchldr"]
+    curated_list = ["placeholder", "placeholder"]
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
-        if file.startswith("s_"):
+        if file.startswith("."):
+            continue
+        elif file.startswith("s_"):
             curated_list[0] = pygame.image.load(filepath)
         else:
             curated_list[1] = pygame.image.load(filepath)
@@ -377,7 +379,18 @@ class TextBoxes:
     textbox_1_image = pygame.image.load(textbox_1_path)
 
 
-if load_cards:
-    @dataclass
-    class CardAssets:
-        cards_assets = handle_card_assets(os.path.join(graphics_path,"Cards"))
+@dataclass
+class CardAssets:
+    """
+    A dataclass to handle and store card assets. The `card_sprites` attribute
+    contains processed images of cards, structured by their folder names within
+    the Cards directory. Each key represents a folder name, and its value is a dictionary
+    with the path to the folder and the processed images ready for game use.
+    """
+    if load_cards:
+        card_sprites = handle_card_assets(
+            os.path.join(graphics_path, "Cards"))
+    else:
+        card_sprites = handle_card_assets(os.path.join(
+            utility.cwd_path, "Debug", "debug_cards"))
+        print(f"Warning: Cards not loaded. DEBUG cards ON.")
