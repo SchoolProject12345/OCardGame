@@ -1553,11 +1553,9 @@ class Board:
         self.logs.append(f"turn|{self.turn}")
         ret = (self.unactive_player, self.unactive_player.add_energy(
             self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
-        if DEV():
-            if ret[4] is not None:
-                print(f"The winner is {ret[4].name}")
-                return ret
-        if self.autoplay and self.active_player.isai() and ret[4] is None:
+        if ret[4] is not None:
+            self.logs.append(f"win|{ret[4].namecode()}|{ret[4].name}")
+        elif self.autoplay and self.active_player.isai():
             return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
     def devprint(self):
