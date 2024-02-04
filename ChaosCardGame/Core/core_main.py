@@ -11,7 +11,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     path = cwd_path
     progressbar_style = get_setting("progressbar_style", 1) # must clamp between 0-2 but needs cleaning first
     # Server settings
-    default_max_energy = max(1, get_setting("default_max_energy"))
+    default_max_energy = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size = max(1, get_setting("hand_size", 5))
     default_deck_size = max(1, get_setting("deck_size", 15))
@@ -773,6 +773,7 @@ class SummonEffect(AbstractEffect):
         for i in valids:
             kwargs["player"].active[i] = ActiveCard(
                 self.summon, kwargs["player"], kwargs["board"])
+            kwargs["board"].logs.append(f"-summon|{kwargs['player'].active[i].namecode()}|{self.summon.name}|{self.summon.max_hp}|{self.summon.element.value}")
         return True
     def from_json(json: dict):
         return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
@@ -1104,12 +1105,15 @@ class ActiveCard:
         else:
             self.owner.energy -= attack.cost
             self.owner.commander_charges += kwargs["survey"].damage
-            self.board.logs.append(f"-charges|{self.owner.namecode()}|{self.owner.commander_charges}")
+            self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
         self.attacked = True
-        self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
+        if "spell" in self.tags:
+            self.board.logs.append(f"spell|{self.card.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
+        else:
+            self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -1126,7 +1130,7 @@ class ActiveCard:
                 continue
             passive.execute(**kwargs)
     def iscommander(self):
-        self.card.iscommander()
+        return self.card.iscommander()
     def namecode(self):
         if self.iscommander():
             return self.owner.namecode() + '@'
@@ -1160,7 +1164,7 @@ class ActiveCard:
         if amount > self.hp:
             amount = self.hp
         self.hp -= amount
-        self.board.logs.append(f"-damage|{self.namecode()}||{self.hp}/{self.card.max_hp}")
+        self.board.logs.append(f"-damage|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
@@ -1169,7 +1173,7 @@ class ActiveCard:
             amount = int(amount)
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
-        self.board.logs.append(f"-heal|{self.namcode()}|{self.hp}/{self.card.max_hp}")
+        self.board.logs.append(f"-heal|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def endturn(self):
         "Apply all effects at the end of turn."
@@ -1197,12 +1201,12 @@ class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
         return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
-    def use(self, target: ActiveCard, board: Board):
+    def use(self, target: ActiveCard):
+        board = target.board
         sim = ActiveCard(
             CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
                          self.on_use], passives=[], cost=0, tags=("spell")),
-            board.active_player,
-            board
+            board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
         if survey.return_code == ReturnCode.ok:
@@ -1328,6 +1332,7 @@ class Player:
             # Seriously Python is it too hard to return the list after extending it so we can chain methods?
             self.deck.extend(self.discard)
             rng.shuffle(self.deck)
+            self.commander.board.logs.append(f"shuffle|{self.namecode()}")
             self.discard.clear()
         card = self.deck.pop()
         self.commander.board.logs.append(f"draw|{self.namecode()}|{card.name}")
@@ -1449,6 +1454,7 @@ class Board:
             return 1
         return -1
     def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
+        self.logs = []
         self.active_player, self.unactive_player = player1, player2
         if DEV() and rng.random() < 0.5:  # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
             self.active_player, self.unactive_player = self.unactive_player, self.active_player
@@ -1466,7 +1472,7 @@ class Board:
             1, 7) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
-        self.unactive_player.energy += 1  # To compensate disadvantage
+        self.unactive_player.energy += 1 # To compensate disadvantage
         self.turn = 0
         if len(player1.deck) != Constants.default_deck_size:
             warn(f"player1 ({player1.name})'s deck is not valid, giving random one instead.")
@@ -1474,6 +1480,12 @@ class Board:
         if len(player2.deck) != Constants.default_deck_size:
             warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
             player2.deck = Player.get_deck()
+        self.logs.append(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
+        self.logs.append(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
+        self.logs.append(f"boardsize|p1|{len(self.player1.active)}")
+        self.logs.append(f"boardsize|p2|{len(self.player2.active)}")
+        self.player1.add_energy(0) # to log energy
+        self.player2.add_energy(0)
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
@@ -1589,7 +1601,7 @@ class NaiveAI(AIPlayer):
             return
         i: int = rng.choice(valids)
         if type(self.hand[i]) == SpellCard:
-            return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags), board)
+            return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags))
         self.place(i, rng.choice(placeable))
     def try_attack(self):
         attackers = self.get_attackers()
