@@ -26,7 +26,7 @@ The game state follow this structure:
  "arena":0 # Arena as an integer, see `./Core/core_main.py@Arena(IntEnum)` to see the different values and their meaning.
 }
 ```
-It is hence completely *symmetrical*; a code written to display from the host's perspective would work to display the client's perspective without *any* modification, as long as **no method are used outside of `ReplayHandler`'s**.
+It is hence *completely* symmetrical; a code written to display from the host's perspective would work to display the client's perspective without *any* modification, as long as **no method are used outside of `ReplayHandler`'s**.
 
 # Logs
 ## Basics
@@ -39,7 +39,7 @@ Note: commander are refered through `p{i}@`
 ## Initialization
 For each player:
 
-`player|p{i}|{Player Name}|{commandername}|{max_hp}|{element}`\
+`player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}`\
 `boardsize|p{i}|{size}`\
 `hand|p{i}|{Card Name}|{...}` Note: not yet supported as useless.
 
@@ -48,7 +48,7 @@ For each player:
 `discard|p{i}|{Card Name}`\
 `draw|p{i}|{Card Name}`\
 `defeat|p{i}{j}`\
-`spell|{Spell Name}|p{i}{j}|{target_mode}` Note: spells actually send an attack log.\
+`spell|{Spell Name}|p{i}{j}|{target_mode}|{return_code}`\
 `attack|p{i1}{j2}|{Attack Name}|p{i2}{j2}|{target_mode}|{return_code}`\
 `-damage|p{i}{j}|{current_hp}/{max_hp}`\
 `-heal|p{i}{j}|{current_hp}/{max_hp}`\
@@ -56,6 +56,7 @@ For each player:
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
 `-element|p{i}{j}|{new_element}` Note: not yet supported as useless.\
 `-hypno|p{i}{j}|p{i'}{j'}`
+`-summon|p{i}{j}|{Card Name}|{max_hp}|{element}`
 
 ## Misc
 `chat|{Player Name}|{content}`\
@@ -63,4 +64,5 @@ For each player:
 `raw|{msg}`\
 `energy|p{i}|{current}/{max}|{per_turn}`\
 `turn|{turn}`\
-`-ccharge|p{i}|{amount}`
+`-ccharge|p{i}|{amount}`\
+`shuffle|p{i}`
