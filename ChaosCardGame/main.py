@@ -3,9 +3,11 @@ import logging
 from Debug.logger import setup_logger
 setup_logger()
 from UserInterface.ocg_app import OcgGame
+logging.info("Successfully pre-loaded imports")
 # fmt: on
 if __name__ == "__main__":
     try:
+        logging.info("Launching app")
         app = OcgGame()
         app.start()
     except Exception as e:

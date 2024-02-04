@@ -1,5 +1,6 @@
 import utility
 import sys
+import logging
 import pygame
 import os
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
@@ -59,7 +60,6 @@ class OcgGame:
         self.running = True
         sound_handle("ambientmenumusictest2", "ambient_play", 30)
         while self.running:
-
             self.menu_instances["main_menu"].state_manager(self)
             if pygame.event.get(eventtype=pygame.QUIT):
                 self.stop()
@@ -68,12 +68,11 @@ class OcgGame:
             pygame.display.update()
             self.clock.tick(60)
 
-            # Event Handling
-
     def stop(self):
         """
         Stops the game loop by quitting pygame and exiting the system.
         """
+        logging.info("Exiting app")
         self.running = False
         pygame.quit()
         sys.exit()
