@@ -1143,7 +1143,7 @@ class ActiveCard:
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
         self.attacked = True
-        if "spell" in self.tags:
+        if "spell" in self.card.tags:
             self.board.logs.append(f"spell|{self.card.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
         else:
             self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
