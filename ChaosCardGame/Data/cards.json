@@ -955,6 +955,7 @@
   "passives":[
    {
     "name":"Dazzling",
+    "trigger":"whenplaced",
     "effect":{
      "type":"add_energy",
      "per_turn":1
