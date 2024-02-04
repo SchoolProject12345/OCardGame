@@ -3,6 +3,7 @@ import pygame
 import os
 from Debug.DEV_debug import load_cards
 from dataclasses import dataclass
+import logging
 
 
 def alpha_converter(objects: list[pygame.Surface] | list[list]):
@@ -379,7 +380,6 @@ class TextBoxes:
     textbox_1_image = pygame.image.load(textbox_1_path)
 
 
-@dataclass
 class CardAssets:
     """
     A dataclass to handle and store card assets. The `card_sprites` attribute
@@ -393,4 +393,4 @@ class CardAssets:
     else:
         card_sprites = handle_card_assets(os.path.join(
             utility.cwd_path, "Debug", "debug_cards"))
-        print(f"Warning: Cards not loaded. DEBUG cards ON.")
+        logging.warning("Enabled debug cards")

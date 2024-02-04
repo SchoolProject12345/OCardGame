@@ -1,6 +1,12 @@
+#fmt: off
+import logging
+from Debug.logger import setup_logger
+setup_logger()
 from UserInterface.ocg_app import OcgGame
-import utility
-
+# fmt: on
 if __name__ == "__main__":
-    app = OcgGame()
-    app.start()
+    try:
+        app = OcgGame()
+        app.start()
+    except Exception as e:
+        logging.critical(e)

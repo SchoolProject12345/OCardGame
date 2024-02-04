@@ -29,6 +29,7 @@ class OcgGame:
             MainMenu: MainMenu object representing the main menu of the game.
 
         """
+
         pygame.init()
         self.logo = pygame.image.load(os.path.join(utility.cwd_path,
                                                    "Assets", "Graphics", "Icons", "app_icon.png",))
