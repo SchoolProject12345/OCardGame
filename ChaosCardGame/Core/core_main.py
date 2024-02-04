@@ -507,8 +507,7 @@ class DamageRedirect(AbstractEffect):
             while len(sources) != 0:
                 source = sources.pop()
                 redirected = min(source.card.max_hp - source.hp, try_amount // (len(sources) + 1))
-                source.hp += redirected
-                target.hp -= redirected
+                source.heal(target.indirectdamage(redirected))
         return True
     def from_json(json: dict):
         return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
@@ -578,7 +577,8 @@ class ChangeState(AbstractEffect):
                     card.attacked = False
                     has_worked = True
                 continue
-            if card.state.value < self.new_state.value: # stronger `State`s cannot be overriden by weaker `State`s
+            # stronger `State`s cannot be overriden by weaker `State`s
+            if card.state.value < self.new_state.value or self.new_state == State.default:
                 has_worked = True
                 card.state = self.new_state
         return has_worked
@@ -792,6 +792,7 @@ class SummonEffect(AbstractEffect):
         for i in valids:
             kwargs["player"].active[i] = ActiveCard(
                 self.summon, kwargs["player"], kwargs["board"])
+            kwargs["board"].logs.append(f"-summon|{kwargs['player'].active[i].namecode()}|{self.summon.name}|{self.summon.max_hp}|{self.summon.element.value}")
         return True
     def from_json(json: dict):
         return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
@@ -817,10 +818,12 @@ class HypnotizeEffect(AbstractEffect):
                     break
             if i == -1:
                 return False and warn("Hypnotization couldn't find the index of the target.")
+            ppos = target.namecode() # logging
             target.owner.active[j] = None
             # I could have just done kwargs["player"] but it seems safer this way.
             target.owner = kwargs["user"].owner
             kwargs["user"].owner.active[valids.pop()] = target
+            kwargs["board"].logs.append(f"-hypno|{ppos}|{target.namecode()}")
         return True
     def from_json(_):
         return HypnotizeEffect()
@@ -847,6 +850,8 @@ class FormeChange(AbstractEffect):
         actives = AbstractEffect.targeted_objects(**kwargs)
         for active in actives:
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+            active.element = self.new_forme.element
+            kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
         return len(actives) != 0
     def from_json(json: dict):
         return FormeChange(CreatureCard.from_json(json["new_forme"], 1j))
@@ -1014,13 +1019,13 @@ class CreatureCard(AbstractCard):
         return CreatureCard(*args)
     def __str__(self) -> str:
         "Return a 'beautiful' string reprensenting self instead of ugly mess defaulting from dataclasses."
-        pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP: {self.max_hp}\nCost: {self.cost}\nAttacks: ["
+        pretty = f"{self.name} (id:{self.id}): {self.element.to_str()}\nMax HP: {self.max_hp}\nCost: {self.cost}\nAttacks:"
         for attack in self.attacks:
-            pretty += "\n " + str(attack)
-        pretty += "\n]\nPassives: ["
+            pretty += "\n- " + str(attack)
+        pretty += "\nPassives:"
         for passive in self.passives:
-            pretty += "\n " + str(passive)
-        return pretty + "\n]"
+            pretty += "\n- " + str(passive)
+        return pretty
     def image_file(self) -> str:
         "Return the directory to self's image"
         fname: str = f"{self.element.name}-{cleanstr(self.name)}.png"
@@ -1035,7 +1040,7 @@ class CommanderCard(CreatureCard):
     def iscommander(self) -> bool: return True
 
 class Player:
-    pass  # necessary cause Python
+    pass  # necessary 'cause Python
 
 class Board:
     pass
@@ -1066,7 +1071,7 @@ class ActiveCard:
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
-        if self.card.iscommander() and np.any([card is not None for card in self.owner.active]):
+        if self.iscommander() and np.any([card is not None for card in self.owner.active]):
             return False
         if self.board is None or self.owner != self.board.active_player:
             return False
@@ -1133,10 +1138,15 @@ class ActiveCard:
         else:
             self.owner.energy -= attack.cost
             self.owner.commander_charges += kwargs["survey"].damage
+            self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
         self.attacked = True
+        if "spell" in self.tags:
+            self.board.logs.append(f"spell|{self.card.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
+        else:
+            self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -1152,6 +1162,18 @@ class ActiveCard:
             if passive.trigger != PassiveTrigger.whendefeated:
                 continue
             passive.execute(**kwargs)
+    def iscommander(self):
+        return self.card.iscommander()
+    def namecode(self):
+        if self.iscommander():
+            return self.owner.namecode() + '@'
+        for i in range(len(self.owner.active)):
+            if i > 25:
+                warn("Board size is unsupported, causing logging issues.")
+                self.board.logs.append("raw|Warning: board size is unsupported, causing logging issues.")
+                return self.owner.namecode() + '@' # may be fixed later.
+            if self.owner.active[i] is self:
+                return self.owner.namecode() + chr(97 + i)
     def damage(self, amount, **kwargs) -> int:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
@@ -1184,9 +1206,8 @@ class ActiveCard:
             amount = int(amount)
         if amount > self.hp:
             amount = self.hp
-            self.hp = 0
-            return amount
         self.hp -= amount
+        self.board.logs.append(f"-damage|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
@@ -1195,6 +1216,7 @@ class ActiveCard:
             amount = int(amount)
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
+        self.board.logs.append(f"-heal|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def endturn(self):
         "Apply all effects at the end of turn."
@@ -1222,12 +1244,12 @@ class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
         return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
-    def use(self, target: ActiveCard, board: Board):
+    def use(self, target: ActiveCard):
+        board = target.board
         sim = ActiveCard(
             CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
                          self.on_use], passives=[], cost=0, tags=("spell")),
-            board.active_player,
-            board
+            board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
         if survey.return_code == ReturnCode.ok:
@@ -1353,8 +1375,11 @@ class Player:
             # Seriously Python is it too hard to return the list after extending it so we can chain methods?
             self.deck.extend(self.discard)
             rng.shuffle(self.deck)
+            self.commander.board.logs.append(f"shuffle|{self.namecode()}")
             self.discard.clear()
-        return self.deck.pop()
+        card = self.deck.pop()
+        self.commander.board.logs.append(f"draw|{self.namecode()}|{card.name}")
+        return card
     def draw(self) -> list:
         # Please note that the top of the deck is the end of the self.deck list.
         new = [self.singledraw() for _ in range(Constants.default_hand_size + ifelse(
@@ -1364,7 +1389,8 @@ class Player:
     def add_energy(self, amount: int) -> int:
         amount = min(amount, self.max_energy - self.energy)
         self.energy += amount
-        return amount  # for displaying
+        self.commander.board.logs.append(f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}")
+        return amount # used by effect survey
     def haslost(self) -> bool:
         "Return True is this Player's CommanderCard is defeated, False otherwise."
         if self.commander.hp <= 0:
@@ -1373,6 +1399,7 @@ class Player:
     def handdiscard(self, i: int):
         "Discard the `i`th card in `self`'s `hand`, returning it."
         card = self.hand.pop(i)
+        self.commander.board.logs.append(f"discard|{self.namecode()}|{card.name}")
         self.discard.append(card)
         return card
     def iddiscard(self, id: int):
@@ -1380,10 +1407,16 @@ class Player:
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(i)
+    def namecode(self):
+        "Return player code used for logging."
+        if self.commander.board.player1 == self:
+            return "p1"
+        return "p2"
     def boarddiscard(self):
         "Discard every defeated cards, returning them."
         discards: list[ActiveCard] = []
         cards = self.active
+        board = self.commander.board
         for i in range(len(cards)):
             if cards[i] is None:
                 continue
@@ -1391,6 +1424,7 @@ class Player:
                 cards[i].state = State.discarded
                 discards.append(cards[i])
                 self.discard.append(cards[i].card)
+                board.logs.append(f"defeat|{cards[i].namecode()}")
                 cards[i] = None
         return discards
     def place(self, i: int, j: int):
@@ -1417,6 +1451,8 @@ class Player:
             "user": self.active[j],
             "survey": EffectSurvey()
         }
+        # TODO: give important informations on card instead of just name.
+        board.logs.append(f"place|{self.active[j].namecode()}|{self.active[j].card.name}|{self.active[j].card.max_hp}|{self.active[j].element.value}")
         for passive in self.active[j].card.passives:
             if passive.trigger != PassiveTrigger.whenplaced:
                 continue
@@ -1451,6 +1487,7 @@ class Board:
     turn: int
     arena: Arena
     autoplay: bool
+    logs: list[str]
     def rps_win(player1: str, player2: str): # no idea why this is a method
         "Return `0` if player1 win Rock Paper Scissor against player2, `1` if player2 wins and `-1` if it's a draw."
         player1, player2 = rps2int(player1), rps2int(player2)
@@ -1460,6 +1497,7 @@ class Board:
             return 1
         return -1
     def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
+        self.logs = []
         self.active_player, self.unactive_player = player1, player2
         if DEV() and rng.random() < 0.5:  # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
             self.active_player, self.unactive_player = self.unactive_player, self.active_player
@@ -1477,7 +1515,7 @@ class Board:
             1, 7) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
-        self.unactive_player.energy += 1  # To compensate disadvantage
+        self.unactive_player.energy += 1 # To compensate disadvantage
         self.turn = 0
         if len(player1.deck) != Constants.default_deck_size:
             warn(f"player1 ({player1.name})'s deck is not valid, giving random one instead.")
@@ -1485,6 +1523,12 @@ class Board:
         if len(player2.deck) != Constants.default_deck_size:
             warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
             player2.deck = Player.get_deck()
+        self.logs.append(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
+        self.logs.append(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
+        self.logs.append(f"boardsize|p1|{len(self.player1.active)}")
+        self.logs.append(f"boardsize|p2|{len(self.player2.active)}")
+        self.player1.add_energy(0) # to log energy
+        self.player2.add_energy(0)
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
@@ -1506,6 +1550,7 @@ class Board:
         self.active_player.commander.endturn()
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         self.turn += 1
+        self.logs.append(f"turn|{self.turn}")
         ret = (self.unactive_player, self.unactive_player.add_energy(
             self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
         if DEV():
@@ -1599,7 +1644,7 @@ class NaiveAI(AIPlayer):
             return
         i: int = rng.choice(valids)
         if type(self.hand[i]) == SpellCard:
-            return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags), board)
+            return self.hand[i].use(self.naive_target(board, self.hand[i].on_use.tags))
         self.place(i, rng.choice(placeable))
     def try_attack(self):
         attackers = self.get_attackers()
