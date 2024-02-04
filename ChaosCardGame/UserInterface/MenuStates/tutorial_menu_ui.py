@@ -53,7 +53,7 @@ class TutorialMenu(State):
             self.nexttutorial_button.render()
             if self.nexttutorial_button.answer():
                 self.tutorial_index += 1
-                # Play the corresponding TutorialSpeech sound
+
                 sound_handle(f"TutorialSpeech{self.tutorial_index + 1}", sfx_channel= 7)
 
 
