@@ -250,7 +250,6 @@ class ReplayHandler:
                 player = self.state[args[0]]
                 energy, max_energy = args[1].split('/')
                 prev_energy = player["energy"]
-                core.show(prev_energy)
                 energy = int(energy)
                 max_energy = int(max_energy)
                 player["energy"] = energy
