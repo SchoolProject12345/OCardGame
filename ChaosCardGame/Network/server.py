@@ -1,7 +1,6 @@
 import Network.network as net
-import re
 from time import time_ns
-from Core.replay import * # includes core
+from Core.replay import * # includes core & re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
@@ -58,7 +57,11 @@ def ansi_card(card: dict | None, trailing="") -> str:
 class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
-    ongoing = True
+    def __init__(self, board: core.Board, client_socket: net.socket.socket):
+        ReplayHandler.__init__(self)
+        self.board = board
+        self.client_socket = client_socket
+        del self.state["pov"]
     def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
         if not self.ongoing:
             return False
@@ -77,9 +80,11 @@ class ServerHandler(ReplayHandler):
             return True
         if head in core.Constants.serverside_actions:
             self.ongoing = run_action(self.board, self.client_socket, head, *datas[1:], source=True)
+            self.log_sync()
             return self.ongoing
         self.client_socket.send(b"error|Unrecognized action.")
         return True
+    def isp1(self): return True
     def run_action(self, action: str) -> bool:
         args = action.split('|')
         head = args[0]
@@ -92,7 +97,22 @@ class ServerHandler(ReplayHandler):
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        return run_action(self.board, self.client_socket, *args, source=False)
+        ongoing = run_action(self.board, self.client_socket, *args, source=False)
+        self.log_sync()
+        return ongoing
+    def log_sync(self):
+        "Read `self.board`'s logs and send them to the client."
+        logs = ""
+        while len(self.board.logs) != 0: # explicit is better than implicit
+            log = self.board.logs.pop(0).strip()
+            try:
+                devlog(self.play_log(log)) # TODO: don't log to the terminal when remote draw a card.
+            except:
+                print(log)
+            logs += log + "\n"
+        logs = logs.strip()
+        if len(logs) != 0:
+            self.client_socket.send(logs.encode()) # logs are split by line uppon reception.
     def showboard(self):
         board = self.board
         print(f"Turn {board.turn} ", end="")
@@ -200,8 +220,12 @@ class ServerHandler(ReplayHandler):
 @core.dataclass
 class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
-    ongoing: bool = True
     synced: bool = False
+    def __init__(self, server_socket: net.socket.socket, synced: bool = False):
+        ReplayHandler.__init__(self)
+        self.server_socket = server_socket
+        self.synced = synced
+        del self.state["pov"]
     def __call__(self, data: str) -> bool:
         if data == "":
             self.ongoing = False
@@ -214,8 +238,12 @@ class ClientHandler(ReplayHandler):
             net.get_data().update(net.json.loads(datas[1]))
             self.synced = True
             return True
-        self.play_log(data)
+        try:
+            devlog(self.play_log(data))
+        except:
+            print("Error with:", data)
         return True
+    def isp1(self): return False
     def run_action(self, action: str):
         args = action.split('|')
         head = args[0]
@@ -327,7 +355,6 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
     while core.DEV() and handle.ongoing:
         handle.run_action(input())
-    devlog("Returning handle.")
     return handle
 
 def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
@@ -476,28 +503,29 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
     if head == "endturn":
         result = board.endturn()
         if result[4] is not None:
-            sendblock(client_socket, log_win(None, result[4].name).encode())
-            client_socket.close()
-            return False
-        logs = ""
-        for card in result[2]:
-            if isclientturn:
-                logs += log_draw(None, card.name) + "\n"
-            else:
-                devlog(f"You have drawn a {card.name}.")
-        logs += log_endturn(None, board.unactive_player.name,
-                    board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
-        client_socket.send(logs.encode())
+            #sendblock(client_socket, log_win(None, result[4].name).encode())
+            #client_socket.close()
+            return True # socket must be closed *after* logs are sent.
+        #logs = ""
+        #for card in result[2]:
+        #    if isclientturn:
+        #        pass
+        #        logs += log_draw(None, card.name) + "\n"
+        #    else:
+        #        devlog(f"You have drawn a {card.name}.")
+        #logs += log_endturn(None, board.unactive_player.name,
+        #            board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
+        #client_socket.send(logs.encode())
         return True
     if head == "attack":
         if len(args) < 3:
             if isclientturn:
-                client_socket.send("error|Missing arguments in attack request.".encode())
+                client_socket.send(b"error|Missing arguments in attack request.")
             return devlog("Warning: Missing arguments in attack request.")
         user = str2target(board, args[0])
         if (user is None) or (user.owner == board.unactive_player):
             if isclientturn:
-                client_socket.send("error|Wrong user in attack request.".encode())
+                client_socket.send(b"error|Wrong user in attack request.")
             return devlog("Warning: Wrong user target in attack request.")
         try:
             attack = user.card.attacks[int(args[1])]
@@ -508,23 +536,19 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         target = str2target(board, args[2])
         if target is None:
             if isclientturn:
-                client_socket.send("error|Invalid target.".encode())
+                client_socket.send(b"error|Invalid target.")
             return devlog("Warning: Invalid target.")
         survey = user.attack(attack, target)
-        logs = log_attack(None, user.card.name, target.card.name,
-                          attack.name, str(attack.cost),
-                          str(survey.return_code.value),
-                          str(survey.damage), str(survey.heal))
-        client_socket.send(logs.encode())
+        if survey.return_code.value > 299 and isclientturn:
+            client_socket.send(f"error|Attack failed ({survey.return_code.value})".encode())
         return True
     if head == "chat":
-        if source: # Imma fix chat later.
-            return devlog(board.player2.name + ":", *args)
-        else:
-            if len(args) < 1:
-                return devlog("Warning: Message not found.")
-            client_socket.send(f"chat|{args[0]}".encode())
-            return True
+        if len(args) < 1:
+            return devlog("Warning: Message not found.")
+        # imma fix chat later
+        log = f"chat|{core.ifelse(source, board.player2.name, board.player1.name)}|{args[0]}"
+        board.logs.append(log) # are sent through `handle.log_sync()`
+        return True
     if head == "place":
         if len(args) < 2:
             if isclientturn:
@@ -542,7 +566,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid index (out of bound, wrong card or no card can be placed here).".encode())
             return devlog("Warning: Invalid index (out of bound, wrong card or no card can be placed here).")
         card: core.ActiveCard = board.active_player.active[j]
-        client_socket.send(log_place(None, card.card.name, str(j), str(card.card.cost)).encode())
+        #client_socket.send(log_place(None, card.card.name, str(j), str(card.card.cost)).encode())
         return True
     if head == "discard":
         if len(args) < 1:
@@ -556,7 +580,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|discard expected a number.".encode())
             return devlog("Warning: discard expected a number.")
         card: core.AbstractCard = board.active_player.handdiscard(i)
-        client_socket.send(log_discard(None, card.name).encode())
+        #client_socket.send(log_discard(None, card.name).encode())
         return True
     if head == "spell":
         if len(args) < 2:
@@ -578,12 +602,12 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             if isclientturn:
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
-        survey = spell.use(target, board)
-        logs = log_attack(None, spell.name, target.card.name,
-                          spell.on_use.name, str(spell.on_use.cost),
-                          str(survey.return_code.value),
-                          str(survey.damage), str(survey.heal))
-        client_socket.send(logs.encode())
+        survey = spell.use(target)
+        #logs = log_attack(None, spell.name, target.card.name,
+        #                  spell.on_use.name, str(spell.on_use.cost),
+        #                  str(survey.return_code.value),
+        #                  str(survey.damage), str(survey.heal))
+        #client_socket.send(logs.encode())
         return True
     if head == "forfeit":
         client_socket.send("win|???".encode())
