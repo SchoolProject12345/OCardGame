@@ -669,7 +669,7 @@ class DelayEffect(AbstractEffect):
     kwargs: dict
     tags: tuple
     def with_kwargs(self, kwargs: dict):
-        return DelayEffect(self.effect, self.time, kwargs)
+        return DelayEffect(self.effect, self.time, kwargs, self.tags)
     def from_json(json: dict):
         return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-")))
     def execute(self, **kwargs) -> bool:
