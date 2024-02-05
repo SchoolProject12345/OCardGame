@@ -917,6 +917,11 @@
     "count":2,
     "creature":{"name":"Chaosling"}
    }
+  }],
+  "passives":[{
+    "name":"Empirs thougness"
+    "trigger":"whenplaced",
+     "effect":{"type":"todo"}
   }]
  },
  {
