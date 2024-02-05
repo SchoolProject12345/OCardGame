@@ -257,7 +257,7 @@ class MenuBackgrounds:
     bg_lore12_path = bg_dir + "lore_12_empty.png"
     bg_lore12_image = pygame.image.load(bg_lore12_path)
 
-    logging.info("Successfully Loaded backgrounds")
+    logging.info("Successfully loaded backgrounds")
 
 
 @dataclass
@@ -344,7 +344,7 @@ class MenuButtons:
     viewlore_button_path = button_dir + "ViewLore"
     viewlore_button_image = transform_button_files(viewlore_button_path)
 
-    logging.info("Successfully Loaded buttons")
+    logging.info("Successfully loaded buttons")
 
 
 @dataclass
@@ -374,7 +374,7 @@ class CardsMenuToggles:
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
 
-    logging.info("Successfully Loaded card menu toggles")
+    logging.info("Successfully loaded card menu toggles")
 
 
 @dataclass
@@ -385,7 +385,7 @@ class TextBoxes:
     textbox_1_path = textbox_dir + "textbox_1.png"
     textbox_1_image = pygame.image.load(textbox_1_path)
 
-    logging.info("Successfully Loaded textboxes")
+    logging.info("Successfully loaded textboxes")
 
 
 class CardAssets:
@@ -403,4 +403,4 @@ class CardAssets:
         card_sprites = handle_card_assets(os.path.join(
             utility.cwd_path, "Debug", "debug_cards"))
         logging.warning("Enabled debug cards")
-    logging.info("Successfully Loaded cards")
+    logging.info("Successfully loaded cards")
