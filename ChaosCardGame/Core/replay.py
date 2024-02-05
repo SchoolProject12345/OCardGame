@@ -30,10 +30,10 @@ class ReplayHandler:
         }
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        state["remote"]["hand"]  = [format_name_ui(card) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [format_name_ui(card) for card in state[ "local"]["hand"]]
-        state["remote"]["discard"] = [format_name_ui(card) for card in state["remote"]["discard"]]
-        state[ "local"]["discard"] = [format_name_ui(card) for card in state[ "local"]["discard"]]
+        state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
+        state[ "local"]["hand"]  = [core.format_name_ui(card) for card in state[ "local"]["hand"]]
+        state["remote"]["discard"] = [core.format_name_ui(card) for card in state["remote"]["discard"]]
+        state[ "local"]["discard"] = [core.format_name_ui(card) for card in state[ "local"]["discard"]]
         return state
     def get_replay(self):
         replay = ""
@@ -291,33 +291,11 @@ def nth(x: int) -> str:
         return x + "rd"
     return x + "th"
 
-def format_name_ui(name: str, element: int = 0):
-    "From an element and a name, give the formated name to allow easy asset access."
-    match core.Element(element):
-        case core.Element.elementless:
-            pre = ""
-        case core.Element.fire:
-            pre = "fire_"
-        case core.Element.water:
-            pre = "wtr_"
-        case core.Element.air:
-            pre = "air_"
-        case core.Element.chaos:
-            pre = "cha_"
-        case core.Element.earth:
-            pre = "ert_"
-    m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
-    if m is None:
-        core.warn(f'"{name}"\'s name is terribly wrong.')
-        name = core.cleanstr(name)
-    else:
-        name = core.cleanstr(m[2])
-    return pre + name
 def format_active_ui(active: dict | None) -> dict | None:
     if active is None:
         return
     active = active.copy()
-    active["name"] = format_name_ui(active["name"], active["element"])
+    active["name"] = core.format_name_ui(active["name"], active["element"])
     return active
 
 def player_index(index: str):
