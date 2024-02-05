@@ -351,6 +351,10 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
     return socket.recv(size)
 
 def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
+    """
+    Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
+    IP must either be localhost (usually "127.0.0.1") or `server.net.get_ip()`.
+    """
     if len(hostname) > 64:
         hostname = hostname[:63]
     net.get_data()["server"]["name"] = hostname
@@ -378,6 +382,7 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     return handle
 
 def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
+    "Initialize connection with peer of IP `target_ip`, returning a `ClientHandler` and listening for logs on a separate thread."
     if len(username) > 64:
         username = username[:63]
     server_socket: net.socket.socket = net.join_connection(target_ip, port)
@@ -400,7 +405,12 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
     while core.DEV() and handle.ongoing:
         handle.run_action(input())
-    devlog("Returning handle.")
+    return handle
+
+def replay(replayname: str, delay: float = 0.3) -> ReplayHandler:
+    "Counterpart to `join` and `host` to play a replay (contained in `./Replays/`) locally."
+    handle = ReplayHandler()
+    net.threading.Thread(target=handle.read_replay, args=(replayname, delay)).start()
     return handle
 
 def str2target_client(index: str) -> core.ActiveCard | None:
