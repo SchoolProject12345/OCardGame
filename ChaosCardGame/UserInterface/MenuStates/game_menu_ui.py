@@ -19,28 +19,22 @@ class GameMenu(State):
         self.is_paused = False
         self.is_decked = False
         self.is_handed = False
-
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
-
         self.player_max_energy = 5
         self.player_health = 500
         self.player_energy = 4
-
         self.enemy_max_energy = 5
         self.enemy_health = 250
         self.enemy_energy = 2
-
         # Game Menu
         self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
             topleft=(0, 0))
-
         self.hand_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.hand_button_image), position_type="topleft", position=(296, 706))
         self.deck_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.deck_button_image), position_type="topleft", position=(824, 706))
-
         self.player_health_bar = DualBarVerti(self.screen, position=(566, 706), position_type="topleft", width=96, height=52,
                                               color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
         self.player_energy_bar = DualBarVerti(self.screen, position=(683, 706), position_type="topleft", width=96, height=52,
@@ -49,7 +43,6 @@ class GameMenu(State):
                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
         self.enemy_energy_bar = DualBarVerti(self.screen, position=(683, 0), position_type="topleft", width=96, height=52,
                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.enemy_max_energy)
-
         self.player_health_bar_text = TextBox(self.screen, (566, 706), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
         self.player_energy_bar_text = TextBox(self.screen, (683, 706), 96, 52, pygame.font.Font(
@@ -66,7 +59,6 @@ class GameMenu(State):
         self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
         self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(
             center=SCREEN_CENTER)
-
         self.pauseback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 294))
         self.settings_button = ImageButton(self.screen, True, image=alpha_converter(
@@ -78,7 +70,6 @@ class GameMenu(State):
         self.bg_deck_menu_image = MenuBackgrounds.bg_deck_menu_image.convert_alpha()
         self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
             center=SCREEN_CENTER)
-
         self.deckback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
 
@@ -86,12 +77,8 @@ class GameMenu(State):
         self.bg_hand_menu_image = MenuBackgrounds.bg_hand_menu_image.convert_alpha()
         self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
             center=SCREEN_CENTER)
-
         self.handback_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.back_button_image), position_type="center", position=(SCREEN_CENTER[0], 555))
-
-        self.coords = rect_grid((271, 405), "topleft", (804, 124), (6, 1), 12)
-        self.random_card = CardAssets.card_sprites["debug_cards"]["processed_img"][0]
 
     def is_paused_toggle(self):
         self.is_paused = not self.is_paused
@@ -114,9 +101,6 @@ class GameMenu(State):
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
-        for coord in self.coords:
-            self.screen.blit(self.random_card, coord)
-
         # User buttons
         self.deck_button.render()
         if self.deck_button.answer():
@@ -134,6 +118,7 @@ class GameMenu(State):
             self.handback_button.render()
             if self.handback_button.answer():
                 self.is_handed_toggle()
+
         # Toggles
         if self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.is_paused_toggle()
