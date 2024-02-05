@@ -446,6 +446,7 @@ class AbstractEffect:
             case "taunt": return TauntTargets.from_json(json)
             case "cleanse": return CleanseEffect.from_json(json)
             case "redirect": return DamageRedirect.from_json(json)
+            case "boardresize": return BoardResize.from_json(json)
             case "if": return IfEffect.from_json(json)
             case "hardcoded": return HardCodedEffect(getordef(json, "desc", ""))
             case "null": return NullEffect()
@@ -798,6 +799,32 @@ class SummonEffect(AbstractEffect):
         return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
     def __str__(self):
         return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {self.summon.name}"
+
+@dataclass
+class BoardResize(AbstractEffect):
+    'Add `self.delta` spot to the targeted player (either `"active"` or `"unactive"`), but never decrease below 1 nor delete a card to reduce boardsize.'
+    delta: int
+    target: str
+    def execute(self, **kwargs):
+        match target:
+            case "active": player = kwargs["board"].active_player
+            case "unactive": player = kwargs["board"].unactive_player
+            case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
+        # TODO: boarddiscard first.
+        boardsize = max(len(player.active) + self.delta, 1)
+        if self.delta < 0:
+            while boardsize < len(player.active) and None in player.active:
+                player.active.remove(None)
+        else:
+            while len(player.active) < boardsize:
+                player.active.append(None)
+        # TODO: fix return, logging and update replay.py
+        return True
+    def from_json(json: dict):
+        return BoardResize(json["delta"], getordef(json, "target", "unactive"))
+    def __str__(self):
+        return f"remove {-self.delta} from the {self.target} player's board"
+    
 
 @dataclass
 class HypnotizeEffect(AbstractEffect):
