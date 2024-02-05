@@ -55,11 +55,12 @@ class OcgGame:
         """
         Starts the game loop which continues running until the quit event is caught.
         """
+
         self.running = True
-        sound_handle("ambientmenumusictest2", "ambient_play", 30)
         while self.running:
 
             self.menu_instances["main_menu"].state_manager(self)
+
             if pygame.event.get(eventtype=pygame.QUIT):
                 self.stop()
             pygame.event.get()

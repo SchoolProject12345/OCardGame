@@ -73,7 +73,6 @@ class MainMenu(State):
             position=(1065, 685),
         )
 
-
     def main_menu(self):
 
         self.screen.blit(self.bg_main_menu_image, self.bg_main_menu_rect)
