@@ -185,6 +185,29 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
         card, (id := id + 1)) for card in json})
     return COMMANDERS
 
+def format_name_ui(name: str, element: int = 0):
+    "From an element and a name, give the formated name to allow easy asset access."
+    match core.Element(element):
+        case core.Element.elementless:
+            pre = ""
+        case core.Element.fire:
+            pre = "fire_"
+        case core.Element.water:
+            pre = "wtr_"
+        case core.Element.air:
+            pre = "air_"
+        case core.Element.chaos:
+            pre = "cha_"
+        case core.Element.earth:
+            pre = "ert_"
+    m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
+    if m is None:
+        core.warn(f'"{name}"\'s name is terribly wrong.')
+        name = core.cleanstr(name)
+    else:
+        name = core.cleanstr(m[2])
+    return pre + name
+
 class Element(IntEnum):
     # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effectiveness
     elementless = 0
