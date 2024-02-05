@@ -46,7 +46,7 @@ class ReplayHandler:
         mutating `self`'s game state and printing logs to the terminal if in DEV()-mode.
         If `delay` is specified, wait `delay` seconds between each log.
         """
-        with open(core.os.path.join(core.Constants.cwd_path, "Replays", name), "r") as io:
+        with open(core.os.path.join(core.Constants.path, "Replays", name), "r") as io:
             try:
                 logs = io.read()
             except:
@@ -73,8 +73,8 @@ class ReplayHandler:
     def save_replay_as(self, name: str):
         "Save current replay in the `./Replays/` folder. Name should end in `.log`."
         if "Replays" not in core.os.listdir():
-            core.os.mkdir(core.os.path.join(core.Constants.cwd_path, "Replays"))
-        with open(core.os.path.join(core.Constants.cwd_path, "Replays", name), "x") as io:
+            core.os.mkdir(core.os.path.join(core.Constants.path, "Replays"))
+        with open(core.os.path.join(core.Constants.path, "Replays", name), "x") as io:
             try:
                 io.write(self.get_replay())
             finally:
