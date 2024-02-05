@@ -46,7 +46,7 @@ class ReplayHandler:
         mutating `self`'s game state and printing logs to the terminal if in DEV()-mode.
         If `delay` is specified, wait `delay` seconds between each log.
         """
-        with open(core.os.path.join(core.Constants.path, "Replays", name), "r") as io:
+        with open(core.os.path.join(core.Constants.path, "Replays", name), "r", encoding="utf-8") as io:
             try:
                 logs = io.read()
             except:
@@ -56,7 +56,10 @@ class ReplayHandler:
             io.close()
         logs = logs.split("\n")
         for log in logs:
-            devlog(self.play_log(log))
+            try:
+                devlog(self.play_log(log))
+            except:
+                devlog("Error with:", log)
             sleep(delay)
         return self
     def save_replay(self):
@@ -74,7 +77,7 @@ class ReplayHandler:
         "Save current replay in the `./Replays/` folder. Name should end in `.log`."
         if "Replays" not in core.os.listdir():
             core.os.mkdir(core.os.path.join(core.Constants.path, "Replays"))
-        with open(core.os.path.join(core.Constants.path, "Replays", name), "x") as io:
+        with open(core.os.path.join(core.Constants.path, "Replays", name), "x", encoding="utf-8") as io:
             try:
                 io.write(self.get_replay())
             finally:
@@ -186,7 +189,7 @@ class ReplayHandler:
             case "spell":
                 target = self.get_target(args[1])["name"]
                 if int(args[3]) < 299:
-                    ret = f"{args[0]} has been launched on {core.TargetMode(args[2]).name}, specifically {target}."
+                    ret = f"{args[0]} has been launched on {core.TargetMode(int(args[2])).name}, specifically {target}."
                 else:
                     ret = f"{args[0]} failed ({args[3]})"
             case "attack":
