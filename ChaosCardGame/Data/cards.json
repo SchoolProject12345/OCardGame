@@ -1,6 +1,6 @@
 [
 {
-  "name": "Monkey of the Skies",
+  "name": "Sky Monkey",
   "element": "air",
   "cost": 1,
   "tag": "support",
@@ -66,7 +66,12 @@
       "effect2":{"type":"hypnotize"}
      }
     }
-  ]
+  ],
+    "passives":[{
+      "name":"Submerged",
+      "trigger":"whenplaced",
+      "effect":{"type":"state_change","new_state":"block","for":1}
+  }]
  },
  {
   "name": "Hydra of the Seas",
@@ -327,7 +332,15 @@
    "cost":2,
    "target_mode":"foes",
    "power":60
-  }]
+  }],
+   "passives":[{
+     "name":"Horn Shield"
+     "trigger":"whenattacked",
+     "effect":{
+       "type":"damage",
+       "amount":20,
+     }
+   }]
  },
  {
   "name": "Vine serpent",
@@ -655,10 +668,10 @@
   "hp": 90,
   "passives": [
    {
-    "name": "Energizing",
+    "name": "Crystal Energy",
     "effect": {
      "type": "add_energy",
-     "mas":2
+     "max_energy":2,
     },
     "trigger": "whenplaced"
    }
@@ -841,8 +854,8 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Summon Chaosling",
-    "cost": 0,
+    "name": "Summoning",
+    "cost": 1,
     "target_mode": "self",
     "power": 0,
     "effect": {
@@ -897,13 +910,18 @@
   "attacks":[{
    "name":"The Emperor's Call",
    "cost":3,
-   "target_mode":"allies",
+   "target_mode":"target",
    "power":70,
    "effect":{
     "type":"summon",
     "count":2,
     "creature":{"name":"Chaosling"}
    }
+  }],
+  "passives":[{
+    "name":"Empirs thougness"
+    "trigger":"whenplaced",
+     "effect":{"type":"todo"}
   }]
  },
  {
@@ -955,6 +973,7 @@
   "passives":[
    {
     "name":"Dazzling",
+    "trigger":"whenplaced",
     "effect":{
      "type":"add_energy",
      "per_turn":1
@@ -989,6 +1008,7 @@
   "passives":[
    {
     "name":"Last-Blast",
+    "trigger":"whendefeated",
     "effect":{
      "type":"target_change",
      "new_target":"foes",
@@ -1030,7 +1050,7 @@
   "type": "spell"
  },
  {
-  "name": "Kratos of Fire",
+  "name": "Kratos",
   "element": "Fire",
   "cost": 3,
   "hp": 120,
