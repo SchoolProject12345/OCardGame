@@ -458,7 +458,10 @@
     "name": "Horn Drill",
     "cost": 2,
     "target_mode": "target",
-    "power": 110
+    "power": 110,
+    "effect":{
+      "type":"todo",
+    }
    }
   ]
  },
@@ -632,7 +635,18 @@
   "element": "Chaos",
   "cost": 1,
   "hp": 110,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+    "name":"Corruption Bite",
+    "cost":2,
+    "power":0,
+    "target_mode":"target",
+    "effect":{
+      "type":"damage",
+      "num":1,
+      "den":2,
+    }
+  }]
  },
  {
   "name": "Large Fireball",
@@ -766,7 +780,31 @@
   "element":"chaos",
   "cost":1,
   "hp":120,
-  "type":"creature"
+  "type":"creature",
+  "passives"{
+    "name":"Constant Torment",
+    "trigger":"endofturn",
+    "effect":{
+      "type":"target_change",
+      "new_target":"foes",
+      "effect":{"type":"damage","amount":10}
+    }
+  },
+  "attacks":[{
+    "name":"Sword plant",
+    "cost":4,
+    "power":45,
+    "target_mode":"target",
+    "effect"{"
+      "type":"if",
+      "value":{"type":"HPs", "target_mode":"target"},
+      "cond":0,
+      "effect":{
+        "type":"boardresiz",
+        "target":"unactive",
+        "delta":-1,
+       },
+  }],
  },
  {
   "name":"The Thousand-Toothed",
