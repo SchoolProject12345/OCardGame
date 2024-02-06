@@ -1031,6 +1031,10 @@ class AbstractCard:
         return type(self)(**vars(self))
     # in case we can't know if the card is a Creature or not, it avoids a crash.
     def iscommander(self) -> bool: return False
+    @property # why does this even exist?
+    def ui_id(self) -> str:
+        "Formatted name of the card, used by the UI."
+        return format_name_ui(self.name, self.element)
 
 @dataclass
 class CreatureCard(AbstractCard):
