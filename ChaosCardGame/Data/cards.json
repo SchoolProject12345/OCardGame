@@ -446,8 +446,23 @@
    {
     "name": "Horn Cure",
     "effect": {
-     "type": "cleanse",
-     "by_tags":["-"]
+     "type":"union",
+      "effect1":{
+       "type":"target_change",
+       "new_target":"allies",
+       "effect":{
+        "type": "cleanse",
+        "by_tags":["-", "+-"]
+       }
+      }
+      "effect2":{
+       "type":"target_change",
+       "new_target":"allycommander",
+       "effect":{
+        "type": "cleanse",
+        "by_tags":["-", "+-"]
+       }
+      }
     },
     "trigger": "whenplaced"
    }
@@ -461,9 +476,9 @@
     "power": 110,
     "effect":{
       "type":"if",
-      "value":{"type":"HPs", "target_mode":"target"},
-      "cond":1
-      "else":{"type":"add_energy","energy":0,}
+      "value":{"type":"sum","sample":{"type":"HPs", "target_mode":"target"}},
+      "cond":1,
+      "else":{"type":"add_energy","energy":1}
     }
    }
   ]
@@ -485,7 +500,8 @@
     "name": "Deep Sea Power",
     "effect": {
      "type": "if",
-     "value":{"type":"mul","num":1,"den":12,"times":{"type":"turn"}},
+     "value":{"type":"turn"},
+     "cond":12,
      "effect":{
       "type":"changeforme",
       "new_forme":{
@@ -646,8 +662,12 @@
     "target_mode":"target",
     "effect":{
       "type":"damage",
-      "num":1,
-      "den":2,
+      "amount":{
+       "type":"mul",
+       "times":{"type":"sum","sample":{"type":"HPs","target_mode":"target"}},
+       "num":1,
+       "den":2
+      }
     }
   }]
  },
@@ -800,7 +820,7 @@
     "target_mode":"target",
     "effect":{
       "type":"if",
-      "value":{"type":"HPs", "target_mode":"target"},
+      "value":{"type":"sum","sample":{"type":"HPs", "target_mode":"target"}},
       "cond":1,
       "else":{
         "type":"boardresize",
