@@ -781,7 +781,7 @@
   "cost":1,
   "hp":120,
   "type":"creature",
-  "passives"{
+  "passives":[{
     "name":"Constant Torment",
     "trigger":"endofturn",
     "effect":{
@@ -789,23 +789,23 @@
       "new_target":"foes",
       "effect":{"type":"damage","amount":10}
     }
-  },
+  }],
   "attacks":[{
     "name":"Sword plant",
     "cost":4,
     "power":45,
     "target_mode":"target",
-    "effect"{"
+    "effect":{
       "type":"if",
       "value":{"type":"HPs", "target_mode":"target"},
       "cond":0,
-      "effect":{
-        "type":"boardresiz",
+      "else":{
+        "type":"boardresize",
         "target":"unactive",
         "delta":-1,
-       },
-  }],
- },
+       }
+  }
+ }],
  {
   "name":"The Thousand-Toothed",
   "element":"water",
