@@ -511,7 +511,7 @@ class IfEffect(AbstractEffect):
     def from_json(json: dict):
         return IfEffect(AbstractEffect.from_json(json["effect"]), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
-        return f"{self.effect} if {self.value} is non-zero."
+        return f"{self.effect} if {self.value} is greater or equal to {self.cond}"
 
 @dataclass
 class DamageRedirect(AbstractEffect):
