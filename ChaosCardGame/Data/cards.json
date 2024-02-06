@@ -334,11 +334,11 @@
    "power":60
   }],
    "passives":[{
-     "name":"Horn Shield"
+     "name":"Horn Shield",
      "trigger":"whenattacked",
      "effect":{
        "type":"damage",
-       "amount":20,
+       "amount":20
      }
    }]
  },
@@ -454,7 +454,7 @@
         "type": "cleanse",
         "by_tags":["-", "+-"]
        }
-      }
+      },
       "effect2":{
        "type":"target_change",
        "new_target":"allycommander",
@@ -708,7 +708,7 @@
     "name": "Crystal Energy",
     "effect": {
      "type": "add_energy",
-     "max_energy":2,
+     "max_energy":2
     },
     "trigger": "whenplaced"
    }
@@ -825,10 +825,11 @@
       "else":{
         "type":"boardresize",
         "target":"unactive",
-        "delta":-1,
+        "delta":-1
        }
   }
- }],
+ }]
+ },
  {
   "name":"The Thousand-Toothed",
   "element":"water",
@@ -980,7 +981,7 @@
    }
   }],
   "passives":[{
-    "name":"Empirs thougness"
+    "name":"Empirs thougness",
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]
