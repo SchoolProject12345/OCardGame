@@ -425,7 +425,7 @@ Multiply evaluate numeric by rational.
 ```js
 {
  "type":"mul",
- "numeric":{/*numeric expr*/},
+ "times":{/*numeric expr*/},
  "num":2,
  "den":1
 }
