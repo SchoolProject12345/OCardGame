@@ -447,7 +447,7 @@
     "name": "Horn Cure",
     "effect": {
      "type": "cleanse",
-     "by_tags":["+"]
+     "by_tags":["-"]
     },
     "trigger": "whenplaced"
    }
@@ -460,7 +460,10 @@
     "target_mode": "target",
     "power": 110,
     "effect":{
-      "type":"todo",
+      "type":"if",
+      "value":{"type":"HPs", "target_mode":"target"},
+      "cond":1
+      "else":{"type":"add_energy","energy":0,}
     }
    }
   ]
@@ -798,7 +801,7 @@
     "effect":{
       "type":"if",
       "value":{"type":"HPs", "target_mode":"target"},
-      "cond":0,
+      "cond":1,
       "else":{
         "type":"boardresize",
         "target":"unactive",
