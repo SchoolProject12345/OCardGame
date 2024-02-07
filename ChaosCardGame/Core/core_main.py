@@ -1191,8 +1191,10 @@ class ActiveCard:
             self.owner.commander_charges -= attack.cost
         else:
             self.owner.energy -= attack.cost
+            self.owner.log_energy()
             self.owner.commander_charges += kwargs["survey"].damage
-            self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
+        # logged in both cases
+        self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
@@ -1440,10 +1442,16 @@ class Player:
             self.commander.board.arena.has_effect(Arena.watorvarg), 1, 0) - len(self.hand))]
         self.hand.extend(new)
         return new  # to display drawing(s) on the GUI?
+    def log_energy(self) -> str:
+        "Append energy log to `self`'s board and return appended log."
+        log = f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}"
+        self.commander.board.logs.append(log)
+        return log
     def add_energy(self, amount: int) -> int:
+        "Add `amount` energy to self while never going above `self.max_energy`."
         amount = min(amount, self.max_energy - self.energy)
         self.energy += amount
-        self.commander.board.logs.append(f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}")
+        self.log_energy()
         return amount # used by effect survey
     def haslost(self) -> bool:
         "Return True is this Player's CommanderCard is defeated, False otherwise."
@@ -1495,6 +1503,7 @@ class Player:
         if self.energy < self.hand[i].cost:
             return False
         self.energy -= self.hand[i].cost
+        self.log_energy()
         self.active[j] = ActiveCard(self.hand.pop(i), self, board)
         kwargs = {
             "player": self,
