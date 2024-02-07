@@ -36,10 +36,11 @@ class Numeric:
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
             case "energy": return EnergyCount(json["type"])
             case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
+            case "add": return AddNumeric(Numeric.from_json(json["a"]), Numeric.from_json(json["b"]))
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
             case "damagetaken": return DamageTaken()
-            case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
+            case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
 
@@ -136,6 +137,18 @@ class MultNumeric(Numeric):
     den: int
     def eval(self, **kwargs) -> int:
         return self.numeric.eval(**kwargs) * self.num // self.den
+    def __str__(self):
+        # TODO: make more verbal
+        return f"{self.num}({self.numeric})/{self.den}"
+@dataclass
+class AddNumeric(Numeric):
+    "Evaluate the addition of two numerics."
+    a: Numeric
+    b: Numeric
+    def eval(self, **kwargs) -> int:
+        return a.eval(**kwargs) + b.eval(**kwargs)
+    def __str__(self):
+        return f"{self.a} + {self.b}"
 
 @dataclass
 class FuncNumeric(Numeric):
