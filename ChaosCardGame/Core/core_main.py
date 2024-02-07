@@ -1298,7 +1298,9 @@ class ActiveCard:
 class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
-        return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
+        on_use = Attack.from_json(json["on_use"])
+        on_use.tags = (*on_use.tags, "spell")
+        return SpellCard(json["name"], id, Element.from_str(json["element"]), on_use)
     def use(self, target: ActiveCard):
         board = target.board
         sim = ActiveCard(
