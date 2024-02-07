@@ -431,6 +431,17 @@ Multiply evaluate numeric by rational.
 }
 ```
 
+### Addition
+a + b
+```js
+{
+ "type":"add",
+ "a":{/*...*/},
+ "b":{/*...*/}
+}
+```
+
+
 ### Current turn
 ```js
 {"type":"turn"}
