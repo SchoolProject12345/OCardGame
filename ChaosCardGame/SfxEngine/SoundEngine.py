@@ -17,6 +17,7 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
 
     pygame.mixer.music.load(sfx_path)
     pygame.mixer.music.set_volume(volume/100)
+    previous_volume = volume
 
     if action_type == "play":
         sfxchannel.play(sound)
@@ -33,11 +34,10 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
 
     if action_type == "break":
         pygame.mixer.music.stop()
-        pygame.mixer.Sound.stop()
+        sound.stop()
 
 # faut test
     if action_type == "mute_all":
-        previous_volume = volume
         sound.set_volume(0)
         pygame.mixer.music.set_volume(0)
 
