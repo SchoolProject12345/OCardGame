@@ -1188,7 +1188,7 @@ class ActiveCard:
         #= Gravitational Lensing - start =#
          # overrides everything
          # wait I just realized it redirects 65535-damage attacks.
-         # "Feature not bug"
+         # "Feature not bug"
         if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#

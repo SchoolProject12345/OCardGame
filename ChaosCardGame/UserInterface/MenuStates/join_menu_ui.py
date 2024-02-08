@@ -1,5 +1,6 @@
 import os
 import pygame
+import Network.server as server
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
@@ -50,8 +51,11 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.change_state("LobbyMenu")
             self.join_username = self.joinmenu_tb_username.text
+            self.ipaddress = self.tb_ipaddress.text
+            self.change_state("LobbyMenu")
+            server.join(self.join_username, self.ipaddress)
+
         if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
