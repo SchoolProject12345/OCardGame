@@ -13,7 +13,7 @@ class CreditsMenu(State):
             topleft=(0, 0))
 
         self.button = ImageButton(self.screen, True, image=alpha_converter(MenuButtons.exit_button_image),
-                                  position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))
+            position_type="center", position=(SCREEN_CENTER[0], 653))
 
     def credits_menu(self):
         self.screen.blit(self.bg_credits_menu_image, self.bg_credits_menu_rect)

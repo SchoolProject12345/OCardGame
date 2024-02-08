@@ -40,13 +40,13 @@ class GameMenu(State):
             MenuButtons.deck_button_image), position_type="topleft", position=(824, 706))
 
         self.player_health_bar = DualBarVerti(self.screen, position=(566, 706), position_type="topleft", width=96, height=52,
-                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
+                                            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
         self.player_energy_bar = DualBarVerti(self.screen, position=(683, 706), position_type="topleft", width=96, height=52,
-                                              color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.player_max_energy)
+                                            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.player_max_energy)
         self.enemy_health_bar = DualBarVerti(self.screen, position=(566, 0), position_type="topleft", width=96, height=52,
-                                             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
+                                            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(255, 122, 122), max_value=600)
         self.enemy_energy_bar = DualBarVerti(self.screen, position=(683, 0), position_type="topleft", width=96, height=52,
-                                             color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.enemy_max_energy)
+                                            color_bg=pygame.color.Color(220, 220, 220), color_fg=pygame.color.Color(122, 215, 255), max_value=self.enemy_max_energy)
 
         self.player_health_bar_text = TextBox(self.screen, (566, 706), 96, 52, pygame.font.Font(
             self.ger_font_path, 30), (101, 101, 101), position_type="topleft", text_center="center", text="")
@@ -121,6 +121,8 @@ class GameMenu(State):
         self.deck_button.render()
         if self.deck_button.answer():
             self.is_decked_toggle()
+            self.is_handed = False
+            self.is_paused = False
         if self.is_decked:
             self.screen.blit(self.bg_deck_menu_image, self.bg_deck_menu_rect)
             self.deckback_button.render()
@@ -130,6 +132,8 @@ class GameMenu(State):
         self.hand_button.render()
         if self.hand_button.answer():
             self.is_handed_toggle()
+            self.is_decked = False
+            self.is_paused = False
         if self.is_handed:
             self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
             self.handback_button.render()
@@ -138,6 +142,8 @@ class GameMenu(State):
 
         if self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.is_paused_toggle()
+            self.is_handed = False
+            self.is_decked = False
 
         if self.is_paused:
             self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)

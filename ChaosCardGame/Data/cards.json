@@ -334,11 +334,11 @@
    "power":60
   }],
    "passives":[{
-     "name":"Horn Shield"
+     "name":"Horn Shield",
      "trigger":"whenattacked",
      "effect":{
        "type":"damage",
-       "amount":20,
+       "amount":20
      }
    }]
  },
@@ -446,8 +446,23 @@
    {
     "name": "Horn Cure",
     "effect": {
-     "type": "cleanse",
-     "by_tags":["+"]
+     "type":"union",
+      "effect1":{
+       "type":"target_change",
+       "new_target":"allies",
+       "effect":{
+        "type": "cleanse",
+        "by_tags":["-", "+-"]
+       }
+      },
+      "effect2":{
+       "type":"target_change",
+       "new_target":"allycommander",
+       "effect":{
+        "type": "cleanse",
+        "by_tags":["-", "+-"]
+       }
+      }
     },
     "trigger": "whenplaced"
    }
@@ -458,7 +473,13 @@
     "name": "Horn Drill",
     "cost": 2,
     "target_mode": "target",
-    "power": 110
+    "power": 110,
+    "effect":{
+      "type":"if",
+      "value":{"type":"sum","sample":{"type":"HPs", "target_mode":"target"}},
+      "cond":1,
+      "else":{"type":"add_energy","energy":1}
+    }
    }
   ]
  },
@@ -479,7 +500,8 @@
     "name": "Deep Sea Power",
     "effect": {
      "type": "if",
-     "value":{"type":"mul","num":1,"den":12,"times":{"type":"turn"}},
+     "value":{"type":"turn"},
+     "cond":12,
      "effect":{
       "type":"changeforme",
       "new_forme":{
@@ -632,7 +654,22 @@
   "element": "Chaos",
   "cost": 1,
   "hp": 110,
-  "type": "creature"
+  "type": "creature",
+  "attacks":[{
+    "name":"Corruption Bite",
+    "cost":2,
+    "power":0,
+    "target_mode":"target",
+    "effect":{
+      "type":"damage",
+      "amount":{
+       "type":"mul",
+       "times":{"type":"sum","sample":{"type":"HPs","target_mode":"target"}},
+       "num":1,
+       "den":2
+      }
+    }
+  }]
  },
  {
   "name": "Large Fireball",
@@ -671,7 +708,7 @@
     "name": "Crystal Energy",
     "effect": {
      "type": "add_energy",
-     "max_energy":2,
+     "max_energy":2
     },
     "trigger": "whenplaced"
    }
@@ -766,7 +803,32 @@
   "element":"chaos",
   "cost":1,
   "hp":120,
-  "type":"creature"
+  "type":"creature",
+  "passives":[{
+    "name":"Constant Torment",
+    "trigger":"endofturn",
+    "effect":{
+      "type":"target_change",
+      "new_target":"foes",
+      "effect":{"type":"damage","amount":10}
+    }
+  }],
+  "attacks":[{
+    "name":"Sword plant",
+    "cost":4,
+    "power":45,
+    "target_mode":"target",
+    "effect":{
+      "type":"if",
+      "value":{"type":"sum","sample":{"type":"HPs", "target_mode":"target"}},
+      "cond":1,
+      "else":{
+        "type":"boardresize",
+        "target":"unactive",
+        "delta":-1
+       }
+  }
+ }]
  },
  {
   "name":"The Thousand-Toothed",
@@ -919,7 +981,7 @@
    }
   }],
   "passives":[{
-    "name":"Empirs thougness"
+    "name":"Empirs thougness",
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]

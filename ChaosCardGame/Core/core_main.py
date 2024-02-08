@@ -36,10 +36,11 @@ class Numeric:
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
             case "energy": return EnergyCount(json["type"])
             case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
+            case "add": return AddNumeric(Numeric.from_json(json["a"]), Numeric.from_json(json["b"]))
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
             case "damagetaken": return DamageTaken()
-            case _: return warn("Wrong Numeric type in json.") and RawNumeric(0)
+            case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
 
@@ -136,6 +137,18 @@ class MultNumeric(Numeric):
     den: int
     def eval(self, **kwargs) -> int:
         return self.numeric.eval(**kwargs) * self.num // self.den
+    def __str__(self):
+        # TODO: make more verbal
+        return f"{self.num}({self.numeric})/{self.den}"
+@dataclass
+class AddNumeric(Numeric):
+    "Evaluate the addition of two numerics."
+    a: Numeric
+    b: Numeric
+    def eval(self, **kwargs) -> int:
+        return a.eval(**kwargs) + b.eval(**kwargs)
+    def __str__(self):
+        return f"{self.a} + {self.b}"
 
 @dataclass
 class FuncNumeric(Numeric):
@@ -184,6 +197,29 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
     COMMANDERS.update({cleanstr(card["name"]): CreatureCard.from_json(
         card, (id := id + 1)) for card in json})
     return COMMANDERS
+
+def format_name_ui(name: str, element: int = 0):
+    "From an element and a name, give the formated name to allow easy asset access."
+    match core.Element(element):
+        case core.Element.elementless:
+            pre = ""
+        case core.Element.fire:
+            pre = "fire_"
+        case core.Element.water:
+            pre = "wtr_"
+        case core.Element.air:
+            pre = "air_"
+        case core.Element.chaos:
+            pre = "cha_"
+        case core.Element.earth:
+            pre = "ert_"
+    m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
+    if m is None:
+        core.warn(f'"{name}"\'s name is terribly wrong.')
+        name = core.cleanstr(name)
+    else:
+        name = core.cleanstr(m[2])
+    return pre + name
 
 class Element(IntEnum):
     # used instead of None as a placeholder (for type-safeness) or for elementless card types for flexibility when using Element.effectiveness
@@ -488,7 +524,7 @@ class IfEffect(AbstractEffect):
     def from_json(json: dict):
         return IfEffect(AbstractEffect.from_json(json["effect"]), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
-        return f"{self.effect} if {self.value} is non-zero."
+        return f"{self.effect} if {self.value} is greater or equal to {self.cond}"
 
 @dataclass
 class DamageRedirect(AbstractEffect):
@@ -1008,6 +1044,10 @@ class AbstractCard:
         return type(self)(**vars(self))
     # in case we can't know if the card is a Creature or not, it avoids a crash.
     def iscommander(self) -> bool: return False
+    @property # why does this even exist?
+    def ui_id(self) -> str:
+        "Formatted name of the card, used by the UI."
+        return format_name_ui(self.name, self.element)
 
 @dataclass
 class CreatureCard(AbstractCard):
@@ -1163,9 +1203,10 @@ class ActiveCard:
         if "ultimate" in attack.tags:
             self.owner.commander_charges -= attack.cost
         else:
-            self.owner.energy -= attack.cost
+            self.owner.add_energy(-attack.cost)
             self.owner.commander_charges += kwargs["survey"].damage
-            self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
+        # logged in both cases
+        self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             card.defeatedby(self)
@@ -1413,10 +1454,19 @@ class Player:
             self.commander.board.arena.has_effect(Arena.watorvarg), 1, 0) - len(self.hand))]
         self.hand.extend(new)
         return new  # to display drawing(s) on the GUI?
+    def log_energy(self) -> str:
+        "Append energy log to `self`'s board and return appended log."
+        log = f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}"
+        self.commander.board.logs.append(log)
+        return log
     def add_energy(self, amount: int) -> int:
-        amount = min(amount, self.max_energy - self.energy)
+        "Add `amount` energy to self while never going above `self.max_energy` nor below 0."
+        if amount < 0:
+            amount = max(amount, -self.energy)
+        else:
+            amount = min(amount, self.max_energy - self.energy)
         self.energy += amount
-        self.commander.board.logs.append(f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}")
+        self.log_energy()
         return amount # used by effect survey
     def haslost(self) -> bool:
         "Return True is this Player's CommanderCard is defeated, False otherwise."
@@ -1467,7 +1517,7 @@ class Player:
             return False
         if self.energy < self.hand[i].cost:
             return False
-        self.energy -= self.hand[i].cost
+        self.add_energy(-self.hand[i].cost)
         self.active[j] = ActiveCard(self.hand.pop(i), self, board)
         kwargs = {
             "player": self,

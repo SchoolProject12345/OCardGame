@@ -305,22 +305,32 @@ Summon a creature card on the user's owner's board if possible
 }
 ```
 Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commanders. It wouldn't work anyway.
-```
+```js
 {"type":"hypnotize"} // yeah that's it, no fields.
 ```
 Change the target's own card to `new_forme`. Please note that when the card is discarded, only the new forme will be avaible to redraw, so one might want to add a passive with trigger "whenplaced" to revert to the base forme. Cost of the `new_forme` is also necessary for this same reason.
-```
+```js
 {
  "type":"changeforme",
  "new_forme":{/*creature card object*/}
 }
 ```
 Taunt the targets to a random target from the `new_targets` distribution for `duration` (set to -1 or 65535 for infinite taunt). A taunted creature's target automatically changed to its taunter whenever it attacks. `duration` is in number of attacks rather than number of turns.
-```
+```js
 {
  "type":"taunt",
  "new_targets":"{TargetMode string}",
  "duration":1
+}
+```
+
+### Board Resize
+Change the number of slots available by `"target"` (either `"active"` or `"unactive"` player) by `"delta"`, but never goes below 0 (in case `"delta"` is negative) nor remove a creature to remove a slot (if board is full, no slot can be removed).
+```js
+{
+ "type":"boardresize",
+ "target":"unactive", // defaults to "unactive"
+ "delta":-1
 }
 ```
 
@@ -415,11 +425,22 @@ Multiply evaluate numeric by rational.
 ```js
 {
  "type":"mul",
- "numeric":{/*numeric expr*/},
+ "times":{/*numeric expr*/},
  "num":2,
  "den":1
 }
 ```
+
+### Addition
+a + b
+```js
+{
+ "type":"add",
+ "a":{/*...*/},
+ "b":{/*...*/}
+}
+```
+
 
 ### Current turn
 ```js

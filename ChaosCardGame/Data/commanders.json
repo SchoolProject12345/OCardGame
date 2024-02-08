@@ -6,6 +6,29 @@
  "element":"air",
  "commander":true,
  "cost":0
+ "attacks":[{
+  "name":"Odin's Terror Tornado",
+  "cost":250,
+  "target_mode":"target",
+  "power":0,
+  "tag":"ultimate",
+  "effect":{"type":"boardresize","target":"unactive","delta":-1}
+ }],
+ "passives":[{
+  "name":"Electric scales",
+  "trigger":"whendamaged",
+  "effect":{
+   "type":"target_change",
+   "new_target":"foes",
+   "effect":{
+    "type":"damage",
+    "amount":{"type":"damage_taken",
+     "num":1,
+     "den":10,
+    }
+   }
+  }
+ }]
 },
 {
  "name":"Vafisorg",
