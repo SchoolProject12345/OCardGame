@@ -681,10 +681,10 @@
   "name": "Large Fireball",
   "element": "fire",
   "on_use": {
-   "name": "Throw",
+   "name": "Fireball",
    "cost": 2,
    "target_mode": "target",
-   "power": 80
+   "power":0,
   },
   "type": "spell"
  },
@@ -1189,5 +1189,108 @@
     "power": 50
    }
   ]
+ }
+ {
+   "type":"spell",
+   "name":"Freeze Spell",
+   "element":"water",
+   "on_use":{
+     "name":"Freeze",
+     "cost":2,
+     "power":30,
+     "target_mode":"target",
+     "effect":{
+       "type":"state_change",
+       "new_state":"block",
+       "for":3
+     }
+   }
+ }
+ {
+   "type":"spell",
+   "name":"Black Hole spell",
+   "element":"chaos",
+   "on_use":{
+     "name":"black hole",
+     "cost":1,
+     "power":20,
+     "target_mode":"foes",
+     "effect":{
+       "type":"cleanse",
+       "by_tags":["+"]
+     }
+   }
+ }
+ {
+   "type":"spell",
+   "name":"Empowering Medicine",
+   "element":"earh",
+   "on_use":{
+     "name":"medicine",
+     "cost":1,
+     "power":0,
+     "target_mode":"allies",
+     "effect":{"type":"null"}
+   }
+ }
+ {
+   "type":"spell",
+   "name":"Smokeball",
+   "element":"fire",
+   "on_use":{
+     "name":"ball",
+     "cost":2,
+     "power":0,
+     "target_mode":"foes",
+     "effect":{"type":"null"}
+  }
+ }
+ {
+   "type":"spell",
+   "name":"Deep Sea",
+   "element":"water",
+   "on_use":{
+     "name":"Sea",
+     "cost":1,
+     "power":0,
+     "target_mode":"allies",
+     "effect":{"type":"null"}
+   } 
+ }
+ {
+   "type":"spell",
+   "name":"Corruption Spell",
+   "element":"chaos",
+   "on_use":{
+     "name":"Corruption",
+     "cost":3,
+     "power":0,
+     "target_mode":"target",
+     "effect":{"type":"null"}
+  }
+ }
+ {
+   "type":"spell",
+   "name":"Tornado Spell",
+   "element":"air",
+   "on_use":{
+     "name":"tornad",
+     "cost":2,
+     "power":0,
+     "target_mode":"target",
+     "effect":{"type":"null"}
+    }
+ }
+ {
+   "type":"spell",
+   "name":"Potion of Regeneration",
+   "element":"earth",
+   "on_use":{
+     "name":"pr",
+     "cost":2,
+     "power":0,
+     "target_mode":"foes",
+     "effect":{"type":"null"}
+    }
  }
 ]
