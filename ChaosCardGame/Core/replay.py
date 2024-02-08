@@ -27,6 +27,8 @@ class ReplayHandler:
          "isactive":not (self.isp1() ^ (self.state["activep"] == "p1")),
          "arena":self.state["arena"]
         }
+        state["remote"]["commander"] = format_active_ui(state["remote"]["commander"])
+        state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
         state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
@@ -126,6 +128,7 @@ class ReplayHandler:
         head, *args = log.split('|')
         match head:
             case "player":
+                print(log)
                 ind = args[0]
                 self.state[ind]["name"] = args[1]
                 self.state[ind]["commander"]["name"] = args[2]
