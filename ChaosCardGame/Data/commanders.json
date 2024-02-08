@@ -117,6 +117,19 @@
  "element":"water",
  "commander":true,
  "cost":0,
+ "attacks":[
+  {
+   "name":"Niflheim Nova",
+   "cost":250,
+   "power":100,
+   "target_mode":"target",
+   "effect":{
+    "type":"state_change",
+    "new_state":"blocked",
+    "for":5
+   }
+  }
+ ],
  "passives":[
   {
    "name":"Never-Ending Fleet",
@@ -131,13 +144,10 @@
      "cost":1,
      "attacks":[
       {
-       "name":"Niflheim Nova",
-       "cost":250,
-       "power":100,
+       "name":"Cannon Shot",
+       "cost":1,
+       "power":35,
        "target_mode":"target",
-       "type":"state_change",
-       "new_state":"blocked",
-       "for":5
       }
      ]
     }
