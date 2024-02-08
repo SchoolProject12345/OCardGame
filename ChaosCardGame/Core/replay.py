@@ -11,7 +11,7 @@ class ReplayHandler:
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = True
-    def isp1(self): return self.state["pov"] == "p1"
+    def isp1(self): return self.state["pov"] == "p1" # POV can be used to change replay POV
     def get_state(self):
         """
         Return `self`'s state as a dict (see `./Core/log.doc.md`).\n
@@ -21,8 +21,8 @@ class ReplayHandler:
         even after a shallow copy.
         """
         state = {
-         "remote":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]).copy(),
-         "local":core.ifelse(self.isp1(), self.state["p2"], self.state["p1"]).copy(),
+         "remote":core.ifelse(self.isp1(), self.state["p2"], self.state["p1"]).copy(),
+         "local":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]).copy(),
          "turn":self.state["turn"],
          "isactive":not (self.isp1() ^ (self.state["activep"] == "p1")),
          "arena":self.state["arena"]
@@ -31,10 +31,10 @@ class ReplayHandler:
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [core.format_name_ui(card) for card in state[ "local"]["hand"]]
-        state["remote"]["discard"] = [core.format_name_ui(card) for card in state["remote"]["discard"]]
-        state[ "local"]["discard"] = [core.format_name_ui(card) for card in state[ "local"]["discard"]]
+        state["remote"]["hand"]  = [core.format_name_ui(card, card["element"]) for card in state["remote"]["hand"]]
+        state[ "local"]["hand"]  = [core.format_name_ui(card, card["element"]) for card in state[ "local"]["hand"]]
+        state["remote"]["discard"] = [core.format_name_ui(card, card["element"]) for card in state["remote"]["discard"]]
+        state[ "local"]["discard"] = [core.format_name_ui(card, card["element"]) for card in state[ "local"]["discard"]]
         return state
     def get_replay(self):
         replay = ""
