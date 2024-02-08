@@ -5,6 +5,7 @@ from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
+import re
 
 class Constants:  # to change variables quickly, easily and buglessly.
     # Client settings (DEV() is through function)
@@ -146,7 +147,7 @@ class AddNumeric(Numeric):
     a: Numeric
     b: Numeric
     def eval(self, **kwargs) -> int:
-        return a.eval(**kwargs) + b.eval(**kwargs)
+        return self.a.eval(**kwargs) + self.b.eval(**kwargs)
     def __str__(self):
         return f"{self.a} + {self.b}"
 
@@ -200,25 +201,25 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
 
 def format_name_ui(name: str, element: int = 0):
     "From an element and a name, give the formated name to allow easy asset access."
-    match core.Element(element):
-        case core.Element.elementless:
+    match Element(element):
+        case Element.elementless:
             pre = ""
-        case core.Element.fire:
+        case Element.fire:
             pre = "fire_"
-        case core.Element.water:
+        case Element.water:
             pre = "wtr_"
-        case core.Element.air:
+        case Element.air:
             pre = "air_"
-        case core.Element.chaos:
+        case Element.chaos:
             pre = "cha_"
-        case core.Element.earth:
+        case Element.earth:
             pre = "ert_"
     m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
     if m is None:
-        core.warn(f'"{name}"\'s name is terribly wrong.')
-        name = core.cleanstr(name)
+        warn(f'"{name}"\'s name is terribly wrong.')
+        name = cleanstr(name)
     else:
-        name = core.cleanstr(m[2])
+        name = cleanstr(m[2])
     return pre + name
 
 class Element(IntEnum):
@@ -842,7 +843,7 @@ class BoardResize(AbstractEffect):
     delta: int
     target: str
     def execute(self, **kwargs):
-        match target:
+        match self.target:
             case "active": player = kwargs["board"].active_player
             case "unactive": player = kwargs["board"].unactive_player
             case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
@@ -1012,9 +1013,9 @@ class Attack:
         if "spell" in self.tags:
             log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
         else:
-            log = f"attack|{kwargs['user'].namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
+            log = f"attack|{kwargs['user'].namecode()}|{self.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
         kwargs["board"].logs.append(log)
-        return kwatgs["survey"]
+        return kwargs["survey"]
     def __str__(self) -> str:
         "Return a verbal representation of self."
         s = f"{self.name} (cost:{str(self.cost)}"
@@ -1188,7 +1189,7 @@ class ActiveCard:
         #= Gravitational Lensing - start =#
          # overrides everything
          # wait I just realized it redirects 65535-damage attacks.
-         # "Feature not bug"
+         # "Feature not bug"
         if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
