@@ -92,8 +92,6 @@ class MainMenu(State):
         elif self.starttutorial_button.answer():
             self.change_state("TutorialMenu")
             sound_handle("TutorialSpeech1", sfx_channel=7)
-            # je suis oblige de mettre ca ici, sinon si je met dans le file tuto menu ca loop a linfini et ca earrape
-            # cest chelou, cest que avec celui ci que ca fait ca mais bon c marche
         elif self.viewlore_button.answer():
             self.change_state("LoreMenu")
         self.exit_button.answer()
