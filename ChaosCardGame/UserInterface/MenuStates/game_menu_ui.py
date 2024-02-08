@@ -159,7 +159,7 @@ class GameMenu(State):
                 self.revert_state(2)
 
     def state_manager_hook(self, app):
-        if len(State.state_tree) >= 5:
+        if len(State.state_tree) >= 6:
             raise ValueError("Bro what?")
-        elif State.state_tree[3] == self.local_options[0]:
+        elif State.state_tree[4] == self.local_options[0]:
             self.game_menu()

@@ -5,6 +5,7 @@ from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
 import numpy as np  # for gcd for Kratos card
 import os
+import re
 
 class Constants:  # to change variables quickly, easily and buglessly.
     # Client settings (DEV() is through function)
@@ -146,7 +147,7 @@ class AddNumeric(Numeric):
     a: Numeric
     b: Numeric
     def eval(self, **kwargs) -> int:
-        return a.eval(**kwargs) + b.eval(**kwargs)
+        return self.a.eval(**kwargs) + self.b.eval(**kwargs)
     def __str__(self):
         return f"{self.a} + {self.b}"
 
@@ -200,25 +201,25 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
 
 def format_name_ui(name: str, element: int = 0):
     "From an element and a name, give the formated name to allow easy asset access."
-    match core.Element(element):
-        case core.Element.elementless:
+    match Element(element):
+        case Element.elementless:
             pre = ""
-        case core.Element.fire:
+        case Element.fire:
             pre = "fire_"
-        case core.Element.water:
+        case Element.water:
             pre = "wtr_"
-        case core.Element.air:
+        case Element.air:
             pre = "air_"
-        case core.Element.chaos:
+        case Element.chaos:
             pre = "cha_"
-        case core.Element.earth:
+        case Element.earth:
             pre = "ert_"
     m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
     if m is None:
-        core.warn(f'"{name}"\'s name is terribly wrong.')
-        name = core.cleanstr(name)
+        warn(f'"{name}"\'s name is terribly wrong.')
+        name = cleanstr(name)
     else:
-        name = core.cleanstr(m[2])
+        name = cleanstr(m[2])
     return pre + name
 
 class Element(IntEnum):
@@ -842,7 +843,7 @@ class BoardResize(AbstractEffect):
     delta: int
     target: str
     def execute(self, **kwargs):
-        match target:
+        match self.target:
             case "active": player = kwargs["board"].active_player
             case "unactive": player = kwargs["board"].unactive_player
             case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
@@ -1008,6 +1009,13 @@ class Attack:
         if "tag" in json:
             attack.tags = (*attack.tags, json["tag"])
         return attack
+    def log(self, **kwargs):
+        if "spell" in self.tags:
+            log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
+        else:
+            log = f"attack|{kwargs['user'].namecode()}|{self.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
+        kwargs["board"].logs.append(log)
+        return kwargs["survey"]
     def __str__(self) -> str:
         "Return a verbal representation of self."
         s = f"{self.name} (cost:{str(self.cost)}"
@@ -1146,9 +1154,12 @@ class ActiveCard:
     def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
+        getorset(kwargs, "user", self)
+        getorset(kwargs, "main_target", target)
+        getorset(kwargs, "board", self.board)
         if self.board.active_player != self.owner:
             kwargs["survey"].return_code = ReturnCode.wrong_turn
-            return kwargs["survey"]  # doesn't act if it can't
+            return kwargs["survey"] # doesn't act if it can't
         if (not self.can_attack() and not "ultimate" in attack.tags) or target.state in [State.invisible, State.damageless]:
             kwargs["survey"].return_code = ReturnCode.cant
             return kwargs["survey"]
@@ -1159,11 +1170,8 @@ class ActiveCard:
             kwargs["survey"].return_code = ReturnCode.no_energy
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
-        getorset(kwargs, "board", self.board)
-        getorset(kwargs, "main_target", target)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "damage_mode", ifelse(self.state == State.monotonous, DamageMode.ignore_se, DamageMode.direct))
-        getorset(kwargs, "user", self)
         if self.taunt is not None:
             if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
@@ -1178,14 +1186,17 @@ class ActiveCard:
             else:
                 kwargs["target_mode"] = TargetMode.target
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
-        # Gravitational Lensing - start
-        # overrides everything
+        #= Gravitational Lensing - start =#
+         # overrides everything
+         # wait I just realized it redirects 65535-damage attacks.
+         # "Feature not bug"
         if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
-        # Gravitational Lensing - end
+        #= Gravitational Lensing - end =#
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
             kwargs["survey"].return_code = ReturnCode.no_target
             return kwargs["survey"]
+        attack.log(**kwargs) # log before damages.
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
             for passive in card.card.passives:
@@ -1194,8 +1205,7 @@ class ActiveCard:
                 passive.execute(**kwargs)
         if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
             kwargs["survey"].return_code = ReturnCode.failed
-            if cleanstr(attack.name) != "splishsplosh":
-                return kwargs["survey"]
+            return kwargs["survey"]
         for passive in self.card.passives:
             if passive.trigger != PassiveTrigger.whenattack:
                 continue
@@ -1209,12 +1219,9 @@ class ActiveCard:
         self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
+            # nah actually that's a feature.
             card.defeatedby(self)
         self.attacked = True
-        if "spell" in self.card.tags:
-            self.board.logs.append(f"spell|{self.card.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
-        else:
-            self.board.logs.append(f"attack|{self.namecode()}|{attack.name}|{kwargs['main_target'].namecode()}|{attack.target_mode.value}|{kwargs['survey'].return_code.value}")
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -1311,7 +1318,9 @@ class ActiveCard:
 class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
-        return SpellCard(json["name"], id, Element.from_str(json["element"]), Attack.from_json(json["on_use"]))
+        on_use = Attack.from_json(json["on_use"])
+        on_use.tags = (*on_use.tags, "spell")
+        return SpellCard(json["name"], id, Element.from_str(json["element"]), on_use)
     def use(self, target: ActiveCard):
         board = target.board
         sim = ActiveCard(
