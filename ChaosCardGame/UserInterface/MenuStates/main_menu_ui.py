@@ -94,6 +94,7 @@ class MainMenu(State):
             sound_handle("TutorialSpeech1", sfx_channel=7)
         elif self.viewlore_button.answer():
             self.change_state("LoreMenu")
+            sound_handle("LoreSpeech1", sfx_channel=7)
         self.exit_button.answer()
 
     def state_manager_hook(self,app):

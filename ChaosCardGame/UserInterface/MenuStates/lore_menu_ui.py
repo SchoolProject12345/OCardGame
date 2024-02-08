@@ -1,4 +1,5 @@
 import pygame
+from SfxEngine.SoundEngine import sound_handle
 from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
 from UserInterface.OcgVision.vision_io import KeyRel
@@ -56,6 +57,8 @@ class LoreMenu(State):
                 self.revert_state()
             elif self.lore_index < 11:
                 self.lore_index += 1
+                sound_handle(f"LoreSpeech{self.lore_index + 1}", sfx_channel= 7)
+
 
         
 
