@@ -271,7 +271,7 @@ class ClientHandler(ReplayHandler):
             if len(args) < 2:
                 devlog("Missing message in `chat` request.")
                 return False
-            action = f"chat|{self.get_state()['client']['name']}|{args[1]}"
+            action = f"chat|{self.get_state()['local']['name']}|{args[1]}"
         self.sendblock(action.encode(), max_wait=300_000_000).sync()
         return True
     def get_required_charges(commander: str):
