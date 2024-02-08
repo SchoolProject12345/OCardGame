@@ -52,8 +52,8 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.join_username = self.joinmenu_tb_username.text
-            self.ipaddress = self.tb_ipaddress.text
+            self.join_username = self.joinmenu_tb_username.text # IMPLEMENTED INVALID USERNAME
+            self.ipaddress = self.tb_ipaddress.text # IMPLEMENTED INVALID IP ADDRESS
             self.change_state("LobbyMenu")
             net.threading.Thread(target=server.join, args=(self.join_username, self.ipaddress), daemon=True).start()
 

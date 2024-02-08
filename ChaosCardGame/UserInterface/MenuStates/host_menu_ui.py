@@ -52,8 +52,8 @@ class HostMenu(State):
         self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            self.roomname = self.tb_roomname.text
-            self.host_username = self.hostmenu_tb_username.text
+            self.roomname = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
+            self.host_username = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             self.change_state("LobbyMenu")
             net.threading.Thread(target=server.host, args=(self.host_username, self.ipaddress), daemon=True).start()
 
