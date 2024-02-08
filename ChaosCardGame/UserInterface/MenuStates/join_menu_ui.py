@@ -2,6 +2,7 @@ import os
 import pygame
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
+from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox, State
 from UserInterface.ui_settings import SCREEN_CENTER
@@ -12,7 +13,7 @@ class JoinMenu(State):
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
         self.is_anchor = False
-        self.local_options = ["JoinMenu", "GameMenu"]
+        self.local_options = ["JoinMenu", "LobbyMenu"]
         super().__init__(screen, self.is_anchor, self.local_options)
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
@@ -49,14 +50,14 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.change_state("GameMenu")  # Needs fixing
-            self.player_username = self.joinmenu_tb_username.text
+            self.change_state("LobbyMenu")
+            self.join_username = self.joinmenu_tb_username.text
         if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state(1)
 
     def state_manager_hook(self,app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:
-                app.menu_instances["game_menu"].state_manager(app)
+                app.menu_instances["lobby_menu"].state_manager(app)
         elif State.state_tree[2] == self.local_options[0]:
             self.join_menu()

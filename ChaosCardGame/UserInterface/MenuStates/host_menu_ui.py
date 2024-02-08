@@ -12,7 +12,7 @@ class HostMenu(State):
     def __init__(self, screen):
         self.screen = screen
         self.is_anchor = False
-        self.local_options = ["HostMenu", "GameMenu"]
+        self.local_options = ["HostMenu", "LobbyMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
@@ -49,14 +49,14 @@ class HostMenu(State):
 
         if self.hostmenu_host_button.answer():
             self.roomname = self.tb_roomname.text
-            self.player_username = self.hostmenu_tb_username.text
-            self.change_state("GameMenu")
+            self.host_username = self.hostmenu_tb_username.text
+            self.change_state("LobbyMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:
-                app.menu_instances["game_menu"].state_manager(app)
+                app.menu_instances["lobby_menu"].state_manager(app)
         elif State.state_tree[2] == self.local_options[0]:
             self.host_menu()

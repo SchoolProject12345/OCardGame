@@ -9,6 +9,7 @@ from UserInterface.MenuStates.main_menu_ui import MainMenu
 from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from UserInterface.MenuStates.join_menu_ui import JoinMenu
 from UserInterface.MenuStates.host_menu_ui import HostMenu
+from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
@@ -48,6 +49,7 @@ class OcgGame:
             'tutorial_menu': TutorialMenu(self.screen),
             'host_menu': HostMenu(self.screen),
             'join_menu': JoinMenu(self.screen),
+            'lobby_menu': LobbyMenu(self.screen),
             'game_menu': GameMenu(self.screen)
         }
 

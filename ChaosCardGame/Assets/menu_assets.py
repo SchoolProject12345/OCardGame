@@ -186,9 +186,6 @@ class MenuBackgrounds:
     bg_hand_menu_path = bg_dir + "hand_menu_empty.png"
     bg_hand_menu_image = pygame.image.load(bg_hand_menu_path)
 
-    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
-    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
-
     # Tutorial
     bg_tutorial1_path = bg_dir + "tutorial1_empty.png"
     bg_tutorial1_image = pygame.image.load(bg_tutorial1_path)
@@ -253,6 +250,24 @@ class MenuBackgrounds:
 
     bg_lore12_path = bg_dir + "lore_12_empty.png"
     bg_lore12_image = pygame.image.load(bg_lore12_path)
+
+    # Lobby
+    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
+    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
+
+    bg_ert_lobby_path = bg_dir + "ert_lobby_empty.png"
+    bg_ert_lobby_image = pygame.image.load(bg_ert_lobby_path)
+
+    bg_fire_lobby_path = bg_dir + "fire_lobby_empty.png"
+    bg_fire_lobby_image = pygame.image.load(bg_fire_lobby_path)
+
+    bg_wtr_lobby_path = bg_dir + "wtr_lobby_empty.png"
+    bg_wtr_lobby_image = pygame.image.load(bg_wtr_lobby_path)
+
+    bg_cha_lobby_path = bg_dir + "cha_lobby_empty.png"
+    bg_cha_lobby_image = pygame.image.load(bg_cha_lobby_path)
+
+    bg_lobby_images = [bg_air_lobby_image, bg_ert_lobby_image, bg_wtr_lobby_image, bg_fire_lobby_image, bg_cha_lobby_image]
 
 
 @dataclass
@@ -338,6 +353,18 @@ class MenuButtons:
     # View Lore
     viewlore_button_path = button_dir + "ViewLore"
     viewlore_button_image = transform_button_files(viewlore_button_path)
+
+    # Ready
+    ready_button_path = button_dir + "Ready"
+    ready_button_image = transform_button_files(ready_button_path)
+
+    # Mute
+    mute_button_path = button_dir + "Mute"
+    mute_button_image = transform_button_files(mute_button_path)
+
+    # Unmute
+    unmute_button_path = button_dir + "Unmute"
+    unmute_button_image = transform_button_files(unmute_button_path)
 
 
 @dataclass
