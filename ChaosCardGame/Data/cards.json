@@ -317,13 +317,14 @@
      "type": "damage",
       "effect1":{
         "amount": 25,
-        "target_mode":"foes",
-      }
+        "target_mode":"foes"
+      },
       "effect2":{
         "amount": 66,
-        "target_mode":"commander",
+        "target_mode":"commander"
     }
    }
+  }
   ]
  },
  {
