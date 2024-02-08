@@ -18,9 +18,7 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
     previous_volume = volume
 
 
-    if action_type == "play" and loop == False:
-        sfxchannel.play(sound)
-    elif action_type == "play" and loop == True:
+    if action_type == "play":
         sfxchannel.play(sound, loops=-1 if loop else 0)
 
     if action_type == "stop":

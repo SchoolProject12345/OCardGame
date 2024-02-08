@@ -23,6 +23,7 @@ class MainMenu(State):
             topleft=(0, 0))
 
         self.quit_event = pygame.event.Event(pygame.QUIT)
+        sound_handle("MenuMusic", "play", 100, 2, True)
 
 
         # Buttons
