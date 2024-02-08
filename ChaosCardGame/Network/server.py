@@ -4,7 +4,7 @@ from Core.replay import * # includes core
 import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
-core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
+core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "debug"] # debug prints gamestate.
 core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 core.Constants.progressbar_sytle = 1
@@ -520,6 +520,8 @@ Other indices are regular integer, starting from 0.
         return
     if action == "showboard":
         return handle.sync().showboard() # that's not clientside then
+    if action == "debug":
+        return print("\n\033[1m# Game State\033[0m\n", handle.state, "\n\n\033[1m# UI Formatted\033[0m\n", handle.get_state(), "\n", sep="")
     devlog("Unrecognized action.")
 
 def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *args: str, source: bool) -> bool:
