@@ -318,12 +318,10 @@
       "effect1":{
         "amount": 25,
         "target_mode":"foes",
-        "damage_mode":"{DamageMode string}"
       }
       "effect2":{
         "amount": 66,
         "target_mode":"commander",
-        "damage_mode":"{DamageMode string}"
     }
    }
   ]
