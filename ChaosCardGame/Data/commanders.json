@@ -131,11 +131,13 @@
      "cost":1,
      "attacks":[
       {
-       "name":"Cannon Shot",
-       "cost":1,
-       "power":35,
+       "name":"Niflheim Nova",
+       "cost":250,
+       "power":100,
        "target_mode":"target",
-       "effect":{"type":"null"}
+       "type":"state_change",
+       "new_state":"blocked",
+       "for":5
       }
      ]
     }
