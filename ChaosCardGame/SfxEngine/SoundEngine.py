@@ -26,7 +26,7 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:i
 
 # faut test
 # pour mote unmute, juste mute + channel du track (by default music deverait etre 2)
-# NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL
+# NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL.
         
     if action_type == "mute":
         previous_volume = sound.get_volume() *  100
