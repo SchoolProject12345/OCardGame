@@ -54,13 +54,13 @@ class TutorialMenu(State):
             if self.nexttutorial_button.answer():
                 self.tutorial_index += 1
 
-                sound_handle(f"TutorialSpeech{self.tutorial_index + 1}", sfx_channel= 7)
+                sound_handle(f"TutorialSpeech{self.tutorial_index + 1}", channel= 7)
 
 
         if self.endtutorial_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.tutorial_index = 0
             self.revert_state()
-            sound_handle(action_type="stop", sfx_channel=7)
+            sound_handle(action_type="stop", channel=7)
         
 
     def state_manager_hook(self,app):

@@ -51,13 +51,17 @@ class LoreMenu(State):
         if self.escp_rel.update([e for e in events if e.type == pygame.KEYUP]):
             self.lore_index = 0
             self.revert_state()
+            sound_handle(action_type="stop", channel=7)
+
         elif self.space_rel.update([e for e in events if e.type == pygame.KEYUP]):
             if self.lore_index == 11:
                 self.lore_index = 0
                 self.revert_state()
+                sound_handle(action_type="stop", channel=7)
+
             elif self.lore_index < 11:
                 self.lore_index += 1
-                sound_handle(f"LoreSpeech{self.lore_index + 1}", sfx_channel= 7)
+                sound_handle(f"LoreSpeech{self.lore_index + 1}", channel= 7)
 
 
         

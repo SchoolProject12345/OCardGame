@@ -567,6 +567,7 @@ class DualBarVerti:
         self.border_radius = kwargs.get("border_radius", 0)
         self.max_value = max_value
         self.health = self.max_value
+        sound_handle("MenuMusic", "ambient_play", 50)
 
     def update(self, health: int) -> None:
         self.health = health
