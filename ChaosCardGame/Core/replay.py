@@ -23,7 +23,7 @@ class ReplayHandler:
         state = {
          "remote":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]).copy(),
          "local":core.ifelse(self.isp1(), self.state["p2"], self.state["p1"]).copy(),
-         "turn":self.state.turn,
+         "turn":self.state["turn"],
          "isactive":not (self.isp1() ^ self.state["activep"] == "p1"),
          "arena":self.state["arena"]
         }
