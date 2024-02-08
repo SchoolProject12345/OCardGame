@@ -24,7 +24,7 @@
     "type":"damage",
     "amount":{"type":"damage_taken",
      "num":1,
-     "den":10,
+     "den":10
     }
    }
   }
