@@ -1,5 +1,6 @@
 import pygame
 import os
+import Network.network as net
 import Network.server as server
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
@@ -54,7 +55,7 @@ class HostMenu(State):
             self.roomname = self.tb_roomname.text
             self.host_username = self.hostmenu_tb_username.text
             self.change_state("LobbyMenu")
-            server.host(self.host_username, self.ipaddress)
+            net.threading.Thread(target=server.host, args=(self.host_username, self.ipaddress), daemon=True).start()
 
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state()
