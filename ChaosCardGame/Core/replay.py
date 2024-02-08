@@ -31,10 +31,10 @@ class ReplayHandler:
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        state["remote"]["hand"]  = [core.format_name_ui(card, card["element"]) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [core.format_name_ui(card, card["element"]) for card in state[ "local"]["hand"]]
-        state["remote"]["discard"] = [core.format_name_ui(card, card["element"]) for card in state["remote"]["discard"]]
-        state[ "local"]["discard"] = [core.format_name_ui(card, card["element"]) for card in state[ "local"]["discard"]]
+        state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
+        state[ "local"]["hand"]  = [core.format_name_ui(card) for card in state[ "local"]["hand"]]
+        state["remote"]["discard"] = [core.format_name_ui(card) for card in state["remote"]["discard"]]
+        state[ "local"]["discard"] = [core.format_name_ui(card) for card in state[ "local"]["discard"]]
         return state
     def get_replay(self):
         replay = ""
