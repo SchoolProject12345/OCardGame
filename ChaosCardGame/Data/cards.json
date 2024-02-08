@@ -684,7 +684,7 @@
    "name": "Fireball",
    "cost": 2,
    "target_mode": "target",
-   "power":0,
+   "power":0
   },
   "type": "spell"
  },
@@ -1189,7 +1189,7 @@
     "power": 50
    }
   ]
- }
+ },
  {
    "type":"spell",
    "name":"Freeze Spell",
@@ -1205,7 +1205,7 @@
        "for":3
      }
    }
- }
+ },
  {
    "type":"spell",
    "name":"Black Hole spell",
@@ -1220,7 +1220,7 @@
        "by_tags":["+"]
      }
    }
- }
+ },
  {
    "type":"spell",
    "name":"Empowering Medicine",
@@ -1232,7 +1232,7 @@
      "target_mode":"allies",
      "effect":{"type":"null"}
    }
- }
+ },
  {
    "type":"spell",
    "name":"Smokeball",
@@ -1244,7 +1244,7 @@
      "target_mode":"foes",
      "effect":{"type":"null"}
   }
- }
+ },
  {
    "type":"spell",
    "name":"Deep Sea",
@@ -1256,7 +1256,7 @@
      "target_mode":"allies",
      "effect":{"type":"null"}
    } 
- }
+ },
  {
    "type":"spell",
    "name":"Corruption Spell",
@@ -1268,7 +1268,7 @@
      "target_mode":"target",
      "effect":{"type":"null"}
   }
- }
+ },
  {
    "type":"spell",
    "name":"Tornado Spell",
@@ -1280,7 +1280,7 @@
      "target_mode":"target",
      "effect":{"type":"null"}
     }
- }
+ },
  {
    "type":"spell",
    "name":"Potion of Regeneration",
