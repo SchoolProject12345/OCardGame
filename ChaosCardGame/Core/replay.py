@@ -1,5 +1,4 @@
 import Core.core_main as core
-import re
 from datetime import datetime # ???
 from time import sleep
 
