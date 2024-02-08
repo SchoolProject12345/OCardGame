@@ -1056,6 +1056,11 @@ class AbstractCard:
     def ui_id(self) -> str:
         "Formatted name of the card, used by the UI."
         return format_name_ui(self.name, self.element)
+    def from_id(ui_id: str):
+        "Return an AbstractCard object with the corresponding UI Id or None if it doesn't exist. Match commanders as well."
+        for card in getCARDS() + list(getCOMMANDERS().values()):
+            if card.ui_id == ui_id:
+                return card
 
 @dataclass
 class CreatureCard(AbstractCard):
