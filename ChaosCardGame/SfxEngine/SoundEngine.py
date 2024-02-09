@@ -1,13 +1,12 @@
 ## Berda's Sound engine v0.0.75834672548172143785612847781236441237856
+from operator import is_
 from pygame import mixer
 import pygame
 import os
-
-from sympy import false, true
-from utility import cwd_path
+from utility import cwd_path, is_muted
 
 
-def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:int=5, loop:bool=False):
+def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, channel:int=5, loop:bool=False, is_muted=None):
     # a terminer
 
 
@@ -18,7 +17,6 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:i
     sound.set_volume(volume/100)
 
     previous_volume = volume/100
-    mute_status = False
 
     if action_type == "play":
         sfxchannel.play(sound, loops=-1 if loop else 0)
@@ -30,17 +28,16 @@ def sound_handle(track:str , action_type:str = "play", volume:int=100, channel:i
 # faut test
 # pour mote unmute, juste mute + channel du track (by default music deverait etre 2)
 # NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL.
-        
-    if action_type == "mute" and mute_status == False:
-        previous_volume = sound.get_volume() *  100
-        sound.set_volume(0)
-        mute_status = True
-    else:
-        print("mute action non permitted, check if you didnt already mute somewhere")
 
-    if action_type == "unmute":
-        sound.set_volume(previous_volume/100)
-        mute_status = False
+    if action_type == "mute/unmute":
+        previous_volume = sfxchannel.get_volume() *  100
+        if is_muted:
+            sfxchannel.set_volume(0)
+            print("tried tu mute")
+        elif not is_muted:
+            sfxchannel.set_volume(previous_volume)
+            print("tried to unmute")
+
 
 
 

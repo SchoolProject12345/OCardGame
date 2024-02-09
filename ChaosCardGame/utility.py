@@ -1,6 +1,11 @@
 import os
 
 cwd_path = os.path.dirname(os.path.abspath(__file__))
+is_muted = False
+
+def toggle_mute():
+    global is_muted
+    is_muted = not is_muted
 
 def get_settings(settings: dict = {}) -> dict:
     """
