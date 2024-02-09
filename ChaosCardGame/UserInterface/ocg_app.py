@@ -16,7 +16,7 @@ from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuStates.cards_menu_ui import CardsMenu
 from SfxEngine.SoundEngine import sound_handle
-from utility import toggle_mute, is_muted
+from utility import toggle_mute, get_setting
 
 
 class OcgGame:
@@ -62,7 +62,7 @@ class OcgGame:
 
         self.running = True
         while self.running:
-            from utility import is_muted, toggle_mute
+            from utility import get_setting, toggle_mute
 
             self.menu_instances["main_menu"].state_manager(self)
 
@@ -71,12 +71,12 @@ class OcgGame:
             for event in pygame.event.get():
                 if event.type == pygame.KEYUP and event.key == pygame.K_p:
                     print("----------- P KEY PRESSED ------------")
-                    print(f"before it was {is_muted}")
+                    print(f"before it was {get_setting('mute', False)}")
 
                     toggle_mute()
-                    from utility import is_muted
-                    print(f"now its {is_muted}")
-                    sound_handle( action_type="mute/unmute", channel=2,is_muted=is_muted)
+                    from utility import get_setting
+                    print(f"now its {get_setting('mute', False)}")
+                    sound_handle( action_type="mute/unmute", channel=2,is_muted=get_setting('mute', False))
 
 
 
