@@ -1,11 +1,6 @@
 import os
 
 cwd_path = os.path.dirname(os.path.abspath(__file__))
-is_muted = False
-
-def toggle_mute():
-    global is_muted
-    is_muted = not is_muted
 
 def get_settings(settings: dict = {}) -> dict:
     """
@@ -15,7 +10,7 @@ def get_settings(settings: dict = {}) -> dict:
     if len(settings) != 0:
         return settings # settings shouldn't be changed from file at runtime
     version = "0.0.0"
-    default = f'version:"{version}"\ndefault_max_energy:4\ndefault_energy_per_turn:3\nhand_size:5\ndeck_size:30\nprogressbar_sytle:1\nstrong_percent_increase:20\npassive_heal:10\npassive_commander_heal:20\ndev_mode:true'
+    default = f'version:"{version}"\ndefault_max_energy:4\ndefault_energy_per_turn:3\nhand_size:5\ndeck_size:30\nprogressbar_sytle:1\nstrong_percent_increase:20\npassive_heal:10\npassive_commander_heal:20\ndev_mode:true\nmute:false'
     if "options.txt" not in os.listdir(cwd_path):
         with open(os.path.join(cwd_path, "options.txt"), "x") as io:
             # feel free to add new default options if needed
@@ -137,3 +132,8 @@ def get_setting(key: str, default: bool | int | str):
         io.write(f"\n{key}:{default}")
         io.close()
     return default
+
+def toggle_mute():
+    "Toggle sound mute in settings singleton."
+    settings = get_settings()
+    settings["mute"] = not settings["mute"]
