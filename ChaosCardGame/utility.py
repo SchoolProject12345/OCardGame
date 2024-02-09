@@ -257,3 +257,11 @@ def isinstancepar(val: object, cls: type):
                 return False
         return True
     return True # isinstance of origin but parameters cannot be inferred
+
+# Aliases
+# Yes, they are global variables as Python doesn't have constants,
+# But they should be used outside of annotations, which are evaluated only once,
+# so this is fine.
+Real: type = int | float | bool # Booleans supports real operations.
+Number: type = Real | complex
+Any: type = object
