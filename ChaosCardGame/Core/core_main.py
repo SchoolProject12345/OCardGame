@@ -214,7 +214,7 @@ def format_name_ui(name: str, element: int = 0):
             pre = "cha_"
         case Element.earth:
             pre = "ert_"
-    m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
+    m = re.match("(The )?([^,]*)(,.*)?", name, re.RegexFlag.I)
     if m is None:
         warn(f'"{name}"\'s name is terribly wrong.')
         name = cleanstr(name)
