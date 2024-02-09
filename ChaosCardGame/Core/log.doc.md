@@ -6,20 +6,20 @@ The game state follow this structure:
  "remote":{
   "name":"", # Player's name (e.g. "Ånyks")
   "deck_length":core.Constants.default_deck_size, # number of card remaining in deck.
-  "hand":[], # unformated name (e.g. "Shiao, Master of Seas") of cards in hand.
-  # Note: in remote's hand, all cards are nammed as "Hidden".
+  "hand":[], # ui_formated name (e.g. "wtr_shiao") of cards in hand.
+  # Note: in remote's hand, all cards are nammed as "hidden". (TODO)
   "commander":{"name":"","hp":600,"max_hp":600,"element":0,"charges":0}, # Self explanatory
   "board":[], # list[None | dict[str, Any]] with None meaning that no cards are at this index,
   # and the dict has the same structure as {"name":"", "hp":0, "max_hp":0, "element":0},
   # representing an ActiveCard object
-  "discard":[], # unformated name of cards in discard.
+  "discard":[], # ui_formated name of cards in discard.
   # Self explanatory:
   "energy":core.Constants.default_energy_per_turn,
   "max_energy":core.Constants.default_max_energy,
   "energy_per_turn":core.Constants.default_energy_per_turn
  },
  "local":{
-  # Same as remote
+  # Same as remote: completely symmetrical
  },
  "turn":0,
  "isactive":True, # True is it is local's (self's) turn, False otherwise
@@ -27,6 +27,7 @@ The game state follow this structure:
 }
 ```
 It is hence *completely* symmetrical; a code written to display from the host's perspective would work to display the client's perspective without *any* modification, as long as **no method are used outside of `ReplayHandler`'s**.
+This is also valid for other methods (i.e. `handle.run_action`).
 
 # Logs
 ## Basics
@@ -66,3 +67,10 @@ For each player:
 `turn|{turn}`\
 `-ccharge|p{i}|{amount}`\
 `shuffle|p{i}`
+
+# TODO
+Add `version|x.y.z` log.\
+Read minor logs together and draw logs together.\
+Add optional `from` kwarg through `head|log|[from] Somewhere` e.g. `-damage|p1a|60/70|[from] Default Attack`.
+Fix UI formatting.
+Hide opponent's hand.
