@@ -16,7 +16,6 @@ from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuStates.cards_menu_ui import CardsMenu
 from SfxEngine.SoundEngine import sound_handle
-from utility import toggle_mute, is_muted
 
 
 class OcgGame:

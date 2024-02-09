@@ -9,15 +9,12 @@ from utility import cwd_path, is_muted
 def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, channel:int=5, loop:bool=False, is_muted=None):
     # a terminer
 
-
     sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
     
     sfxchannel = pygame.mixer.Channel(channel)
     sound = pygame.mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
-
-    previous_volume = volume/100
-
+    global previous_volume
     if action_type == "play":
         sfxchannel.play(sound, loops=-1 if loop else 0)
 
@@ -30,12 +27,14 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
 # NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL.
 
     if action_type == "mute/unmute":
-        previous_volume = sfxchannel.get_volume() *  100
-        if is_muted:
+
+        if is_muted: # == False
+            previous_volume = sfxchannel.get_volume()*100
             sfxchannel.set_volume(0)
             print("tried tu mute")
-        elif not is_muted:
-            sfxchannel.set_volume(previous_volume)
+
+        if  not is_muted:
+            sfxchannel.set_volume(previous_volume/100)
             print("tried to unmute")
 
 
