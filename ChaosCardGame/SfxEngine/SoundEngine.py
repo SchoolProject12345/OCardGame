@@ -31,10 +31,10 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
 
     if action_type == "mute/unmute":
         previous_volume = sfxchannel.get_volume() *  100
-        if getsetting("mute", False):
+        if get_setting("mute", False):
             sfxchannel.set_volume(0)
             print("tried to mute")
-        elif not getsetting("mute", False):
+        elif not get_setting("mute", False):
             sfxchannel.set_volume(previous_volume)
             print("tried to unmute")
 
