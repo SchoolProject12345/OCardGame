@@ -150,7 +150,7 @@ def fast_static(f):
     Use instead of `static` on performance critical functions: it only enforces static typing during DEV()-mode,
     giving all the advantage of Static Typing basically permanently while not having its defaults.
     """
-    if get_setting("dev", False):
+    if get_setting("dev_mode", False):
         return static(f)
     return f
 
