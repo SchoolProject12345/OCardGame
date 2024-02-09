@@ -14,7 +14,9 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
     sfxchannel = pygame.mixer.Channel(channel)
     sound = pygame.mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
+
     global previous_volume
+
     if action_type == "play":
         sfxchannel.play(sound, loops=-1 if loop else 0)
 
@@ -31,11 +33,12 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
         if get_setting("mute", False):
             previous_volume = sfxchannel.get_volume()*100
             sfxchannel.set_volume(0)
-            print("tried tu mute")
+            print("tried to mute")
 
         if  not get_setting("mute", False):
             sfxchannel.set_volume(previous_volume/100)
-        previous_volume = sfxchannel.get_volume() *  100
+            print("tried to unmute")
+            previous_volume = sfxchannel.get_volume() *  100
 
 
 
