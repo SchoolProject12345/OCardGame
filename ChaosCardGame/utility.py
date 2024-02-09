@@ -137,3 +137,123 @@ def toggle_mute():
     "Toggle sound mute in settings singleton."
     settings = get_settings()
     settings["mute"] = not settings["mute"]
+
+# Use extensively across code.
+# Do not hesitate to use.
+# I didn't spend 3 hours to make this for nothing.
+# Use it. Seriously do.
+# Stand against Duck Typing's tyranny.
+# Just one @fast_static before your function, and Duck Typing is gone.
+# It's that simple.
+def fast_static(f):
+    """
+    Use instead of `static` on performance critical functions: it only enforces static typing during DEV()-mode,
+    giving all the advantage of Static Typing basically permanently while not having its defaults.
+    """
+    if get_setting("dev", False):
+        return static(f)
+    return f
+
+def static(f):
+    """
+    Use as a decorator. Eleminate duck typing by allowing the given function to enforce static typing on arguments.
+
+    - Unannotated arguments may be of any type.
+    - Supports return value.
+    - Might terribly slow down the code due to Python being Python: do not use on Performance critical function, unless debugging.
+    - Supports parametric types for: dict, tuple & iterators. (Python being Python, there is no parametric type for empty tuples).
+    - Splatted arguments must be left at the end, might throw otherwise.
+    - Splatted arguments annotation are for the arguments themself.
+      - I.e. `*args: int` assert that each values of `args` are integers, not that `args` itself is an integer (fot it is a tuple).
+    - For methods: `self` cannot be annotated.
+    - `None` is not a valid type annotation: no argument is necessary is there is only one valid value. Nonetheless, `None | T` is valid.
+    - The best way to make this work is to uninstall Python and download a language with a working type system.
+    
+    # Examples
+    ```py
+    >>> @static
+    ... def f(a: int, b, c: str): pass
+    >>> f(1, 1.0, "foo")
+    >>> f(1, 1.0, 3)
+    >>> f(1, 1, 3)
+    Traceback (most recent call last):
+      [...]
+    >>> @static
+    ... def i(x) -> str: return x
+    >>> i("Correct return type.")
+    "Correct return type."
+    >>> i(b"Wrong return type.")
+    Traceback (most recent call last):
+      [...]
+    ```
+    """
+    argcount: int = f.__code__.co_argcount
+    all_args: tuple = f.__code__.co_varnames[:argcount] # doesn't count splatting.
+    types: dict[str, type] = f.__annotations__
+    splatted: tuple = (*(arg for arg in types if not arg in all_args and arg != "return"),) # args is always before kwargs.
+    hasargsorkwargs: bool = len(splatted) != 0
+    def staticf(*args, **kwargs):
+        for i in range(len(args)):
+            if i < argcount:
+                arg = all_args[i]
+            elif hasargsorkwargs:
+                arg = splatted[0]
+            else:
+                break # doesn't check unannotated *args.
+            if arg in types and not isinstancepar(args[i], types[arg]):
+                raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(args[i]).__name__}.")
+        for arg in kwargs:
+            if arg in types:
+                if not isinstancepar(kwargs[arg], types[arg]):
+                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+            elif hasargsorkwargs and not arg in all_args:
+                if not isinstancepar(kwargs[arg], types[splatted[-1]]):
+                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[splatted[-1]].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+        ret = f(*args, **kwargs)
+        if "return" in types and not isinstancepar(ret, types["return"]):
+            raise TypeError(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types['return'].__name__} got {ret} of type {type(ret).__name__}")
+        return ret
+    staticf.__name__ = "static_" + f.__name__
+    return staticf
+
+def isinstancepar(val: object, cls: type):
+    """
+    Return `True` if `val` is of parametric type `cls`. If `cls` is unvalid parametric type, it throws.
+
+    Valid parametric types:
+    - `tuple[type1, type2, ...]` for tuple with first element: type1, second: type2, ...: ...
+      - E.g. `("foo", 314)` & `("bar", 2.718)` are `tuple[str, int | float]`, but `(3, "foo")` is not. 
+    - `dict[keys_type, values_type]` for dict with keys of type `keys_type` and values of type `values_type`
+    - `iterator[type]` for other iterators whose elements are *all* instances of `type`.
+      - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
+      - E.g. `set[int]`, `list[str]`, ...
+    """
+    if not hasattr(cls, "__args__"):
+        return isinstance(val, cls)
+    # assuming all parametric types implement origin (Python can't be that bad right?)
+    origin = cls.__origin__
+    if not isinstance(val, origin):
+        return False
+    if origin is dict:
+        keyt, valt = cls.__args__
+        for key in val:
+            if not isinstance(key, keyt):
+                return False
+            if not isinstance(val[key], valt):
+                return False
+        return True
+    elif origin is tuple:
+        types = cls.__args__
+        if len(val) != len(types):
+            return False
+        for i in range(len(val)):
+            if not isinstance(val[i], types[i]):
+                return False
+        return True
+    elif hasattr(cls, "__iter__"):
+        par, *_ = cls.__args__
+        for i in val:
+            if not isinstance(i, par):
+                return False
+        return True
+    return True # isinstance of origin but parameters cannot be inferred
