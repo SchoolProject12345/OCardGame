@@ -3,7 +3,7 @@ from operator import is_
 from pygame import mixer
 import pygame
 import os
-from utility import cwd_path, is_muted
+from utility import cwd_path, get_setting
 
 
 def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, channel:int=5, loop:bool=False, is_muted=None):
@@ -28,14 +28,15 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
 
     if action_type == "mute/unmute":
 
-        if is_muted: # == False
+        if get_setting("mute", False):
             previous_volume = sfxchannel.get_volume()*100
             sfxchannel.set_volume(0)
             print("tried tu mute")
 
-        if  not is_muted:
+        if  not get_setting("mute", False):
             sfxchannel.set_volume(previous_volume/100)
-            print("tried to unmute")
+        previous_volume = sfxchannel.get_volume() *  100
+
 
 
 
