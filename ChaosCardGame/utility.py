@@ -228,9 +228,8 @@ def isinstancepar(val: object, cls: type):
       - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
       - E.g. `set[int]`, `list[str]`, ...
     """
-    if not hasattr(cls, "__args__"):
+    if not hasattr(cls, "__origin__") or not hasattr(cls, "__args__"):
         return isinstance(val, cls)
-    # assuming all parametric types implement origin (Python can't be that bad right?)
     origin = cls.__origin__
     if not isinstance(val, origin):
         return False
@@ -265,3 +264,4 @@ def isinstancepar(val: object, cls: type):
 Real: type = int | float | bool # Booleans supports real operations.
 Number: type = Real | complex
 Any: type = object
+# they work but Pylance put a warning because Pylance doesn't understand.
