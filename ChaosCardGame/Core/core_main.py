@@ -199,6 +199,7 @@ def getCOMMANDERS(COMMANDERS={}) -> dict:
         card, (id := id + 1)) for card in json})
     return COMMANDERS
 
+@static
 def format_name_ui(name: str, element: int = 0):
     "From an element and a name, give the formated name to allow easy asset access."
     match Element(element):
@@ -214,7 +215,7 @@ def format_name_ui(name: str, element: int = 0):
             pre = "cha_"
         case Element.earth:
             pre = "ert_"
-    m = re.match("(The )?([^,]*)(,.*)", name, re.RegexFlag.I)
+    m = re.match("(The )?([^,]*)(,.*)?", name, re.RegexFlag.I)
     if m is None:
         warn(f'"{name}"\'s name is terribly wrong.')
         name = cleanstr(name)
@@ -333,6 +334,14 @@ class TargetMode(IntEnum):
     all_commanders = 6
     massivedestruction = 7
     all = 8
+    nocommander = 9
+    def cancommander(self) -> bool:
+        if self in [
+            TargetMode.foes,
+            TargetMode.nocommander
+        ]:
+            return False
+        return True
     def from_str(name: str):
         match cleanstr(name):
             case "randomchaos": return TargetMode.random_chaos
@@ -350,22 +359,21 @@ class TargetMode(IntEnum):
             case "allcommanders": return TargetMode.all_commanders
             case "bothcommanders": return TargetMode.all_commanders
             case "commanders": return TargetMode.all_commanders
-            case "all": return TargetMode.all,
+            case "all": return TargetMode.all
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
+            case "nocommander": return TargetMode.nocommander
             case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
-    def to_str(self):
+    @static
+    def to_str(self) -> str:
         match self:
-            case TargetMode.foes: return "foes"
-            case TargetMode.target: return "target"
-            case TargetMode.allies: return "allies"
             case TargetMode.self: return "user"
             case TargetMode.commander: return "enemy Commander"
             case TargetMode.allied_commander: return "allied Commander"
             case TargetMode.all_commanders: return "both Commanders"
-            case TargetMode.all: return "all"
             case TargetMode.massivedestruction: return "every creature that has ever set foot in this Arena"
             case TargetMode.random_chaos: return "randomly selected random targets"
+            case target: return target.name
 
 class DamageMode(IntEnum):
     direct = 0
@@ -397,6 +405,7 @@ class ReturnCode(IntEnum):
     wrong_turn = 402
     charging = 403
     no_target = 404
+    wrong_target = 405
     failed = 500
 
 @dataclass
@@ -423,7 +432,6 @@ class AbstractEffect:
         return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
     def targeted_objects(**kwargs):
         match kwargs["target_mode"]:
-            case TargetMode.target: return [kwargs["main_target"]]
             case TargetMode.foes: return [*filter((lambda x: x != None), kwargs["board"].unactive_player.active)]
             case TargetMode.allies: return [*filter((lambda x: x != None), kwargs["board"].active_player.active)]
             case TargetMode.self: return [kwargs["user"]]
@@ -447,7 +455,7 @@ class AbstractEffect:
                     kwargs["board"].active_player.commander
                 ]
             case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(9))))
-            case _: return []
+            case _: return [kwargs["main_target"]] # target, noccommander
     def get_tags(self):
         return warn(f"Tried to get tags from a {type(self)}") and ()
     def from_json(json: dict):
@@ -614,7 +622,8 @@ class ChangeState(AbstractEffect):
                 if card.attacked:
                     card.attacked = False
                     has_worked = True
-                continue
+                    continue
+            # unattacked apply on negative State (feature not bug)
             # stronger `State`s cannot be overriden by weaker `State`s
             if card.state.value < self.new_state.value or self.new_state == State.default:
                 has_worked = True
@@ -788,7 +797,7 @@ class WithProbability(AbstractEffect):
             return self.effect1.execute(**kwargs)
         return self.effect2.execute(**kwargs)
     def from_json(json: dict):
-        return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", "null")))
+        return WithProbability(getordef(json, "probability", 0.5), AbstractEffect.from_json(json["effect1"]), AbstractEffect.from_json(getordef(json, "effect2", {"type":"null"})))
     def __str__(self):
         return f"{str(self.effect1)} {int(100.0*self.probability)}% of the time, {self.effect2} otherwise"
 
@@ -818,8 +827,14 @@ class EnergyEffect(AbstractEffect):
 class SummonEffect(AbstractEffect):
     "Summon up to `count` Creatures on random spots of the board, if possible."
     count: int
-    summon: any  # summon is CreatureCard, I cannot annotate because Python. Why on earth do you have to annote type with a function though? Who had this terrible idea?
+    summon: object | str # Either CreatureCard or name of CreatureCard.
     def execute(self, **kwargs) -> bool:
+        if isinstance(self.summon, str):
+            summon = AbstractCard.get_card(self.summon)
+            if summon is None:
+                warn(f"Summon {self.summon} doesn't exist.")
+        else:
+            summon = self.summon
         valids = [i for i in range(
             len(kwargs["player"].active)) if kwargs["player"].active[i] is None]
         if len(valids) == 0:
@@ -829,12 +844,21 @@ class SummonEffect(AbstractEffect):
             valids.pop()
         for i in valids:
             kwargs["player"].active[i] = ActiveCard(
-                self.summon, kwargs["player"], kwargs["board"])
-            kwargs["board"].logs.append(f"-summon|{kwargs['player'].active[i].namecode()}|{self.summon.name}|{self.summon.max_hp}|{self.summon.element.value}")
+                summon, kwargs["player"], kwargs["board"])
+            kwargs["board"].logs.append(f"-summon|{kwargs['player'].active[i].namecode()}|{summon.name}|{summon.max_hp}|{summon.element.value}")
         return True
     def from_json(json: dict):
-        return SummonEffect(getordef(json, "count", 1), CreatureCard.from_json(json["creature"], 1j))
+        if "by_name" in json:
+            return SummonEffect(getordef(json, "count", 1), AbstractCard.get_card(json["by_name"]))
+        card = CreatureCard.from_json(json["creature"], 1j)
+        card.tags = (*card.tags, "summon")
+        return SummonEffect(getordef(json, "count", 1), card)
     def __str__(self):
+        if isinstance(self.summon, str):
+            summon = AbstractCard.get_card(self.summon)
+            if summon is None:
+                warn(f"Summon {self.summon} doesn't exist.")
+                return "nothing (summong bug)"
         return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {self.summon.name}"
 
 @dataclass
@@ -918,7 +942,9 @@ class FormeChange(AbstractEffect):
             kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
         return len(actives) != 0
     def from_json(json: dict):
-        return FormeChange(CreatureCard.from_json(json["new_forme"], 1j))
+        card = CreatureCard.from_json(json["new_forme"], 1j)
+        card.tags = (*card.tags, "forme")
+        return FormeChange()
     def __str__(self):
         return f"change the target(s) forme to {self.new_forme.name}"
 
@@ -1003,7 +1029,7 @@ class Attack:
             int(json["power"]),  # no float in power
             TargetMode.from_str(json["target_mode"]),
             int(json["cost"]),
-            AbstractEffect.from_json(getordef(json, "effect", "null")),
+            AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})),
             (*getordef(json, "tags", ()),)
         )
         if "tag" in json:
@@ -1056,10 +1082,16 @@ class AbstractCard:
     def ui_id(self) -> str:
         "Formatted name of the card, used by the UI."
         return format_name_ui(self.name, self.element)
-    def from_id(ui_id: str):
+    def from_id(ui_id: str) -> None | object:
         "Return an AbstractCard object with the corresponding UI Id or None if it doesn't exist. Match commanders as well."
         for card in getCARDS() + list(getCOMMANDERS().values()):
             if card.ui_id == ui_id:
+                return card
+    def get_card(name: str) -> None | object:
+        "Return an AbstractCard object with the same Formatted Name or None if it doesn't exist. Match commanders as well."
+        name = cleanstr(name)
+        for card in getCARDS() + list(getCOMMANDERS().values()):
+            if cleanstr(card.name) == name:
                 return card
 
 @dataclass
@@ -1106,6 +1138,7 @@ class CreatureCard(AbstractCard):
         for passive in self.passives:
             pretty += "\n- " + str(passive)
         return pretty
+    # Used by Omy.
     def image_file(self) -> str:
         "Return the directory to self's image"
         fname: str = f"{self.element.name}-{cleanstr(self.name)}.png"
@@ -1156,6 +1189,7 @@ class ActiveCard:
         if self.board is None or self.owner != self.board.active_player:
             return False
         return not self.attacked
+    @static
     def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
         getorset(kwargs, "survey", EffectSurvey())
@@ -1182,10 +1216,16 @@ class ActiveCard:
                 self.taunt = None
             else:
                 # Note that AOE attack are mostly unchanged.
-                kwargs["main_target"] = self.taunt
+                kwargs["main_target"] = self.taunt # fail if can't hit commander but taunted by commander
                 self.taunt_dur -= 1
+        if not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
+            kwargs["survey"].return_code = ReturnCode.wrong_target
+            return kwargs["survey"]
         if self.state == State.cloudy: # overrides taunt
             if len(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes))) == 0:
+                if not kwargs["target_mode"].cancommander():
+                    kwargs["survey"].return_code = ReturnCode.no_target
+                    return kwargs["survey"]
                 kwargs["target_mode"] = TargetMode.commander
                 kwargs["main_target"] = kwargs["board"].unactive_player.commander
             else:
@@ -1195,7 +1235,8 @@ class ActiveCard:
          # overrides everything
          # wait I just realized it redirects 65535-damage attacks.
          # "Feature not bug"
-        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
+         # I fixed it normally
+        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"] and kwargs["target_mode"].cancommander():
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
@@ -1226,7 +1267,10 @@ class ActiveCard:
             # must be improved to apply passive of card defeated by passives or other sources
             # nah actually that's a feature.
             card.defeatedby(self)
-        self.attacked = True
+        if self.state is not State.unattacked:
+            self.attacked = True
+        else:
+            self.state = State.default
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -1334,7 +1378,7 @@ class SpellCard(AbstractCard):
             board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
-        if survey.return_code == ReturnCode.ok:
+        if survey.return_code.value < 299:
             board.active_player.iddiscard(self.id)
         return survey
     def __str__(self):
@@ -1363,7 +1407,6 @@ class Arena(IntEnum):
         # hardcoded so that chaos always has the effects of all other arenas.
         return (self == other) or (self == Arena.chaos)
 
-@dataclass # for display
 class Player:
     name: str
     commander: ActiveCard
@@ -1375,14 +1418,12 @@ class Player:
     energy_per_turn: int
     active: list[ActiveCard | None]
     commander_charges: int
-    def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard] = []):
-        #if len(deck) != Constants.default_deck_size:
-        #    warn("Tried to initialize a Player with an invalid deck; deck validity should be checked before initialization; deck remplaced by a default one.")
-        #    deck = Player.get_deck()
+    @static
+    def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard]):
         self.name = name
         self.commander = ActiveCard(commander, self, None)
-        # avoid sharing, notably if deck is left to default in DEV() mode, as Python is a terrible language
-        # this also helps to reset the deck in case of summon/forme change
+        # Avoids sharing
+        # This also helps to reset the deck in case of summon/forme change
         self.deck = deck.copy()
         rng.shuffle(self.deck)
         self.discard = []  # is not shared
@@ -1392,9 +1433,42 @@ class Player:
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
         self.commander_charges = 0
+    def isvalid(self) -> bool:
+        "Return `True` if self's deck is invalid, short cirtuting to `False` otherwise. Note: This doesn't guarantee the deck is valid for the host, as theire version might be different."
+        if len(self.deck) != Constants.default_deck_size:
+            return False
+        for card in self.deck:
+            if isinstance(card, CreatureCard):
+                if "summon" in card.tags or "forme" in card.tags:
+                    return False
+        return True
+    @static
+    def isinvalid_deck(deck: list[str]) -> list[str]:
+        """
+        Return a list of issues containg in self's deck. It is valid if `len(Player.isinvalid_deck(deck)) == 0`.
+        Using Python's extremely unintuitive implicit consertion syntax, you can check using `not Player.isinvalid_deck(deck)`
+        Issues are verbose.
+        """
+        issues = []
+        l = len(deck)
+        if Constants.default_deck_size < l:
+            issues.append(f"Deck too long ({l} cards, excepted {Constants.default_deck_size})")
+        elif l < Constants.default_deck_size:
+            issues.append(f"Deck too short ({l} cards, excepted {Constants.default_deck_size})")
+        for card in deck:
+            card_: AbstractCard | None = AbstractCard.get_card(card)
+            if card_ is None:
+                issues.append(f"Unrecognized card: {card}")
+                continue
+            if isinstance(card_, CreatureCard):
+                if "summon" in card_.tags:
+                    issues.append(f"Code exclusive card {card_.name} tagged #summon.")
+                if "forme" in card_.tags:
+                    issues.append(f"Code exclusive card {card_.name} tagged #forme.")
+        return issues
     def get_commander(*_) -> CommanderCard:
         # yes, it's ugly, it's Python
-        return getCOMMANDERS()[rng.choice([*getCOMMANDERS()])]
+        return rng.choice(list(getCOMMANDERS().values()))
     def get_deck(*_) -> list[AbstractCard]:
         return [*rng.choice(getCARDS(), Constants.default_deck_size)]
     def get_actives(self) -> list[ActiveCard]:
@@ -1419,6 +1493,7 @@ class Player:
                 return card.id
         # I'm way to lazy to check whether the returned value is valid, so I just return a valid value in case the card doesn't exist.
         return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
+    @static
     def get_save_json(name: str) -> dict | None:
         "Try to fetch & return a player witht he same name from `Data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
@@ -1428,8 +1503,10 @@ class Player:
         if fname not in players:
             return None
         return players[fname]
+    @static
     def from_json(name: str, json: dict):
         return Player(name, getCOMMANDERS()[json["commander"]], [getCARDS()[Player.card_id(i)] for i in json["deck"]])
+    @static
     def from_save(name: str):
         "Try to fetch & return a player with the same name from `Data/players.json` as a `Player` object, returning a random player if it isn't found."
         player = Player.get_save_json(name)
@@ -1437,6 +1514,7 @@ class Player:
             warn(f"Player with name {name} was not found in `players.json`, returning default deck.")
             return Player(name, Player.get_commander(), Player.get_deck())
         return Player.from_json(name, player)
+    @static
     def from_saves(name: str, saves: dict):
         return Player.from_json(name, saves[name])
     def save(self):
@@ -1467,7 +1545,7 @@ class Player:
         new = [self.singledraw() for _ in range(Constants.default_hand_size + ifelse(
             self.commander.board.arena.has_effect(Arena.watorvarg), 1, 0) - len(self.hand))]
         self.hand.extend(new)
-        return new  # to display drawing(s) on the GUI?
+        return new # Used for logging
     def log_energy(self) -> str:
         "Append energy log to `self`'s board and return appended log."
         log = f"energy|{self.namecode()}|{self.energy}/{self.max_energy}|{self.energy_per_turn}"
@@ -1487,7 +1565,7 @@ class Player:
         if self.commander.hp <= 0:
             return True
         return False
-    def handdiscard(self, i: int):
+    def handdiscard(self, i: int) -> AbstractCard:
         "Discard the `i`th card in `self`'s `hand`, returning it."
         card = self.hand.pop(i)
         self.commander.board.logs.append(f"discard|{self.namecode()}|{card.name}")
@@ -1498,12 +1576,17 @@ class Player:
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
                 return self.handdiscard(i)
-    def namecode(self):
+    def namecode(self) -> str:
         "Return player code used for logging."
         if self.commander.board.player1 == self:
             return "p1"
         return "p2"
-    def boarddiscard(self):
+    def forfeit(self):
+        self.commander.hp = 0
+        self.commander.board.logs(f"{self.name} forfeited.")
+        if self.commander.board.active_player is self:
+            self.commander.board.endturn()
+    def boarddiscard(self) -> list[ActiveCard]:
         "Discard every defeated cards, returning them."
         discards: list[ActiveCard] = []
         cards = self.active
@@ -1549,6 +1632,7 @@ class Player:
                 continue
             passive.execute(**kwargs)
         return True
+    # this is somewhat buggy.
     def reset(self):
         self.deck.extend(self.hand)
         self.deck.exten(self.discard)
@@ -1618,6 +1702,7 @@ class Board:
         self.logs.append(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
         self.logs.append(f"boardsize|p1|{len(self.player1.active)}")
         self.logs.append(f"boardsize|p2|{len(self.player2.active)}")
+        self.logs.append(ifelse(self.active_player is self.player1, "-firstp|p1", "-firstp|p2"))
         self.player1.add_energy(0) # to log energy
         self.player2.add_energy(0)
         player1.draw()
