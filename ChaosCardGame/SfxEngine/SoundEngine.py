@@ -3,11 +3,12 @@ from operator import is_
 from pygame import mixer
 import pygame
 import os
-from utility import cwd_path, get_setting
+from utility import cwd_path, get_setting, static
 
 
-def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int=100, channel:int=5, loop:bool=False, is_muted=None):
-    # a terminer
+@static
+def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume: int = 100, channel: int = 5, loop: bool = False, is_muted = None):
+    # à terminer
 
     sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
     
@@ -34,8 +35,7 @@ def sound_handle(track:str="ClickSound12" , action_type:str = "play", volume:int
             previous_volume = sfxchannel.get_volume()*100
             sfxchannel.set_volume(0)
             print("tried to mute")
-
-        if  not get_setting("mute", False):
+        else:
             sfxchannel.set_volume(previous_volume/100)
             print("tried to unmute")
             previous_volume = sfxchannel.get_volume() *  100
