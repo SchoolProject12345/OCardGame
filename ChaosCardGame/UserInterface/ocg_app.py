@@ -16,7 +16,7 @@ from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuStates.cards_menu_ui import CardsMenu
 from SfxEngine.SoundEngine import sound_handle
-from utility import toggle_mute, get_setting
+from utility import toggle_mute, get_setting, get_settings, write_settings
 
 
 class OcgGame:
@@ -85,7 +85,9 @@ class OcgGame:
     def stop(self):
         """
         Stops the game loop by quitting pygame and exiting the system.
+        This also writes settings to `./opitions.txt` (save volume/mute changes).
         """
+        write_settings(get_settings())
         self.running = False
         pygame.quit()
         sys.exit()
