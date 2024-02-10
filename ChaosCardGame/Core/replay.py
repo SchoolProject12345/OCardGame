@@ -11,8 +11,8 @@ class ReplayHandler:
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = True
-    def isp1(self): return self.state["pov"] == "p1" # POV can be used to change replay POV
-    def get_state(self):
+    def isp1(self) -> bool: return self.state["pov"] == "p1" # POV can be used to change replay POV
+    def get_state(self) -> dict:
         """
         Return `self`'s state as a dict (see `./Core/log.doc.md`).\n
         This is different from `self.state`, whcih returns raw data,
@@ -31,10 +31,10 @@ class ReplayHandler:
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [core.format_name_ui(card) for card in state[ "local"]["hand"]]
-        state["remote"]["discard"] = [core.format_name_ui(card) for card in state["remote"]["discard"]]
-        state[ "local"]["discard"] = [core.format_name_ui(card) for card in state[ "local"]["discard"]]
+        state["remote"]["hand"]  = [format_name_ui_elt(card) for card in state["remote"]["hand"]]
+        state[ "local"]["hand"]  = [format_name_ui_elt(card) for card in state[ "local"]["hand"]]
+        state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
+        state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
     def get_replay(self):
         replay = ""
@@ -84,7 +84,7 @@ class ReplayHandler:
             finally:
                 io.close()
         return self
-    def default_state():
+    def default_state() -> dict:
         return {
          "p1":{
           "name":"",
@@ -119,6 +119,7 @@ class ReplayHandler:
             return self.state[index[0:2]]["commander"]
         player, i = player_index(index)
         return self.state[player]["board"][i]
+    @core.static
     def play_log(self, log: str) -> str:
         """
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
@@ -278,6 +279,9 @@ class ReplayHandler:
                 player["deck_length"] = len(player["discard"])
                 player["discard"].clear()
                 ret = f"{player['name']} shuffled their discard pile into their deck."
+            case "-firstp":
+                self.state["activep"] = args[0]
+                ret = "It's " + self.state[self.state["activep"]]["name"] + "'s turn."
             case "": # allows to put empty lines in `.log`'s for clarity/time spacing.
                 ret = ""
         # isn't appended if an error is thrown, so that the replay is always valid.
@@ -296,7 +300,16 @@ def nth(x: int) -> str:
         return x + "rd"
     return x + "th"
 
-def format_active_ui(active: dict | None) -> dict | None:
+@core.static
+def format_name_ui_elt(name: str) -> str:
+    "Same as `core.format_name_ui` but infer element."
+    card = core.AbstractCard.get_card(name)
+    if card is None:
+        return core.format_name_ui(name)
+    return card.ui_id
+
+@core.static
+def format_active_ui(active: dict[str, object] | None) -> dict[str, object] | None:
     if active is None:
         return
     active = active.copy()
