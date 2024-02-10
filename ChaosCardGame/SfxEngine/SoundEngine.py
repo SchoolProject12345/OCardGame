@@ -1,9 +1,9 @@
-## Berda's Sound engine v0.0.75834672548172143785612847781236441237856
+## Berda's Sound engine v0.0.75834672548172143785612847781236441237857
 from operator import is_
 from pygame import mixer
 import pygame
 import os
-from utility import cwd_path, get_setting, static
+from utility import cwd_path, get_setting, get_settings, static
 
 
 @static
@@ -15,8 +15,6 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
     sfxchannel = pygame.mixer.Channel(channel)
     sound = pygame.mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
-
-    global previous_volume
 
     if action_type == "play":
         sfxchannel.play(sound, loops=-1 if loop else 0)
@@ -32,13 +30,13 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
     if action_type == "mute/unmute":
 
         if get_setting("mute", False):
-            previous_volume = sfxchannel.get_volume()*100
+            get_settings()["volume"] = int(sfxchannel.get_volume()*100)
             sfxchannel.set_volume(0)
             print("tried to mute")
         else:
-            sfxchannel.set_volume(previous_volume/100)
+            sfxchannel.set_volume(get_setting("volume", 100)/100)
             print("tried to unmute")
-            previous_volume = sfxchannel.get_volume() *  100
+            get_settings()["volume"] = sfxchannel.get_volume() *  100
 
 
 
