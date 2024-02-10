@@ -1,5 +1,6 @@
 import Core.core_main as core
 from datetime import datetime # ???
+from utility import static
 from time import sleep
 
 class ReplayHandler:
@@ -36,6 +37,59 @@ class ReplayHandler:
         state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
         state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
+    @static
+    def get_required_charges(commander: str):
+        commander: str = core.cleanstr(commander)
+        if commander not in core.getCOMMANDERS():
+            core.warn(f"Tried to fetch unknown commander: {commander}.")
+            return 250
+        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
+        if len(commander.attacks) > 1:
+            return commander.attacks[1].cost
+        return 65535
+    def showboard(self):
+        # `self.state` is faster than `self.get_state()` and contains more informations as less formatted
+        data = self.state
+        local, remote = core.ifelse(self.isp1(), ("p1", "p2"), ("p2", "p1"))
+
+        print(f"Turn {data['turn']} ", end="")
+        server = data[remote]
+        if data["activep"] == remote:
+            print(f"({server['name']}'s turn)")
+        else:
+            print("(Your turn)")
+
+        print(f"\n\033[1;4m{server['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            server["commander"]["charges"],
+            ReplayHandler.get_required_charges(server["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(server["commander"], '⋆'))
+        for card in server["board"]:
+            print(ansi_card(card), end=" ")
+
+        client = data[local]
+        print(f"\n\n\033[1;4m{client['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            client["commander"]["charges"],
+            ReplayHandler.get_required_charges(client["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(client["commander"], '⋆'))
+        for card in client["board"]:
+            print(ansi_card(card), end=" ")
+        print()
+        print("Your hand: ", end="")
+        for card in client["hand"]:
+            print(card.replace(",", " -"), end=", ")
+        if len(client["hand"]) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
+        return self
     def get_replay(self):
         replay = ""
         for log in self.replay:
@@ -331,7 +385,51 @@ def stringclr(string: str):
     r = t % 255
     g = 2*t % 255
     b = 7*t % 255
-    return f"\033[38;2;{r};{g};{b}m"                
+    return f"\033[38;2;{r};{g};{b}m"
+
+@static
+def gradient(x: int | float):
+    x = 5.0*x
+    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
+    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
+    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
+    return f"\033[38;2;{r};{g};{b}m"
+
+@static
+def progressbar(total: int, on: int, size: int = 15, style: int = 0):
+    total = min(total, on)
+    if total == on:
+        if style == 0:
+            return "[" + gradient(1.0) + "=" * size + "\033[0m]"
+        elif style == 1:
+            bar = "["
+            for i in range(size):
+                bar += gradient(i/size) + "="
+            return bar + "\033[0m]"
+        elif style == 2:
+            return "[" + "="*size + "]"
+    complete = total * size // on
+    bar = "["
+    if style != 2:
+        bar += gradient(total/on)
+    bar += "="*complete + ">" + " "*(size - complete - 1)
+    if style != 2:
+        bar += "\033[0m"
+    return bar + "]"
+
+@static
+def ansi_elementcolor(element: core.Element) -> str:
+    match element:
+        case core.Element.water: return "\033[38;2;0;122;247m"
+        case core.Element.fire: return "\033[38;2;205;94;1m"
+        case core.Element.earth: return "\033[38;2;32;153;13m"
+        case core.Element.air: return "\033[38;2;223;1;209m"
+        case _: return "\033[38;2;91;1;215m"
+@static
+def ansi_card(card: dict[str, object] | None, trailing: str = "") -> str:
+    if card is None:
+        return "____"
+    return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
 
 def get_commander(name: str) -> core.CommanderCard:
     "Return correct commander or UNKNOWN if not implemented in current save."
