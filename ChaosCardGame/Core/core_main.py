@@ -34,7 +34,7 @@ class Numeric:
             case "hps": return HPList(TargetMode.from_str(json["target_mode"]))
             case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
-            case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
+            case "count": return CountUnion.from_json(json)
             case "energy": return EnergyCount(json["type"])
             case "mul": return MultNumeric(Numeric.from_json(json["times"]), Numeric.from_json(json["num"]), json["den"])
             case "add": return AddNumeric(Numeric.from_json(json["a"]), Numeric.from_json(json["b"]))
@@ -134,14 +134,22 @@ class NumericSum(Numeric):
 class CountUnion(Numeric):
     "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
     target_mode: any
-    tags: tuple[str]
-    elements: list  # a list of element IntEnum or Integers.
+    tags: tuple
+    elements: tuple # a list of element IntEnum.
     def eval(self, **kwargs) -> int:
         i = 0
         for creature in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode)):
             if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
                 i += 1
         return i
+    def from_json(json: dict):
+        return CountUnion(
+            TargetMode.from_str(json["target_mode"]),
+            (*getordef(json, "tags", ()),),
+            (*(Element.from_str(element) for element in getordef(json, "elements", ())),)
+        )
+    def __str__(self):
+        f"the amount of cards with elements {self.elements} or with tag {self.tags}"
 
 @dataclass
 class EnergyCount(Numeric):
@@ -586,7 +594,7 @@ class SetCardProperty(AbstractEffect):
         attr = json["attr"].strip()
         if len(attr) == 0:
             return warn(f"Wrong attribute in SetCardProperty with path {path}.") and NullEffect()
-        value = Numeric.from_jspn(json["value"])
+        value = Numeric.from_json(json["value"])
         return SetCardProperty(path, attr, value)
     def __str__(self):
         return "set the " + "'s ".join(self.path.split("/") + self.attr.split('.')) + f" to {self.value}"
@@ -1017,7 +1025,7 @@ class FormeChange(AbstractEffect):
     def from_json(json: dict):
         card = CreatureCard.from_json(json["new_forme"], 1j)
         card.tags = (*card.tags, "forme")
-        return FormeChange()
+        return FormeChange(card)
     def __str__(self):
         return f"change the target(s) forme to {self.new_forme.name}"
 
