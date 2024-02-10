@@ -607,11 +607,18 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
         survey = spell.use(target)
+        if survey.return_code.value < 299:
+            if isclientturn:
+                client_socket.send(f"error|Spell {spell.name} returned with code {survey.return_code.value} ({survey.return_code.name}).")
+            devlog(f"Warning: spell {spell.name} retruned with code {survey.return_code.value} ({survey.return_code.name}).")
         return True
     if head == "forfeit":
-        client_socket.send("win|???".encode())
-        client_socket.close()
-        return False
+        if source:
+            player = board.player2
+        else:
+            player = board.player1
+        player.forfeit()
+        return True
     core.warn("Tried to run unrecognized action.")
     return True
 
