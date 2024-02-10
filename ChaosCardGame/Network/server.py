@@ -1,7 +1,7 @@
 import Network.network as net
 from time import time_ns
 from Core.replay import * # includes core
-from utility import fast_static as static, Real, Any
+from utility import static
 import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
@@ -11,7 +11,7 @@ core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "end
 core.Constants.progressbar_sytle = 1
 
 @static
-def gradient(x: Real):
+def gradient(x: int | float):
     x = 5.0*x
     r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
     g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
@@ -46,9 +46,9 @@ def ansi_elementcolor(element: core.Element) -> str:
         case core.Element.fire: return "\033[38;2;205;94;1m"
         case core.Element.earth: return "\033[38;2;32;153;13m"
         case core.Element.air: return "\033[38;2;223;1;209m"
-        case _: return "\033[38;2;91;1;215"
+        case _: return "\033[38;2;91;1;215m"
 @static
-def ansi_card(card: dict[str, Any] | None, trailing: str = "") -> str:
+def ansi_card(card: dict[str, object] | None, trailing: str = "") -> str:
     if card is None:
         return "____"
     return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
@@ -111,7 +111,7 @@ class ServerHandler(ReplayHandler):
             try:
                 devlog(self.play_log(log)) # TODO: don't log to the terminal when remote draw a card.
             except:
-                print(log)
+                print("Error with:", log)
             logs += log + "\n"
         logs = logs.strip()
         if len(logs) != 0:
