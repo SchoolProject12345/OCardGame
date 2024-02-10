@@ -62,7 +62,6 @@ class OcgGame:
 
         self.running = True
         while self.running:
-            from utility import get_setting, toggle_mute
 
             self.menu_instances["main_menu"].state_manager(self)
 
@@ -72,11 +71,9 @@ class OcgGame:
                 if event.type == pygame.KEYUP and event.key == pygame.K_p:
                     print("----------- P KEY PRESSED ------------")
                     print(f"before it was {get_setting('mute', False)}")
-
                     toggle_mute()
-                    from utility import get_setting
                     print(f"now its {get_setting('mute', False)}")
-                    sound_handle( action_type="mute/unmute", channel=2,is_muted=get_setting('mute', False))
+                    sound_handle(action_type = "mute/unmute", channel = 2, is_muted = get_setting('mute', False))
 
 
 
