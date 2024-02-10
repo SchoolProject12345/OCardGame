@@ -384,15 +384,14 @@ Evaluate `effect` if `value` is evalutated greater or equal than `cond`, evaluat
 ```
 
 ### Hardcode
-Hardcoding is sometime unavoidable. You can use the following syntax to run completely arbitrary Python **expression** (i.e. **no statments**). This require a certain mastery of Python's terrible expression system and of OCG's overall code. Additionaly, a `"desc"`ription of the effect may be given for documentation (do it). Some hardcoding might require to go deeper into the code, in which case this may still be used as an effect with only `"desc"` for documentation.\
-Note₁: in the end, it is absolutely *required* that the expression yields a boolean. If it doesn't, the code simply crashes.\
-Note₂: All variables from `Core/core_main.py`'s AbstractEffect.eval's scope are available.
-Note₃: You must know what you're doing before trying to do it.
+Hardcoding is sometime unavoidable. You can use the following syntax to run completely arbitrary Python code. Additionaly, a `"desc"`ription of the effect may be given for documentation (do it). Some hardcoding might require to go deeper into the code, in which case this may still be used as an effect with only `"desc"` for documentation.\
+Note₁₂: All variables from `Core/core_main.py`'s AbstractEffect.eval's scope are available.
+Note₂: You must really know you're doing before using this.
 ```
 {
  "type":"hardcoded",
  "desc":"Does some cool stuff."
- "code":"kwargs['board'].logs.append(ifelse(kwargs['user'].taunt is not None, f"raw|{kwargs[\"user\"].name} is taunted!', 'raw|Hello world!'))"
+ "code":"kwargs['board'].logs.append(ifelse(kwargs['user'].taunt is not None, f"raw|{kwargs[\"user\"].name} is taunted!', 'raw|Hello world!'))" // supports statements as well.
 }
 ```
 
@@ -464,11 +463,12 @@ a + b
 ```
 
 ### Property
-If you want to go more into code, you can access a card (the user) property (AKA attribute) through the following syntax:
+If you want to go more into code, you can access a kwarg property (AKA attribute) through the following syntax:
 ```js
 {
  "type":"property",
- "path":"card.max_hp"
+ "path":"user",
+ "attr":"card.max_hp"
 }
 ```
 In this example, it will first search for the user's card and then this card's max_hp. It is equivalent to the code:
@@ -479,6 +479,7 @@ This might have many uses, such as:
 ```py
 kwargs["user"].hp
 kwargs["user"].card.cost
+kwargs["board"].turn
 ```
 This will probably be extented.
 
