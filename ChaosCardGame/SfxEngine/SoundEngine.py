@@ -7,7 +7,7 @@ from utility import cwd_path, get_setting, get_settings, static
 
 
 @static
-def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume: int = 100, channel: int = 5, loop: bool = False, is_muted = None):
+def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume: int = 100, channel: int = 5, loop: bool = False, is_muted: bool = False):
     # à terminer
 
     sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
