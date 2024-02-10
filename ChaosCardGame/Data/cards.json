@@ -314,9 +314,10 @@
     "power": 66,
     "target_mode":"foes",
     "effect": {
-     "type": "",
+     "type": "union",
       "effect1":{
-        "target_change":"self",
+        "type":"target_change",
+        "new_target":"self",
         "effect":{
           "type":"damage",
           "amount":{
@@ -332,9 +333,12 @@
         }
       },
       "effect2":{
-        "type":"damage",
-        "amount": 66,
-        "target_mode":"commander"
+        "type":"target_change",
+        "new_target":"commander",
+        "effect":{
+          "type":"damage",
+          "amount":66
+        }
     }
    }
   }
@@ -640,8 +644,13 @@
    "cost":2,
    "power":0,
    "effect":{
-    "type":"todo",
-    "desc":"heals 8 hp for each enrgy stored by the user's owner"
+    "type":"heal",
+    "amount":{
+     "type":"mul",
+     "num":8,
+     "den":1,
+     "times":{"type":"property", "path":"user", "attr":"owner.energy"}
+    }
    }
   }],
   "passives": [
@@ -986,7 +995,7 @@
     "effect": {
      "type": "summon",
      "count":1,
-     "creature":{"name":"Chaosling"}
+     "by_name":"Chaosling"
     }
    }
   ]
@@ -1040,7 +1049,7 @@
    "effect":{
     "type":"summon",
     "count":2,
-    "creature":{"name":"Chaosling"}
+    "by_name":"Chaosling"
    }
   }],
   "passives":[{
@@ -1048,6 +1057,35 @@
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]
+ },
+ {
+  "name":"Chaosling",
+  "element":"chaos",
+  "cost":1,
+  "hp":50,
+  "type":"creature",
+  "attacks":[
+    {
+      "name":"Energizing Bite",
+      "cost":1,
+      "target_mode":"target",
+      "power":35,
+      "effect":{
+        "type":"todo",
+        "desc":"Add one stack."
+      }
+    }
+  ],
+  "passives":[
+    {
+      "name":"Exergisation (I had no idea)",
+      "trigger":"whendefeated",
+      "effect":{
+        "type":"todo",
+        "desc":"Give one energy + one per stack"
+      }
+    }
+  ]
  },
  {
   "name":"The Skybound Serpent",
@@ -1094,6 +1132,8 @@
   "passives":[
    {
     "name":"Demographic Growth",
+    "trigger":"endofturn",
+    "effect":{
     "type":"if",
     "value":{"type":"property","path":"user","attr":"card.max_hp"},
     "cond":640,
@@ -1115,6 +1155,7 @@
        "attr":"card.max_hp"
       }
      }
+    }
     }
    }
   ]
@@ -1199,6 +1240,7 @@
     "name":"Instant Dash",
     "target_mode":"target",
     "power":0,
+    "cost":2,
     "effect":{"type":"damage","amount":80,"damage_mode":"indirect"}
    }
   ]
@@ -1276,7 +1318,7 @@
    "trigger":"whenattack",
    "effect":{
     "type":"state_change",
-    "state_change":"invisble",
+    "new_state":"invisble",
     "for":2
    }
   }],
@@ -1331,13 +1373,13 @@
  {
    "type":"spell",
    "name":"Empowering Medicine",
-   "element":"earh",
+   "element":"earth",
    "on_use":{
      "name":"medicine",
      "cost":1,
      "power":0,
      "target_mode":"allies",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"raise damage"}
    }
  },
  {
@@ -1349,7 +1391,7 @@
      "cost":2,
      "power":0,
      "target_mode":"foes",
-     "effect":{"type":"null"}
+     "effect":{"type":"state_change","new_state":"cloudy","for":1}
   }
  },
  {
@@ -1361,7 +1403,7 @@
      "cost":1,
      "power":0,
      "target_mode":"allies",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"raise def"}
    } 
  },
  {
@@ -1370,10 +1412,10 @@
    "element":"chaos",
    "on_use":{
      "name":"Corruption",
-     "cost":3,
+     "cost":1,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"null"}
+     "effect":{"type":"damage","amount":{"type":"turn"}}
   }
  },
  {
@@ -1385,7 +1427,7 @@
      "cost":2,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"10 then 20, then 30, 40, 50 damages over 5 turns."}
     }
  },
  {
@@ -1397,7 +1439,7 @@
      "cost":2,
      "power":0,
      "target_mode":"foes",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo", "desc":"50 then 40, then 30, 20, 10 heal over 5 turns."}
     }
  }
 ]
