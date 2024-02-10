@@ -73,7 +73,7 @@ class OcgGame:
                     print(f"before it was {get_setting('mute', False)}")
                     toggle_mute()
                     print(f"now its {get_setting('mute', False)}")
-                    sound_handle(action_type = "mute/unmute", channel = 2, is_muted = get_setting('mute', False))
+                    sound_handle(action_type = "mute/unmute", channel = 2)
 
 
 
