@@ -1,6 +1,6 @@
 from utility import *
 
-if get_setting("dev", True):
+if get_setting("dev_mode", False):
     def DEV() -> bool: return True
 else:
     def DEV() -> bool: return False
