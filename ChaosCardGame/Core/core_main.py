@@ -36,11 +36,12 @@ class Numeric:
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion(TargetMode.from_str(json["target_mode"]), (*json["tags"],), (*[Element.from_str(element) for element in json["elements"]],))
             case "energy": return EnergyCount(json["type"])
-            case "mul": return MultNumeric(Numeric.from_json(json["times"]), json["num"], json["den"])
+            case "mul": return MultNumeric(Numeric.from_json(json["times"]), Numeric.from_json(json["num"]), json["den"])
             case "add": return AddNumeric(Numeric.from_json(json["a"]), Numeric.from_json(json["b"]))
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
             case "damagetaken": return DamageTaken()
+            case "property": return CardProperty(getordef(json, "path", "user").strip(), json["attr"].strip())
             case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
@@ -80,12 +81,36 @@ class NumericList(Numeric):
 @dataclass
 # To get HP from a single target, use `NumericSum(HPList(TargetMode.target))`
 class HPList(NumericList):
-    target_mode: any  # slightly spagehtti but this will do for now
+    target_mode: object  # slightly spagehtti but this will do for now
     def eval(self, **kwargs) -> list[int]:
         return [card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))]
     def __str__(self):
         return f"the HP from {self.target_mode.to_str()}"
 
+@dataclass # why didn't I do that before? It makes everything 100x easier.
+class CardProperty(Numeric):
+    path: str
+    attr: str
+    # not stricly a numeric, but I trust the user to not mess up
+    def eval(self, **kwargs) -> object:
+        card = kwargs
+        keys = self.path.split('/')
+        while len(keys) != 0:
+            key = key.pop(0)
+            if not key in card:
+                warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
+                return 0
+            card = card[key]
+        attrs = self.attr.split('.')
+        while len(attrs) != 0:
+            attr = attrs.pop(0)
+            if not hasattr(card, attr):
+                warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
+                return 0
+            card = getattr(card, attr)
+        return card
+    def __str__(self):
+        "'s ".join(self.path.split('/') + self.attr.split('.'))
 
 @dataclass
 class GCDNumeric(Numeric):
@@ -153,7 +178,7 @@ class AddNumeric(Numeric):
 
 @dataclass
 class FuncNumeric(Numeric):
-    f: any
+    f: object
     numeric: Numeric
     def eval(self, **kwargs) -> int:
         return int(self.f(self.numeric.eval(**kwargs)))
@@ -493,7 +518,8 @@ class AbstractEffect:
             case "redirect": return DamageRedirect.from_json(json)
             case "boardresize": return BoardResize.from_json(json)
             case "if": return IfEffect.from_json(json)
-            case "hardcoded": return HardCodedEffect(getordef(json, "desc", ""))
+            case "hardcoded": return HardCodedEffect.from_json(json)
+            case "setproperty": return SetCardProperty.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -511,12 +537,59 @@ class NullEffect(AbstractEffect):
 @dataclass
 class HardCodedEffect(AbstractEffect):
     desc: str
-    def execute(self, **_) -> bool:
+    code: str
+    def execute(self, **kwargs) -> bool:
+        # exec can access kwargs
+        if not len(self.code) == 0:
+            exec(self.code)
         return True
     def from_json(json):
-        return HardCodedEffect(getordef(json, "desc", ""))
+        return HardCodedEffect(getordef(json, "desc", ""), getordef(json, "code", ""))
     def __str__(self):
         return self.desc
+
+@dataclass # why didn't I do that before? It makes everything 100x easier.
+class SetCardProperty(AbstractEffect):
+    path: str
+    attr: str
+    value: Numeric
+    # not stricly a numeric, but I trust the user to not mess up
+    def eval(self, **kwargs) -> bool:
+        card = kwargs
+        keys = self.path.split('/')
+        attrs = self.attr.split('.')
+        while (L := len(keys)) != 0 and L + len(keys) > 2:
+            key = key.pop(0)
+            if not key in card:
+                warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
+                return False
+            card = card[key]
+        while len(attrs) > 2:
+            attr = attrs.pop(0)
+            if not hasattr(card, attr):
+                warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
+                return False
+            card = getattr(card, attr)
+        # kwargs["user"].card.max_hp = value
+        if L != 0:
+            key = keys.pop()
+            setattr(card[key], attrs.pop(), self.value)
+        else:
+            attr1 = attrs.pop(0)
+            copy = getattr(card, attr1).copy()
+            attr2 = attrs.pop()
+            setattr(copy, attr2, self.value)
+            setattr(card, attr1, copy)
+        return True
+    def from_json(json: dict):
+        path = getordef(json, "path", "user").strip()
+        attr = json["attr"].strip()
+        if len(attr) == 0:
+            return warn(f"Wrong attribute in SetCardProperty with path {path}.") and NullEffect()
+        value = Numeric.from_jspn(json["value"])
+        return SetCardProperty(path, attr, value)
+    def __str__(self):
+        return "set the " + "'s ".join(self.path.split("/") + self.attr.split('.')) + f" to {self.value}"
 
 @dataclass
 class IfEffect(AbstractEffect):
@@ -531,7 +604,7 @@ class IfEffect(AbstractEffect):
         else:
             return self.other.execute(**kwargs)
     def from_json(json: dict):
-        return IfEffect(AbstractEffect.from_json(json["effect"]), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
+        return IfEffect(AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
         return f"{self.effect} if {self.value} is greater or equal to {self.cond}"
 
@@ -920,15 +993,15 @@ class HypnotizeEffect(AbstractEffect):
 
 @dataclass
 class RepeatEffect(AbstractEffect):
-    "Repeat the effect `n` times, on the same targets. Simply more convenient than HUGE chain of union, but may be deleted later."
+    "Repeat the effect `n` times, on the same targets. Simply more convenient than HUGE chain of union and allow use of Numerics."
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return np.any([self.effect.execute(**kwargs) for _ in range(self.n.eval(**kwargs))])
+        return any(self.effect.execute(**kwargs) for _ in range(self.n.eval(**kwargs)))
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
-        return str(self.effect) + f"{self.n} times"
+        return str(self.effect) + f" {self.n} times"
 
 @dataclass
 class FormeChange(AbstractEffect):
@@ -1115,7 +1188,7 @@ class CreatureCard(AbstractCard):
             [Passive.from_json(passive)
              for passive in getordef(json, "passives", [])],
             json["cost"],
-            (*getordef(json, "tags", ()),)
+            (*getordef(json, "tags", ()), "any")
         ]
         if "tag" in json:
             args[7] = (*args[7], json["tag"])
@@ -1306,7 +1379,13 @@ class ActiveCard:
             for passive in self.card.passives:
                 if passive.trigger != PassiveTrigger.whendamaged:
                     continue
-                passive.execute(**withfield(kwargs, "damage_taken", amount))
+                kwargs_ = kwargs.copy()
+                kwargs_.update({
+                    "damage_taken":amount,
+                    "main_target":kwargs["user"],
+                    "target_mode":TargetMode.target
+                })
+                passive.execute(**kwargs_)
             return amount
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
@@ -1319,7 +1398,13 @@ class ActiveCard:
         for passive in self.card.passives:
             if passive.trigger != PassiveTrigger.whendamaged:
                 continue
-            passive.execute(**withfield(kwargs, "damage_taken", amount))
+            kwargs_ = kwargs.copy()
+            kwargs_.update({
+                "damage_taken":amount,
+                "main_target":kwargs["user"],
+                "target_mode":TargetMode.target
+            })
+            passive.execute(**kwargs_)
         return amount
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
