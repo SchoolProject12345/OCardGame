@@ -29,10 +29,7 @@ def get_settings(settings: dict = {}) -> dict:
         key, value, *_ = line.split(":") # please don't put two semicolons in a line though
         value = value.strip()
         if len(value) == 0:
-            # I'd rather not immport the whole conveniance module just for a warn,
-            # but anyway I think we can assume nobody will leave a key unasigned in options.txt,
-            # you've been warned here so don't complain if you do 👀
-            continue
+            value = "none"
         # would unecessary pollute the namespace if defined outside
         def isfloat(arg: str):
             for c in arg:
@@ -45,6 +42,8 @@ def get_settings(settings: dict = {}) -> dict:
             value = True
         elif value == "false":
             value = False
+        elif value == "none":
+            value = None
         elif value.isdigit():
             # Note: doesn't support negative numbers (should be fixed)
             value = int(value)
@@ -54,7 +53,7 @@ def get_settings(settings: dict = {}) -> dict:
         settings[key.strip()] = value # value is already stripped/parsed
     if "version" not in settings or ltsemver(settings["version"], version):
         # relevant even to non-dev users, so a print is fine.
-        print("Detected outdated options, updating to new defaults. \033[1;31mNote\033[0m: this overrides all previous options.")
+        warn("Detected outdated options, updating to new defaults. Note: this overrides all previous options.")
         with open(os.path.join(cwd_path, "options.txt"), "w") as io:
             io.write(default)
             io.close()
@@ -109,7 +108,7 @@ def parse_semver(ver: str) -> tuple[int, int, int]:
             raise error
     return (*(int(n) for n in ver),)
 
-def get_setting(key: str, default: bool | int | str):
+def get_setting(key: str, default: bool | int | str | None):
     """
     Safely retrieve a single setting from `get_settings()`.
     Write the `default`ing value to `options.txt` if necessary, returning `default`.
@@ -119,9 +118,10 @@ def get_setting(key: str, default: bool | int | str):
     if key in settings:
         return settings[key]
     # Look at what Python forces to do to simulate a strong typing system:
-    if not any(isinstance(default, type) for type in (bool, int, str)):
-        # It should be at the beginning for safety, but that'd impact performances, so please just don't use invalid types fpr default.
+    if not isinstance(default, bool | int | str | None):
+        # It should be at the beginning for safety, but that'd impact performances, so please just don't use invalid types for default.
         raise ValueError("`get_setting`'s default excepted either a `bool`, `int` or `str`")
+    # static is defined later in code so I can't use it here -_-
     settings[key] = default
     if isinstance(default, bool):
         if default:
@@ -132,6 +132,23 @@ def get_setting(key: str, default: bool | int | str):
         io.write(f"\n{key}:{default}")
         io.close()
     return default
+
+def warn(*args, dev=get_setting("dev_mode", False), **kwargs) -> bool:
+    """
+    Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
+
+    # Examples
+    ```py
+    >>> warn("foobarbaz") and print("do something here")
+    ┌ Warning:
+    └  foobarbaz
+    do something here
+    ```
+    """
+    if dev: # hard check to avoid mistakes
+        # might not work in every terminal, but should in VS Code
+        print("\x1b[1;33m┌ Warning:\n└\x1b[0m ", *args, **kwargs)
+    return True  # this is definitevely not spaghetti code.
 
 def toggle_mute():
     "Toggle sound mute in settings singleton."
@@ -145,16 +162,16 @@ def toggle_mute():
 # Stand against Duck Typing's tyranny.
 # Just one @fast_static before your function, and Duck Typing is gone.
 # It's that simple.
-def fast_static(f):
+def static(f):
     """
     Use instead of `static` on performance critical functions: it only enforces static typing during DEV()-mode,
     giving all the advantage of Static Typing basically permanently while not having its defaults.
     """
     if get_setting("dev_mode", False):
-        return static(f)
+        return safe_static(f)
     return f
 
-def static(f):
+def safe_static(f):
     """
     Use as a decorator. Eleminate duck typing by allowing the given function to enforce static typing on arguments.
 
@@ -216,6 +233,39 @@ def static(f):
     staticf.__name__ = "static_" + f.__name__
     return staticf
 
+def soft_static(f):
+    "Same as `static` but throws warnings instead of errors."
+    if not get_setting("dev_mode", False):
+        return f
+    argcount: int = f.__code__.co_argcount
+    all_args: tuple = f.__code__.co_varnames[:argcount] # doesn't count splatting.
+    types: dict[str, type] = f.__annotations__
+    splatted: tuple = (*(arg for arg in types if not arg in all_args and arg != "return"),) # args is always before kwargs.
+    hasargsorkwargs: bool = len(splatted) != 0
+    def staticf(*args, **kwargs):
+        for i in range(len(args)):
+            if i < argcount:
+                arg = all_args[i]
+            elif hasargsorkwargs:
+                arg = splatted[0]
+            else:
+                break # doesn't check unannotated *args.
+            if arg in types and not isinstancepar(args[i], types[arg]):
+                warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(args[i]).__name__}.")
+        for arg in kwargs:
+            if arg in types:
+                if not isinstancepar(kwargs[arg], types[arg]):
+                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+            elif hasargsorkwargs and not arg in all_args:
+                if not isinstancepar(kwargs[arg], types[splatted[-1]]):
+                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[splatted[-1]].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+        ret = f(*args, **kwargs)
+        if "return" in types and not isinstancepar(ret, types["return"]):
+            warn(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types['return'].__name__} got {ret} of type {type(ret).__name__}")
+        return ret
+    staticf.__name__ = "static_" + f.__name__
+    return staticf
+
 def isinstancepar(val: object, cls: type):
     """
     Return `True` if `val` is of parametric type `cls`. If `cls` is unvalid parametric type, it throws.
@@ -228,9 +278,8 @@ def isinstancepar(val: object, cls: type):
       - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
       - E.g. `set[int]`, `list[str]`, ...
     """
-    if not hasattr(cls, "__args__"):
+    if not hasattr(cls, "__origin__") or not hasattr(cls, "__args__"):
         return isinstance(val, cls)
-    # assuming all parametric types implement origin (Python can't be that bad right?)
     origin = cls.__origin__
     if not isinstance(val, origin):
         return False
@@ -265,3 +314,4 @@ def isinstancepar(val: object, cls: type):
 Real: type = int | float | bool # Booleans supports real operations.
 Number: type = Real | complex
 Any: type = object
+# they work but Pylance put a warning because Pylance doesn't understand.
