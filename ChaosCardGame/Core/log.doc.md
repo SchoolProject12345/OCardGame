@@ -33,9 +33,9 @@ This is also valid for other methods (i.e. [`handle.run_action`](#actions)).
 Actions are applied through the high-level `handle.run_action(action: str)`. The client automatically send ran action to the host, which are automatically executed with error and cheat handling. `ReplayHandler` doesn't support this method, resulting in a crash. [Logs](#logs) resulting form actions are automatically read by the host and sent to the client which read them.
 
 ## Universal
-`attack|{ally index*}|{attack index}|{target index*}`
-`spell|{hand index}|{target index*}`
-`place|{hand index}|{board index}`
+`attack|{ally index*}|{attack index}|{target index*}`\
+`spell|{hand index}|{target index*}`\
+`place|{hand index}|{board index}`\
 `discard|{hand index}`\
 `endturn` causes to draw and end the turn.\
 `chat|{msg}` sends `{msg}` in chat.
@@ -52,7 +52,7 @@ Other indices are regular integer, starting from 0. Some indices have aliases.
 `handle.run_action("attack|ally1|0|foe2")`
 requests the 2nd card on the player's board to use its 1st (i.e. Default) attack on the 3rd card of their opponent's board.\
 `handle.run_action("attack|allycommander|1|foe0")`
-requests the player's commander to use its ultimate on the 1st card of their opponent's board.
+requests the player's commander to use its ultimate on the 1st card of their opponent's board.\
 `discard|3` requests to discard the 4th card of the player's hand.
 
 ## DEV()-mode (Text-based)
@@ -91,7 +91,7 @@ For each player:
 `passive|p{i}{j}|{Passive Name}`\
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
 `-element|p{i}{j}|{new_element}` Note: not yet supported as useless.\
-`-hypno|p{i}{j}|p{i'}{j'}`
+`-hypno|p{i}{j}|p{i'}{j'}`\
 `-summon|p{i}{j}|{Card Name}|{max_hp}|{element}`
 
 ## Misc
