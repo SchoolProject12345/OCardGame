@@ -272,8 +272,7 @@
      "type":"target_change",
      "new_target":"foes",
      "effect":{
-      "type":"random_targets",
-      "sample":1,
+      "type":"random_target",
       "effect":{
        "type": "state_change",
        "new_state":"block",
@@ -305,21 +304,35 @@
  {
   "name": "Magma Golem",
   "element": "fire",
-  "cost": 1,
-  "hp": 100,
+  "cost": 2,
+  "hp": 125,
   "type": "creature",
   "attacks": [
    {
     "name": "Magmatic Separation",
     "cost": 1,
     "power": 66,
+    "target_mode":"foes",
     "effect": {
-     "type": "damage",
+     "type": "",
       "effect1":{
-        "amount": 25,
-        "target_mode":"foes"
+        "target_change":"self",
+        "effect":{
+          "type":"damage",
+          "amount":{
+            "type":"mul",
+            "num":25,
+            "den":1,
+            "times":{
+              "type":"count",
+              "target_mode":"foes",
+              "tags":["any"]
+            }
+          }
+        }
       },
       "effect2":{
+        "type":"damage",
         "amount": 66,
         "target_mode":"commander"
     }
@@ -387,10 +400,25 @@
     "target_mode": "target",
     "power": 0,
     "effect": {
-     "den": 3,
-     "num": 1,
+     "num": {
+      "type":"add",
+      "a":30,
+      "b":{
+       "type":"mul",
+       "num":-20,
+       "den":210,
+       "times":{
+        "type":"sum",
+        "sample":{
+          "type":"hps",
+          "target_mode":"self"
+        }
+       }
+      }
+     },
+     "den": 30,
      "effect": {
-      "amount": 60,
+      "amount": 55,
       "type": "damage",
       "damage_mode": "direct"
      },
@@ -435,10 +463,31 @@
     "name": "Muscle Drain",
     "cost": 2,
     "target_mode": "target ",
-    "power": 90,
+    "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Drain 50% of damage dealt."
+     "type": "union",
+     "effect1":{
+      "type":"target_change",
+      "new_target":"self",
+      "effect":{
+       "type":"redirect",
+       "from":"allied_commander",
+       "amount":35
+      }
+     },
+     "effect2":{
+      "type":"damage",
+      "amount":{
+       "type":"add",
+       "a":150,
+       "b":{
+        "type":"mul",
+        "num":-75,
+        "den":180,
+        "times":{"type":"sum","sample":{"type":"hps","target_mode":"self"}}
+       }
+      }
+     }
     }
    }
   ]
@@ -495,13 +544,6 @@
   "cost": 2,
   "hp": 120,
   "passives": [
-   {
-    "name": "Completely Useless",
-    "effect": {
-     "type": "null"
-    },
-    "trigger": "whenplaced"
-   },
    {
     "name": "Deep Sea Power",
     "effect": {
@@ -763,23 +805,38 @@
  {
   "name": "Everstone Symbiote",
   "element": "earth",
-  "cost": 1,
-  "hp": 110,
+  "cost": 4,
+  "hp": 170,
+  "tags":["tank", "support"],
   "type": "creature",
   "attacks": [
    {
-    "name": "Separation",
-    "cost": 1,
+    "name": "Rock Crash",
+    "cost": 2,
     "target_mode": "target",
-    "power": 100,
+    "power": 0,
     "effect": {
-     "type": "target_change",
-     "new_target": "self",
-     "effect": {
-      "amount": 20,
-      "type": "damage",
-      "damage_mode": "indirect"
+     "type": "union",
+     "effect1": {
+      "type": "state_change",
+      "new_state": "damageless",
+      "for":3
+     },
+     "effect2":{
+      "type":"heal",
+      "amount":40
      }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Rock Solid",
+    "trigger":"whendamaged",
+    "effect":{
+     "type":"target_change",
+     "new_target":"self",
+     "effect":{"type":"heal", "amount":15}
     }
    }
   ]
@@ -1012,15 +1069,58 @@
     "target_mode":"foes",
     "power":0,
     "effect":{
-     "type":"random_targets",
-     "sample":1,
-     "effect":{"type":"damage","damage_mode":"direct","amount":18}
+     "type":"repeat",
+     "n":{
+      "type":"func",
+      "f":"log2",
+      "numeric":{
+       "type":"mul",
+       "num":1,
+       "den":10,
+       "times":{
+        "type":"property",
+        "path":"user",
+        "attr":"card.max_hp"
+       }
+      }
+     },
+     "effect":{
+      "type":"random_target",
+      "effect":{"type":"damage","damage_mode":"direct","amount":24}
+     }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Demographic Growth",
+    "type":"if",
+    "value":{"type":"property","path":"user","attr":"card.max_hp"},
+    "cond":640,
+    "effect":{
+     "type":"summon",
+     "by_name":"Chaos Brigade"
+    },
+    "else":{
+     "type":"setproperty",
+     "path":"user",
+     "attr":"card.max_hp",
+     "value":{
+      "type":"mul",
+      "num":2,
+      "den":1,
+      "times":{
+       "type":"property",
+       "path":"user",
+       "attr":"card.max_hp"
+      }
+     }
     }
    }
   ]
  },
  {
-  "name": "Rio, o-colorido",
+  "name": "Rio o-colorido",
   "element": "Air",
   "cost": 2,
   "hp": 97,
@@ -1063,13 +1163,16 @@
     "target_mode": "target",
     "power": 20,
     "effect": {
-     "infinite": true,
-     "effect": {
-      "amount": 20,
-      "type": "damage",
-      "damage_mode": "indirect"
-     },
-     "type": "loop"
+     "type":"random_target",
+     "effect":{
+      "infinite": true,
+      "effect": {
+       "amount": 20,
+       "type": "damage",
+       "damage_mode": "indirect"
+      },
+      "type": "loop"
+     }
     }
    }
   ],
@@ -1118,7 +1221,7 @@
   "type": "spell"
  },
  {
-  "name": "Kratos",
+  "name": "Kratos, Feature not Bug",
   "element": "Fire",
   "cost": 3,
   "hp": 120,
@@ -1126,8 +1229,12 @@
    {
     "name": "Mythologic Strenght",
     "effect": {
-     "type": "todo",
-     "desc": "Extra attack next turn"
+     "type": "target_change",
+     "new_target": "allies",
+     "effect":{
+      "type":"state_change",
+      "new_state":"unattacked"
+     }
     },
     "trigger": "whendefeated"
    }
@@ -1185,7 +1292,7 @@
    {
     "name": "Pyro Blitz",
     "cost": 1,
-    "target_mode": "target ",
+    "target_mode": "target",
     "power": 50
    }
   ]
