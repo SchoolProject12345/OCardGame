@@ -36,7 +36,7 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
         else:
             sfxchannel.set_volume(get_setting("volume", 100)/100)
             print("tried to unmute")
-            get_settings()["volume"] = sfxchannel.get_volume() *  100
+            get_settings()["volume"] = int(sfxchannel.get_volume()*100)
 
 
 
