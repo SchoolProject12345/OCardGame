@@ -305,7 +305,7 @@ class ReplayHandler:
             case "raw":
                 ret = args[0]
             case "errror":
-                return "\033[1;31m┌ Error:\n└\033[0m " + args[0]
+                return "\033[1;31m┌ Error:\n└\033[0m " + "".join(args)
             case "energy":
                 player = self.state[args[0]]
                 energy, max_energy = args[1].split('/')
