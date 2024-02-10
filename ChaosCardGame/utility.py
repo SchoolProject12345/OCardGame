@@ -1,4 +1,5 @@
 import os
+from functools import wraps
 
 cwd_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -209,6 +210,7 @@ def safe_static(f):
     types: dict[str, type] = f.__annotations__
     splatted: tuple = (*(arg for arg in types if not arg in all_args and arg != "return"),) # args is always before kwargs.
     hasargsorkwargs: bool = len(splatted) != 0
+    @wraps(f)
     def staticf(*args, **kwargs):
         for i in range(len(args)):
             if i < argcount:
@@ -218,17 +220,17 @@ def safe_static(f):
             else:
                 break # doesn't check unannotated *args.
             if arg in types and not isinstancepar(args[i], types[arg]):
-                raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(args[i]).__name__}.")
+                raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[arg])} for argument {arg}, got {type(args[i]).__name__}.")
         for arg in kwargs:
             if arg in types:
                 if not isinstancepar(kwargs[arg], types[arg]):
-                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[arg])} for argument {arg}, got {type(kwargs[arg]).__name__}.")
             elif hasargsorkwargs and not arg in all_args:
                 if not isinstancepar(kwargs[arg], types[splatted[-1]]):
-                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[splatted[-1]].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+                    raise TypeError(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[splatted[-1]])} for argument {arg}, got {type(kwargs[arg]).__name__}.")
         ret = f(*args, **kwargs)
         if "return" in types and not isinstancepar(ret, types["return"]):
-            raise TypeError(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types['return'].__name__} got {ret} of type {type(ret).__name__}")
+            raise TypeError(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types['return'])} got {ret} of type {type(ret).__name__}")
         return ret
     staticf.__name__ = "static_" + f.__name__
     return staticf
@@ -242,6 +244,7 @@ def soft_static(f):
     types: dict[str, type] = f.__annotations__
     splatted: tuple = (*(arg for arg in types if not arg in all_args and arg != "return"),) # args is always before kwargs.
     hasargsorkwargs: bool = len(splatted) != 0
+    @wraps(f)
     def staticf(*args, **kwargs):
         for i in range(len(args)):
             if i < argcount:
@@ -251,20 +254,26 @@ def soft_static(f):
             else:
                 break # doesn't check unannotated *args.
             if arg in types and not isinstancepar(args[i], types[arg]):
-                warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(args[i]).__name__}.")
+                warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[arg])} for argument {arg}, got {typename(type(args[i]))}.")
         for arg in kwargs:
             if arg in types:
                 if not isinstancepar(kwargs[arg], types[arg]):
-                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[arg].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[arg])} for argument {arg}, got {typename(type(kwargs[arg]))}.")
             elif hasargsorkwargs and not arg in all_args:
                 if not isinstancepar(kwargs[arg], types[splatted[-1]]):
-                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types[splatted[-1]].__name__} for argument {arg}, got {type(kwargs[arg]).__name__}.")
+                    warn(f"Wrong argument type in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types[splatted[-1]])} for argument {arg}, got {typename(type(kwargs[arg]))}.")
         ret = f(*args, **kwargs)
         if "return" in types and not isinstancepar(ret, types["return"]):
-            warn(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {types['return'].__name__} got {ret} of type {type(ret).__name__}")
+            warn(f"Invalid return value in {f.__name__} (line {f.__code__.co_firstlineno}): excepted {typename(types['return'])} got {ret} of type {typename(type(ret))}")
         return ret
     staticf.__name__ = "static_" + f.__name__
     return staticf
+
+def typename(cls: type):
+    if hasattr(cls, "__name__"):
+        # Python supports so poorly unions that they don't work like the rest
+        return cls.__name__
+    return str(cls)
 
 def isinstancepar(val: object, cls: type):
     """
@@ -278,17 +287,26 @@ def isinstancepar(val: object, cls: type):
       - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
       - E.g. `set[int]`, `list[str]`, ...
     """
-    if not hasattr(cls, "__origin__") or not hasattr(cls, "__args__"):
+    if not hasattr(cls, "__args__"):
+        # Non-paramatric
         return isinstance(val, cls)
+    if not hasattr(cls, "__origin__"):
+        # Unions
+        # Or something else that shouldn't be used.
+        for type in cls.__args__:
+            if isinstancepar(val, type):
+                return True
+        return False
     origin = cls.__origin__
+    # origin is not parametrized
     if not isinstance(val, origin):
         return False
     if origin is dict:
         keyt, valt = cls.__args__
         for key in val:
-            if not isinstance(key, keyt):
+            if not isinstancepar(key, keyt):
                 return False
-            if not isinstance(val[key], valt):
+            if not isinstancepar(val[key], valt):
                 return False
         return True
     elif origin is tuple:
@@ -296,13 +314,13 @@ def isinstancepar(val: object, cls: type):
         if len(val) != len(types):
             return False
         for i in range(len(val)):
-            if not isinstance(val[i], types[i]):
+            if not isinstancepar(val[i], types[i]):
                 return False
         return True
     elif hasattr(cls, "__iter__"):
         par, *_ = cls.__args__
         for i in val:
-            if not isinstance(i, par):
+            if not isinstancepar(i, par):
                 return False
         return True
     return True # isinstance of origin but parameters cannot be inferred
