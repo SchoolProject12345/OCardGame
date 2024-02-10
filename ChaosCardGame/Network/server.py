@@ -1,7 +1,6 @@
 import Network.network as net
 from time import time_ns
 from Core.replay import * # includes core
-from utility import static
 import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
@@ -9,49 +8,6 @@ core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "deb
 core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 core.Constants.progressbar_sytle = 1
-
-@static
-def gradient(x: int | float):
-    x = 5.0*x
-    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
-    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
-    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
-    return f"\033[38;2;{r};{g};{b}m"
-@static
-def progressbar(total: int, on: int, size: int = 15, style: int = 0):
-    total = min(total, on)
-    if total == on:
-        if style == 0:
-            return "[" + gradient(1.0) + "=" * size + "\033[0m]"
-        elif style == 1:
-            bar = "["
-            for i in range(size):
-                bar += gradient(i/size) + "="
-            return bar + "\033[0m]"
-        elif style == 2:
-            return "[" + "="*size + "]"
-    complete = total * size // on
-    bar = "["
-    if style != 2:
-        bar += gradient(total/on)
-    bar += "="*complete + ">" + " "*(size - complete - 1)
-    if style != 2:
-        bar += "\033[0m"
-    return bar + "]"
-
-@static
-def ansi_elementcolor(element: core.Element) -> str:
-    match element:
-        case core.Element.water: return "\033[38;2;0;122;247m"
-        case core.Element.fire: return "\033[38;2;205;94;1m"
-        case core.Element.earth: return "\033[38;2;32;153;13m"
-        case core.Element.air: return "\033[38;2;223;1;209m"
-        case _: return "\033[38;2;91;1;215m"
-@static
-def ansi_card(card: dict[str, object] | None, trailing: str = "") -> str:
-    if card is None:
-        return "____"
-    return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
 
 @core.dataclass
 class ServerHandler(ReplayHandler):
@@ -117,7 +73,7 @@ class ServerHandler(ReplayHandler):
         if len(logs) != 0:
             self.client_socket.send(logs.encode()) # logs are split by line uppon reception.
         return self
-    def showboard(self):
+    def showboard_debug(self):
         board = self.board
         print(f"Turn {board.turn} ", end="")
         player1 = self.board.player1
@@ -287,17 +243,7 @@ class ClientHandler(ReplayHandler):
             action = f"chat|{self.get_state()['local']['name']}|{args[1]}"
         self.sendblock(action.encode(), max_wait=300_000_000).sync()
         return True
-    @static
-    def get_required_charges(commander: str):
-        commander: str = core.cleanstr(commander)
-        if commander not in core.getCOMMANDERS():
-            core.warn(f"Tried to fetch unknown commander: {commander}.")
-            return 250
-        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
-        if len(commander.attacks) > 1:
-            return commander.attacks[1].cost
-        return 65535
-    def showboard(self):
+    def showboard_debug(self):
         data: dict = net.get_data()
 
         print(f"Turn {data['turn']} ", end="")
@@ -486,11 +432,11 @@ def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
         case _: return None
 
 @static
-def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args):
+def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args) -> ClientHandler | ServerHandler:
     if action == "doc":
         if len(args) == 0:
             devlog("Missing `card name` argument.")
-            return
+            return handle
         cardname = core.cleanstr(args[0])
         if cardname in core.getCOMMANDERS():
             card: core.AbstractCard = core.getCOMMANDERS()[cardname]
@@ -508,7 +454,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
                 finally:
                     io.close()
         devlog(card.__str__())
-        return
+        return handle
     if action == "dochand":
         if isinstance(handle, ServerHandler):
             for card in handle.board.player1.hand:
@@ -516,7 +462,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
         else:
             for card in net.get_data()["client"]["hand"]:
                 clientside_action(handle, "doc", card)
-        return
+        return handle
     if action == "help":
         devlog(
 """
@@ -542,12 +488,16 @@ Indices marked with * can be any of the following:
 Other indices are regular integer, starting from 0.
 """
         )
-        return
+        return handle
     if action == "showboard":
-        return handle.sync().showboard() # that's not clientside then
+        handle.sync().showboard() # that's not clientside then
+        return handle
     if action == "debug":
-        return print("\n\033[1m# Game State\033[0m\n", handle.state, "\n\n\033[1m# UI Formatted\033[0m\n", handle.get_state(), "\n", sep="")
+        print("\n\033[1m# Game State\033[0m\n", handle.state, "\n\n\033[1m# UI Formatted\033[0m\n", handle.get_state(), "\n", sep="")
+        handle.showboard_debug()
+        return handle
     devlog("Unrecognized action.")
+    return handle
 
 @static
 def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *args: str, source: bool) -> bool:
