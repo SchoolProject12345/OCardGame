@@ -42,7 +42,7 @@ For each player:
 
 `player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}`\
 `boardsize|p{i}|{size}`\
-`hand|p{i}|{Card Name}|{...}` Note: not yet supported as useless.
+`-firstp|p{i}`
 
 ## Actions
 `place|p{i}{j}|{Card Name}|{max_hp}|{element}`\
@@ -71,6 +71,5 @@ For each player:
 # TODO
 Add `version|x.y.z` log.\
 Read minor logs together and draw logs together.\
-Add optional `from` kwarg through `head|log|[from] Somewhere` e.g. `-damage|p1a|60/70|[from] Default Attack`.
-Fix UI formatting.
+Add optional `from` kwarg through `head|log|[from] Somewhere` e.g. `-damage|p1a|60/70|[from] Default Attack`.\
 Hide opponent's hand.
