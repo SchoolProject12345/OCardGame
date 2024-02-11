@@ -18,7 +18,6 @@ class ServerHandler(ReplayHandler):
         ReplayHandler.__init__(self)
         self.board = board
         self.client_socket = client_socket
-        del self.state["pov"]
     @static # Just realized I destroy duck typing everywhere, while literally using it one line lower.
     def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
         if not self.ongoing:
@@ -188,7 +187,6 @@ class ClientHandler(ReplayHandler):
         self.server_socket = server_socket
         self.synced = synced
         self.waiting = False
-        del self.state["pov"]
     @static
     def __call__(self, data: str) -> bool:
         self.waiting = False
@@ -233,7 +231,7 @@ class ClientHandler(ReplayHandler):
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
+        if self.state["activep"] == "p1" and head not in core.Constants.anytime_actions:
             core.warn("Wrong turn.")
             return False
         if head == "chat":
@@ -241,7 +239,7 @@ class ClientHandler(ReplayHandler):
                 devlog("Missing message in `chat` request.")
                 return False
             action = f"chat|{self.get_state()['local']['name']}|{args[1]}"
-        self.sendblock(action.encode(), max_wait=300_000_000).sync()
+        self.sendblock(action.encode(), max_wait=300_000_000)
         return True
     def showboard_debug(self):
         data: dict = net.get_data()
@@ -341,7 +339,6 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     net.get_data()["server"]["commander"]["name"] = host.commander.card.name
     board = core.Board(host, client)
     handle = ServerHandler(board, client_socket)
-    handle.sync()
     net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
     handle.log_sync()
     while core.DEV() and handle.ongoing:
@@ -490,7 +487,7 @@ Other indices are regular integer, starting from 0.
         )
         return handle
     if action == "showboard":
-        handle.sync().showboard() # that's not clientside then
+        handle.showboard() # syncronizations is normally flawless, no need to ask for it
         return handle
     if action == "debug":
         print("\n\033[1m# Game State\033[0m\n", handle.state, "\n\n\033[1m# UI Formatted\033[0m\n", handle.get_state(), "\n", sep="")
@@ -609,7 +606,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         survey = spell.use(target)
         if survey.return_code.value < 299:
             if isclientturn:
-                client_socket.send(f"error|Spell {spell.name} returned with code {survey.return_code.value} ({survey.return_code.name}).")
+                client_socket.send(f"error|Spell {spell.name} returned with code {survey.return_code.value} ({survey.return_code.name}).".encode())
             devlog(f"Warning: spell {spell.name} retruned with code {survey.return_code.value} ({survey.return_code.name}).")
         return True
     if head == "forfeit":
