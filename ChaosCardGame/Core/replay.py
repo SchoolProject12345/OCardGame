@@ -38,7 +38,7 @@ class ReplayHandler:
         state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
     @static
-    def get_required_charges(commander: str):
+    def get_required_charges(commander: str) -> int:
         commander: str = core.cleanstr(commander)
         if commander not in core.getCOMMANDERS():
             core.warn(f"Tried to fetch unknown commander: {commander}.")
@@ -216,7 +216,7 @@ class ReplayHandler:
                     self.state[player]["hand"].remove(args[1])
                 else:
                     self.state[player]["hand"].pop()
-                ret = f"{self.state[player]['name']} placed a {args[1]} at the {nth(i)} position."
+                ret = f"{self.state[player]['name']} placed a {args[1]} at the {core.nth(i)} position."
             case "-summon":
                 # same as place
                 player, i = player_index(args[0])
@@ -226,7 +226,7 @@ class ReplayHandler:
                     "max_hp":int(args[2]),
                     "element":int(args[3])
                 }
-                ret = f"A {args[1]} appeared at the {nth(i)} position of {self.state[player]['name']}'s board."
+                ret = f"A {args[1]} appeared at the {core.nth(i)} position of {self.state[player]['name']}'s board."
             case "draw":
                 self.state[args[0]]["hand"].append(args[1])
                 self.state[args[0]]["deck_length"] -= 1
@@ -341,18 +341,6 @@ class ReplayHandler:
         # isn't appended if an error is thrown, so that the replay is always valid.
         self.replay.append(log)
         return ret
-
-def nth(x: int) -> str:
-    x = str(x)
-    if len(x) > 1 and x[-2] == "1":
-        return x + "th"
-    if x[-1] == "1":
-        return x + "st"
-    if x[-1] == "2":
-        return x + "nd"
-    if x[-1] == "3":
-        return x + "rd"
-    return x + "th"
 
 @core.static
 def format_name_ui_elt(name: str) -> str:
