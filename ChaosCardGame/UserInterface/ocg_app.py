@@ -85,7 +85,7 @@ class OcgGame:
     def stop(self):
         """
         Stops the game loop by quitting pygame and exiting the system.
-        This also writes settings to `./opitions.txt` (save volume/mute changes).
+        This also writes settings to `./options.txt` (save volume/mute changes).
         """
         write_settings(get_settings())
         self.running = False
