@@ -85,6 +85,17 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
         Tk().wm_withdraw()
         messagebox.showinfo('Continue', error_string)
 
+def log(error):
+    with open(ERRORLOG, 'a') as file:
+        file.write("\n")
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        file.write(current_time)
+        file.write("\n")
+        file.write(error)
+        file.write("\n")
+        file.write("\n")
+
 # tests
 throw_error(ErrorCode.UNKNOWN)
 throw_error(ErrorCode.TEST, "test 123")

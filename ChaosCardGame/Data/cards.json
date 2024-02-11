@@ -1,5 +1,21 @@
 [
 {
+ "type":"spell",
+ "name":"Call to Arms",
+ "element":"chaos",
+ "on_use":{
+  "name":"Call to Arms",
+  "power":0,
+  "cost":3,
+  "target_mode":"allies",
+  "effect":{
+   "type":"union",
+   "effect1":{"type":"add_energy","gain":2},
+   "effect2":{"type":"state_change","new_state":"unattacked"}
+  }
+ }
+},
+{
   "name": "Sky Monkey",
   "element": "air",
   "cost": 1,
@@ -61,16 +77,19 @@
     "target_mode":"foes",
     "power":0,
     "effect":{
+     "type":"random_target",
+     "effect":{
       "type":"union",
       "effect1":{"type":"damage","damage_mode":"indirect","amount":40},
       "effect2":{"type":"hypnotize"}
      }
     }
+   }
   ],
     "passives":[{
       "name":"Submerged",
       "trigger":"whenplaced",
-      "effect":{"type":"state_change","new_state":"block","for":1}
+      "effect":{"type":"state_change","new_state":"block","for":0}
   }]
  },
  {
@@ -111,7 +130,7 @@
     "target_mode": "target",
     "power": 0,
     "effect": {
-     "amount": 130,
+     "amount": 100,
      "type": "damage",
      "damage_mode": "ignore_resist"
     }
@@ -179,7 +198,7 @@
    {
     "name": "Bloom Blessing",
     "effect": {
-     "new_target": "allies",
+     "new_target": "alliesc",
      "effect": {
       "amount": 15,
       "type": "heal"
@@ -203,7 +222,7 @@
    {
     "name": "Magic Taunt",
     "cost": 3,
-    "target_mode": "foes",
+    "target_mode": "foesc",
     "power": 10,
     "effect": {
      "type": "taunt",
@@ -228,7 +247,8 @@
     "effect": {
      "type": "loop",
      "infinite":true,
-     "effect":{"type":"damage","amount":40}
+     "effect":{"type":"damage","amount":40},
+     "tags":["-"]
     }
    }
   ]
@@ -253,9 +273,10 @@
        "type":"count",
        "target_mode":"foes",
        "tags":["any"],
-       "elements":[]
+       "elements":["fire","earth","water","chaos","air"]
       }
-     }
+     },
+     "tags":["+"]
     }
    }
   ]
@@ -272,8 +293,7 @@
      "type":"target_change",
      "new_target":"foes",
      "effect":{
-      "type":"random_targets",
-      "sample":1,
+      "type":"random_target",
       "effect":{
        "type": "state_change",
        "new_state":"block",
@@ -305,26 +325,33 @@
  {
   "name": "Magma Golem",
   "element": "fire",
-  "cost": 1,
-  "hp": 100,
+  "cost": 2,
+  "hp": 125,
   "type": "creature",
   "attacks": [
    {
     "name": "Magmatic Separation",
     "cost": 1,
     "power": 66,
-    "effect": {
-     "type": "damage",
-      "effect1":{
-        "amount": 25,
-        "target_mode":"foes"
-      },
-      "effect2":{
-        "amount": 66,
-        "target_mode":"commander"
-    }
+    "target_mode":"foesc",
+      "effect":{
+        "type":"target_change",
+        "new_target":"self",
+        "effect":{
+          "type":"damage",
+          "amount":{
+            "type":"mul",
+            "num":25,
+            "den":1,
+            "times":{
+              "type":"count",
+              "target_mode":"foes",
+              "tags":["any"]
+            }
+          }
+        }
+      }
    }
-  }
   ]
  },
  {
@@ -368,7 +395,8 @@
       "type": "damage",
       "damage_mode": "indirect"
      },
-     "type": "loop"
+     "type": "loop",
+     "tags": ["-"]
     }
    }
   ]
@@ -387,10 +415,25 @@
     "target_mode": "target",
     "power": 0,
     "effect": {
-     "den": 3,
-     "num": 1,
+     "num": {
+      "type":"add",
+      "a":30,
+      "b":{
+       "type":"mul",
+       "num":-20,
+       "den":210,
+       "times":{
+        "type":"sum",
+        "sample":{
+          "type":"hps",
+          "target_mode":"self"
+        }
+       }
+      }
+     },
+     "den": 30,
      "effect": {
-      "amount": 60,
+      "amount": 55,
       "type": "damage",
       "damage_mode": "direct"
      },
@@ -419,8 +462,12 @@
      "name":"Night Vision",
      "trigger":"whenplaced",
      "effect":{
+      "type":"target_change",
+      "new_target":"foesc",
+      "effect":{
        "type":"cleanse",
        "by_tags":["+"]
+      }
      }
    }]
  },
@@ -434,11 +481,32 @@
    {
     "name": "Muscle Drain",
     "cost": 2,
-    "target_mode": "target ",
-    "power": 90,
+    "target_mode": "target",
+    "power": 0,
     "effect": {
-     "type": "todo",
-     "desc": "Drain 50% of damage dealt."
+     "type": "union",
+     "effect1":{
+      "type":"target_change",
+      "new_target":"self",
+      "effect":{
+       "type":"redirect",
+       "from":"alliesc",
+       "amount":35
+      }
+     },
+     "effect2":{
+      "type":"damage",
+      "amount":{
+       "type":"add",
+       "a":150,
+       "b":{
+        "type":"mul",
+        "num":-75,
+        "den":180,
+        "times":{"type":"sum","sample":{"type":"hps","target_mode":"self"}}
+       }
+      }
+     }
     }
    }
   ]
@@ -495,13 +563,6 @@
   "cost": 2,
   "hp": 120,
   "passives": [
-   {
-    "name": "Completely Useless",
-    "effect": {
-     "type": "null"
-    },
-    "trigger": "whenplaced"
-   },
    {
     "name": "Deep Sea Power",
     "effect": {
@@ -598,8 +659,13 @@
    "cost":2,
    "power":0,
    "effect":{
-    "type":"todo",
-    "desc":"heals 8 hp for each enrgy stored by the user's owner"
+    "type":"heal",
+    "amount":{
+     "type":"mul",
+     "num":8,
+     "den":1,
+     "times":{"type":"property", "path":"user", "attr":"owner.energy"}
+    }
    }
   }],
   "passives": [
@@ -627,7 +693,8 @@
     "\u0074\u0061\u0072\u0067\u0065\u0074\u005f\u006d\u006f\u0064\u0065":"\u0072\u0061\u006e\u0064\u006f\u006d\u0063\u0068\u0061\u006f\u0073",
     "\u0070\u006f\u0077\u0065\u0072":65535
    }
-  ]
+  ],
+  "\u0074\u0061\u0067\u0073":["\u0073\u0065\u0063\u0072\u0065\u0074"]
  },
  {
   "name": "Fyyrönyr, the Dragon",
@@ -650,7 +717,8 @@
       "type": "damage",
       "damage_mode": "ignore_resist"
      },
-     "type": "loop"
+     "type": "loop",
+     "tags":["-"]
     }
    }
   ]
@@ -665,12 +733,12 @@
     "name":"Corruption Bite",
     "cost":2,
     "power":0,
-    "target_mode":"target",
+    "target_mode":"nocommander",
     "effect":{
       "type":"damage",
       "amount":{
        "type":"mul",
-       "times":{"type":"sum","sample":{"type":"HPs","target_mode":"target"}},
+       "times":{"type":"property","path":"main_target","attr":"hp"},
        "num":1,
        "den":2
       }
@@ -714,7 +782,7 @@
     "name": "Crystal Energy",
     "effect": {
      "type": "add_energy",
-     "max_energy":2
+     "max":2
     },
     "trigger": "whenplaced"
    }
@@ -763,23 +831,38 @@
  {
   "name": "Everstone Symbiote",
   "element": "earth",
-  "cost": 1,
-  "hp": 110,
+  "cost": 4,
+  "hp": 170,
+  "tags":["tank", "support"],
   "type": "creature",
   "attacks": [
    {
-    "name": "Separation",
-    "cost": 1,
+    "name": "Rock Crash",
+    "cost": 2,
     "target_mode": "target",
-    "power": 100,
+    "power": 0,
     "effect": {
-     "type": "target_change",
-     "new_target": "self",
-     "effect": {
-      "amount": 20,
-      "type": "damage",
-      "damage_mode": "indirect"
+     "type": "union",
+     "effect1": {
+      "type": "state_change",
+      "new_state": "damageless",
+      "for":3
+     },
+     "effect2":{
+      "type":"heal",
+      "amount":40
      }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Rock Solid",
+    "trigger":"whendamaged",
+    "effect":{
+     "type":"target_change",
+     "new_target":"self",
+     "effect":{"type":"heal", "amount":15}
     }
    }
   ]
@@ -794,13 +877,8 @@
    {
     "name":"Tidal Surge",
     "cost":3,
-    "target_mode":"foes",
-    "power":90,
-    "effect":{
-     "type":"target_change",
-     "new_target":"commander",
-     "effect":{"type":"damage","damage_mode":"direct","amount":90}
-    }
+    "target_mode":"foesc",
+    "power":90
    }
   ]
  },
@@ -851,7 +929,8 @@
     "effect":{
      "type":"loop",
      "infinite":false,
-     "effect":{"type":"damage","damage_mode":"direct","amount":30}
+     "effect":{"type":"damage","damage_mode":"direct","amount":30},
+     "tags":["-"]
     }
    }
   ],
@@ -892,7 +971,8 @@
       "effect1":{
         "type":"loop",
         "infinite":false,
-        "effect":{"type":"damage","amount":10,"damage_mode":"direct"}
+        "effect":{"type":"damage","amount":10,"damage_mode":"direct"},
+        "tags":["-"]
       },
       "effect2":{
        "type":"targetchange",
@@ -929,7 +1009,7 @@
     "effect": {
      "type": "summon",
      "count":1,
-     "creature":{"name":"Chaosling"}
+     "by_name":"Chaosling"
     }
    }
   ]
@@ -983,7 +1063,7 @@
    "effect":{
     "type":"summon",
     "count":2,
-    "creature":{"name":"Chaosling"}
+    "by_name":"Chaosling"
    }
   }],
   "passives":[{
@@ -991,6 +1071,36 @@
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]
+ },
+ {
+  "name":"Chaosling",
+  "element":"chaos",
+  "cost":1,
+  "hp":50,
+  "type":"creature",
+  "attacks":[
+    {
+      "name":"Energizing Bite",
+      "cost":1,
+      "target_mode":"target",
+      "power":35,
+      "effect":{
+        "type":"todo",
+        "desc":"Add one stack."
+      }
+    }
+  ],
+  "passives":[
+    {
+      "name":"Please Name This",
+      "trigger":"whendefeated",
+      "effect":{
+        "type":"todo",
+        "desc":"Give one energy + one per stack"
+      }
+    }
+  ],
+  "tag":"summon"
  },
  {
   "name":"The Skybound Serpent",
@@ -1012,15 +1122,54 @@
     "target_mode":"foes",
     "power":0,
     "effect":{
-     "type":"random_targets",
-     "sample":1,
-     "effect":{"type":"damage","damage_mode":"direct","amount":18}
+     "type":"repeat",
+     "n":{
+      "type":"func",
+      "f":"log2",
+      "numeric":{
+       "type":"mul",
+       "num":1,
+       "den":10,
+       "times":{
+        "type":"property",
+        "path":"user",
+        "attr":"card.max_hp"
+       }
+      }
+     },
+     "effect":{
+      "type":"random_target",
+      "effect":{"type":"damage","damage_mode":"direct","amount":24}
+     }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Demographic Growth",
+    "trigger":"endofturn",
+    "effect":{
+    "type":"if",
+    "value":{"type":"property","path":"user","attr":"card.max_hp"},
+    "cond":640,
+    "effect":{
+     "type":"summon",
+     "by_name":"Chaos Brigade"
+    },
+    "else":{
+     "type":"maxhp_add",
+     "amount":{
+      "type":"property",
+      "path":"user",
+      "attr":"card.max_hp"
+     }
+    }
     }
    }
   ]
  },
  {
-  "name": "Rio, o-colorido",
+  "name": "Rio o-colorido",
   "element": "Air",
   "cost": 2,
   "hp": 97,
@@ -1063,13 +1212,17 @@
     "target_mode": "target",
     "power": 20,
     "effect": {
-     "infinite": true,
-     "effect": {
-      "amount": 20,
-      "type": "damage",
-      "damage_mode": "indirect"
-     },
-     "type": "loop"
+     "type":"random_target",
+     "effect":{
+      "infinite": true,
+      "effect": {
+       "amount": 20,
+       "type": "damage",
+       "damage_mode": "indirect"
+      },
+      "type": "loop",
+      "tags":["-"]
+     }
     }
    }
   ],
@@ -1096,6 +1249,7 @@
     "name":"Instant Dash",
     "target_mode":"target",
     "power":0,
+    "cost":2,
     "effect":{"type":"damage","amount":80,"damage_mode":"indirect"}
    }
   ]
@@ -1126,8 +1280,12 @@
    {
     "name": "Mythologic Strenght",
     "effect": {
-     "type": "todo",
-     "desc": "Extra attack next turn"
+     "type": "target_change",
+     "new_target": "allies",
+     "effect":{
+      "type":"state_change",
+      "new_state":"unattacked"
+     }
     },
     "trigger": "whendefeated"
    }
@@ -1169,7 +1327,7 @@
    "trigger":"whenattack",
    "effect":{
     "type":"state_change",
-    "state_change":"invisble",
+    "new_state":"invisble",
     "for":2
    }
   }],
@@ -1185,7 +1343,7 @@
    {
     "name": "Pyro Blitz",
     "cost": 1,
-    "target_mode": "target ",
+    "target_mode": "target",
     "power": 50
    }
   ]
@@ -1224,13 +1382,13 @@
  {
    "type":"spell",
    "name":"Empowering Medicine",
-   "element":"earh",
+   "element":"earth",
    "on_use":{
      "name":"medicine",
      "cost":1,
      "power":0,
      "target_mode":"allies",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"raise damage"}
    }
  },
  {
@@ -1242,7 +1400,7 @@
      "cost":2,
      "power":0,
      "target_mode":"foes",
-     "effect":{"type":"null"}
+     "effect":{"type":"state_change","new_state":"cloudy","for":1}
   }
  },
  {
@@ -1254,7 +1412,7 @@
      "cost":1,
      "power":0,
      "target_mode":"allies",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"raise def"}
    } 
  },
  {
@@ -1263,10 +1421,10 @@
    "element":"chaos",
    "on_use":{
      "name":"Corruption",
-     "cost":3,
+     "cost":1,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"null"}
+     "effect":{"type":"damage","amount":{"type":"turn"}}
   }
  },
  {
@@ -1278,7 +1436,7 @@
      "cost":2,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo","desc":"10 then 20, then 30, 40, 50 damages over 5 turns."}
     }
  },
  {
@@ -1290,7 +1448,7 @@
      "cost":2,
      "power":0,
      "target_mode":"foes",
-     "effect":{"type":"null"}
+     "effect":{"type":"todo", "desc":"50 then 40, then 30, 20, 10 heal over 5 turns."}
     }
  }
 ]

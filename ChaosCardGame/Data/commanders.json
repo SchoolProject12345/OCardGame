@@ -19,12 +19,14 @@
   "trigger":"whendamaged",
   "effect":{
    "type":"target_change",
-   "new_target":"foes",
+   "new_target":"foesc",
    "effect":{
     "type":"damage",
-    "amount":{"type":"damage_taken",
+    "amount":{
+     "type":"mul",
      "num":1,
-     "den":10
+     "den":10,
+     "times":{"type":"damage_taken"}
     }
    }
   }
@@ -147,7 +149,7 @@
        "name":"Cannon Shot",
        "cost":1,
        "power":35,
-       "target_mode":"target",
+       "target_mode":"target"
       }
      ]
     }
