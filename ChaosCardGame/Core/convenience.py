@@ -119,3 +119,15 @@ def clamp(x, min, max):
     if x > max:
         return max
     return x
+
+def nth(x: int) -> str:
+    x = str(x)
+    if len(x) > 1 and x[-2] == "1":
+        return x + "th"
+    if x[-1] == "1":
+        return x + "st"
+    if x[-1] == "2":
+        return x + "nd"
+    if x[-1] == "3":
+        return x + "rd"
+    return x + "th"
