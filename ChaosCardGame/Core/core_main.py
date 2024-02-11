@@ -56,7 +56,6 @@ class TurnNumeric(Numeric):
 @dataclass
 class DamageTaken(Numeric):
     def eval(self, **kwargs) -> int:
-        print("DEBUG: Evaluating DamageTaken")
         if not "damage_taken" in kwargs:
             return warn("Tried to get damage taken without whendamaged trigger.") and 0
         return kwargs["damage_taken"]
@@ -1460,7 +1459,6 @@ class ActiveCard:
         for passive in self.card.passives:
             if passive.trigger is not PassiveTrigger.whendamaged:
                 continue
-            print("DEBUG: Executing whendamaged passive.")
             kwargs_ = kwargs.copy()
             kwargs_.update({
                 "damage_taken":amount,
