@@ -147,7 +147,7 @@
        "name":"Cannon Shot",
        "cost":1,
        "power":35,
-       "target_mode":"target",
+       "target_mode":"target"
       }
      ]
     }
