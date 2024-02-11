@@ -1144,14 +1144,9 @@
     "else":{
      "type":"maxhp_add",
      "amount":{
-      "type":"mul",
-      "num":2,
-      "den":1,
-      "times":{
-       "type":"property",
-       "path":"user",
-       "attr":"card.max_hp"
-      }
+      "type":"property",
+      "path":"user",
+      "attr":"card.max_hp"
      }
     }
     }
