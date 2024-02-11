@@ -536,8 +536,10 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send(b"error|Invalid target.")
             return devlog("Warning: Invalid target.")
         survey = user.attack(attack, target)
-        if survey.return_code.value > 299 and isclientturn:
-            client_socket.send(f"error|Attack failed ({survey.return_code.value})".encode())
+        if survey.return_code.value > 299:
+            if isclientturn:
+                client_socket.send(f"error|Attack failed ({survey.return_code.value}: {survey.return_code.name})".encode())
+            core.warn(f"error|Attack failed ({survey.return_code.value}: {survey.return_code.name})")
         return True
     if head == "chat":
         if len(args) == 0:
@@ -604,7 +606,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
         survey = spell.use(target)
-        if survey.return_code.value < 299:
+        if survey.return_code.value > 299:
             if isclientturn:
                 client_socket.send(f"error|Spell {spell.name} returned with code {survey.return_code.value} ({survey.return_code.name}).".encode())
             devlog(f"Warning: spell {spell.name} retruned with code {survey.return_code.value} ({survey.return_code.name}).")
