@@ -141,7 +141,8 @@ With possible values for field `"target_mode"` being:
 - `"foes"`: all of the opponent's cards.
 - `"allies"`: all of your cards.
 - `"target"`: the card targeted by the attack.
-- `"commander"`: your opponent's commander
+- `"nocommander"`: same as target but commander can't be selected.
+- `"commander"`: your opponent's commander.
 - `"allied_commander"`: your commander.
 - `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
 - `"all"`: every card but the user.
@@ -226,9 +227,9 @@ With possible values of field `"new_state"` being:
     `"default"`: has no effect.
     `"block"` or `"blocked"`: cannot attack.
     `"invisible"`: cannot attack nor be targeted.
-    `"unattacked"`: allow to attack one more time during turn, if already attacked before effect take place. This doesn't actually change the targets' states.
+    `"unattacked"`: allow to attack one more time during turn, if already attacked before effect take place. This doesn't always change the targets' actual states.
     `"damageless"`: cannot receive damage nor new State.
-    `"cloudy"`: -20% damages, all attacks are single-random-targeted.
+    `"cloudy"`: all attacks are single-random-targeted.
     `"monotonous"`: damages are not affected by weaknesses.
 Cleanse effects and tags by tags. `by_tags` defaults to `["+", "-", "+-"]`. Default supported tags are #`+` (positive state/effect), #`-` (negative state/effect) & #`+-` (positive with drawback state/effect). All effects than can be tagged should be tagged (i.e. loop & delay) for this to work properly.
 ```
@@ -304,6 +305,14 @@ Summon a creature card on the user's owner's board if possible
  "creature":{/*creature object*/}
 }
 ```
+Additionaly, `"creature"` may be replaced by `"by_name"` allowing to summon an already existing creature, hence breaking a possible loop.
+```js
+{
+ "type":"summon",
+ "count":1,
+ "by_name":"Chaos Brigade" // equivalent to "by_name":"chaosbrigade"
+}
+```
 Change the target∙s owner to user's owner, changing their place on the field. Please don't allow it to target commanders. It wouldn't work anyway.
 ```js
 {"type":"hypnotize"} // yeah that's it, no fields.
@@ -374,6 +383,18 @@ Evaluate `effect` if `value` is evalutated greater or equal than `cond`, evaluat
 }
 ```
 
+### Hardcode
+Hardcoding is sometime unavoidable. You can use the following syntax to run completely arbitrary Python code. Additionaly, a `"desc"`ription of the effect may be given for documentation (do it). Some hardcoding might require to go deeper into the code, in which case this may still be used as an effect with only `"desc"` for documentation.\
+Note₁₂: All variables from `Core/core_main.py`'s AbstractEffect.eval's scope are available.
+Note₂: You must really know you're doing before using this.
+```
+{
+ "type":"hardcoded",
+ "desc":"Does some cool stuff."
+ "code":"kwargs['board'].logs.append(ifelse(kwargs['user'].taunt is not None, f"raw|{kwargs[\"user\"].name} is taunted!', 'raw|Hello world!'))" // supports statements as well.
+}
+```
+
 ## Numeric Expressions
 In most cases, integers in effect objects can be replaced by other object which are evaluated to integers every time the effect is applied.
 
@@ -441,6 +462,26 @@ a + b
 }
 ```
 
+### Property
+If you want to go more into code, you can access a kwarg property (AKA attribute) through the following syntax:
+```js
+{
+ "type":"property",
+ "path":"user",
+ "attr":"card.max_hp"
+}
+```
+In this example, it will first search for the user's card and then this card's max_hp. It is equivalent to the code:
+```py
+kwargs["user"].card.max_hp
+```
+This might have many uses, such as:
+```py
+kwargs["user"].hp
+kwargs["user"].card.cost
+kwargs["board"].turn
+```
+This will probably be extented.
 
 ### Current turn
 ```js
@@ -448,7 +489,7 @@ a + b
 ```
 
 ### Damage Taken
-For passive whendamaged.
+For passive trigger `whendamaged`.
 ```js
 {"type":"damage_taken"}
 ```

@@ -1,5 +1,6 @@
 import Core.core_main as core
 from datetime import datetime # ???
+from utility import static
 from time import sleep
 
 class ReplayHandler:
@@ -11,8 +12,8 @@ class ReplayHandler:
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = True
-    def isp1(self): return self.state["pov"] == "p1" # POV can be used to change replay POV
-    def get_state(self):
+    def isp1(self) -> bool: return self.state["pov"] == "p1" # POV can be used to change replay POV
+    def get_state(self) -> dict:
         """
         Return `self`'s state as a dict (see `./Core/log.doc.md`).\n
         This is different from `self.state`, whcih returns raw data,
@@ -31,11 +32,64 @@ class ReplayHandler:
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        state["remote"]["hand"]  = [core.format_name_ui(card) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [core.format_name_ui(card) for card in state[ "local"]["hand"]]
-        state["remote"]["discard"] = [core.format_name_ui(card) for card in state["remote"]["discard"]]
-        state[ "local"]["discard"] = [core.format_name_ui(card) for card in state[ "local"]["discard"]]
+        state["remote"]["hand"]  = [format_name_ui_elt(card) for card in state["remote"]["hand"]]
+        state[ "local"]["hand"]  = [format_name_ui_elt(card) for card in state[ "local"]["hand"]]
+        state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
+        state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
+    @static
+    def get_required_charges(commander: str) -> int:
+        commander: str = core.cleanstr(commander)
+        if commander not in core.getCOMMANDERS():
+            core.warn(f"Tried to fetch unknown commander: {commander}.")
+            return 250
+        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
+        if len(commander.attacks) > 1:
+            return commander.attacks[1].cost
+        return 65535
+    def showboard(self):
+        # `self.state` is faster than `self.get_state()` and contains more informations as less formatted
+        data = self.state
+        local, remote = core.ifelse(self.isp1(), ("p1", "p2"), ("p2", "p1"))
+
+        print(f"Turn {data['turn']} ", end="")
+        server = data[remote]
+        if data["activep"] == remote:
+            print(f"({server['name']}'s turn)")
+        else:
+            print("(Your turn)")
+
+        print(f"\n\033[1;4m{server['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            server["commander"]["charges"],
+            ReplayHandler.get_required_charges(server["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(server["commander"], '⋆'))
+        for card in server["board"]:
+            print(ansi_card(card), end=" ")
+
+        client = data[local]
+        print(f"\n\n\033[1;4m{client['name']}'s Side\033[0m")
+        print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)")
+        print(progressbar(
+            client["commander"]["charges"],
+            ReplayHandler.get_required_charges(client["commander"]["name"]),
+            style = core.Constants.progressbar_sytle
+        ))
+        print("\033[4m" + ansi_card(client["commander"], '⋆'))
+        for card in client["board"]:
+            print(ansi_card(card), end=" ")
+        print()
+        print("Your hand: ", end="")
+        for card in client["hand"]:
+            print(card.replace(",", " -"), end=", ")
+        if len(client["hand"]) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
+        return self
     def get_replay(self):
         replay = ""
         for log in self.replay:
@@ -84,7 +138,7 @@ class ReplayHandler:
             finally:
                 io.close()
         return self
-    def default_state():
+    def default_state() -> dict:
         return {
          "p1":{
           "name":"",
@@ -119,6 +173,7 @@ class ReplayHandler:
             return self.state[index[0:2]]["commander"]
         player, i = player_index(index)
         return self.state[player]["board"][i]
+    @core.static
     def play_log(self, log: str) -> str:
         """
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
@@ -136,8 +191,23 @@ class ReplayHandler:
                 self.state[ind]["commander"]["element"] = int(args[4])
                 ret = f"Contestant {args[1]} commands through {args[2]}."
             case "boardsize":
-                self.state[args[0]]["board"] += [None]*(int(args[1]) - len(self.state[args[0]]["board"]))
-                ret = ""
+                psize = len(self.state[args[0]]["board"])
+                delta = int(args[1]) - psize
+                l = delta
+                if l < 0:
+                    while l < 0:
+                        self.state[args[0]].remove(None) # no error handling
+                        l += 1
+                else:
+                    self.state[args[0]]["board"] += [None]*l
+                if psize == 0:
+                    ret = ""
+                else:
+                    ret = f"{self.state[args[0]]['name']} "
+                    if delta > 0:
+                        ret += f"gained {delta} slots on their board."
+                    else:
+                        ret += f"lost {-delta} slots on their board."
             case "discard":
                 # No error handling AT ALL
                 if args[1] in self.state[args[0]]["hand"]:
@@ -161,7 +231,7 @@ class ReplayHandler:
                     self.state[player]["hand"].remove(args[1])
                 else:
                     self.state[player]["hand"].pop()
-                ret = f"{self.state[player]['name']} placed a {args[1]} at the {nth(i)} position."
+                ret = f"{self.state[player]['name']} placed a {args[1]} at the {core.nth(i)} position."
             case "-summon":
                 # same as place
                 player, i = player_index(args[0])
@@ -171,7 +241,7 @@ class ReplayHandler:
                     "max_hp":int(args[2]),
                     "element":int(args[3])
                 }
-                ret = f"A {args[1]} appeared at the {nth(i)} position of {self.state[player]['name']}'s board."
+                ret = f"A {args[1]} appeared at the {core.nth(i)} position of {self.state[player]['name']}'s board."
             case "draw":
                 self.state[args[0]]["hand"].append(args[1])
                 self.state[args[0]]["deck_length"] -= 1
@@ -249,8 +319,8 @@ class ReplayHandler:
                 ret = f"{args[1]} won the game!"
             case "raw":
                 ret = args[0]
-            case "errror":
-                return "\033[1;31m┌ Error:\n└\033[0m " + args[0]
+            case "error":
+                return "\033[1;31m┌ Error:\n└\033[0m " + "".join(args)
             case "energy":
                 player = self.state[args[0]]
                 energy, max_energy = args[1].split('/')
@@ -278,25 +348,25 @@ class ReplayHandler:
                 player["deck_length"] = len(player["discard"])
                 player["discard"].clear()
                 ret = f"{player['name']} shuffled their discard pile into their deck."
+            case "-firstp":
+                self.state["activep"] = args[0]
+                ret = "It's " + self.state[self.state["activep"]]["name"] + "'s turn."
             case "": # allows to put empty lines in `.log`'s for clarity/time spacing.
                 ret = ""
         # isn't appended if an error is thrown, so that the replay is always valid.
         self.replay.append(log)
         return ret
 
-def nth(x: int) -> str:
-    x = str(x)
-    if len(x) > 1 and x[-2] == "1":
-        return x + "th"
-    if x[-1] == "1":
-        return x + "st"
-    if x[-1] == "2":
-        return x + "nd"
-    if x[-1] == "3":
-        return x + "rd"
-    return x + "th"
+@core.static
+def format_name_ui_elt(name: str) -> str:
+    "Same as `core.format_name_ui` but infer element."
+    card = core.AbstractCard.get_card(name)
+    if card is None:
+        return core.format_name_ui(name)
+    return card.ui_id
 
-def format_active_ui(active: dict | None) -> dict | None:
+@core.static
+def format_active_ui(active: dict[str, object] | None) -> dict[str, object] | None:
     if active is None:
         return
     active = active.copy()
@@ -318,7 +388,51 @@ def stringclr(string: str):
     r = t % 255
     g = 2*t % 255
     b = 7*t % 255
-    return f"\033[38;2;{r};{g};{b}m"                
+    return f"\033[38;2;{r};{g};{b}m"
+
+@static
+def gradient(x: int | float):
+    x = 5.0*x
+    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
+    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
+    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
+    return f"\033[38;2;{r};{g};{b}m"
+
+@static
+def progressbar(total: int, on: int, size: int = 15, style: int = 0):
+    total = min(total, on)
+    if total == on:
+        if style == 0:
+            return "[" + gradient(1.0) + "=" * size + "\033[0m]"
+        elif style == 1:
+            bar = "["
+            for i in range(size):
+                bar += gradient(i/size) + "="
+            return bar + "\033[0m]"
+        elif style == 2:
+            return "[" + "="*size + "]"
+    complete = total * size // on
+    bar = "["
+    if style != 2:
+        bar += gradient(total/on)
+    bar += "="*complete + ">" + " "*(size - complete - 1)
+    if style != 2:
+        bar += "\033[0m"
+    return bar + "]"
+
+@static
+def ansi_elementcolor(element: core.Element) -> str:
+    match element:
+        case core.Element.water: return "\033[38;2;0;122;247m"
+        case core.Element.fire: return "\033[38;2;205;94;1m"
+        case core.Element.earth: return "\033[38;2;32;153;13m"
+        case core.Element.air: return "\033[38;2;223;1;209m"
+        case _: return "\033[38;2;91;1;215m"
+@static
+def ansi_card(card: dict[str, object] | None, trailing: str = "") -> str:
+    if card is None:
+        return "____"
+    return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
 
 def get_commander(name: str) -> core.CommanderCard:
     "Return correct commander or UNKNOWN if not implemented in current save."
