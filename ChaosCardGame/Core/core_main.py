@@ -16,7 +16,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size = max(1, get_setting("hand_size", 5))
     default_deck_size = max(1, get_setting("deck_size", 15))
-    strong_increase = max(0, get_setting("strong_percent_increase", 20)) // 10 # percent are overrated
+    strong_increase = max(0, get_setting("strong_percent_increase", 20))
     passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
     commander_heal = max(0, get_setting("passive_commander_heal", 20))
     commander_power = 65
@@ -161,7 +161,7 @@ class EnergyCount(Numeric):
             case "max": return owner.max_energy
             case "current": return owner.energy
             case "perturn": return owner.energy_per_turn
-            case "turn": return owner.energy_per_turn # match "/turn"
+            case "turn": return owner.energy_per_turn # matches "/turn"
 
 @dataclass
 class MultNumeric(Numeric):
@@ -172,8 +172,10 @@ class MultNumeric(Numeric):
     def eval(self, **kwargs) -> int:
         return self.numeric.eval(**kwargs) * self.num // self.den
     def __str__(self):
-        # TODO: make more verbal
-        return f"{self.num}({self.numeric})/{self.den}"
+        # TODO: make more verbose
+        if self.den == 1:
+            return f"{self.num} times {self.numeric}"
+        return f"{self.num} {nth(self.n)} of {self.numeric}"
 @dataclass
 class AddNumeric(Numeric):
     "Evaluate the addition of two numerics."
@@ -336,7 +338,7 @@ class Element(IntEnum):
         return self.effectiveness(other)
 
 class State(IntEnum):
-    discarded = 127  # for GUI
+    discarded = 127
     damageless = 5  # can't take direct damage
     blocked = 4  # can't attack
     cloudy = 3 # single targeted only, -20% dmg, random targeted.
@@ -371,7 +373,8 @@ class TargetMode(IntEnum):
     def cancommander(self) -> bool:
         if self in [
             TargetMode.foes,
-            TargetMode.nocommander
+            TargetMode.nocommander,
+            TargetMode.allies
         ]:
             return False
         return True
@@ -528,6 +531,7 @@ class AbstractEffect:
             case "if": return IfEffect.from_json(json)
             case "hardcoded": return HardCodedEffect.from_json(json)
             case "setproperty": return SetCardProperty.from_json(json)
+            case "maxhpadd": return MaxHPAdd.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
             case None: return NullEffect()
@@ -556,13 +560,14 @@ class HardCodedEffect(AbstractEffect):
     def __str__(self):
         return self.desc
 
-@dataclass # why didn't I do that before? It makes everything 100x easier.
+@dataclass
 class SetCardProperty(AbstractEffect):
     path: str
     attr: str
     value: Numeric
-    # not stricly a numeric, but I trust the user to not mess up
-    def eval(self, **kwargs) -> bool:
+    def execute(self, **kwargs) -> bool:
+        # I just realized this is absolute hell to log. It could literally need to log anything.
+        # Imma deprecate that
         card = kwargs
         keys = self.path.split('/')
         attrs = self.attr.split('.')
@@ -578,18 +583,18 @@ class SetCardProperty(AbstractEffect):
                 warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
                 return False
             card = getattr(card, attr)
-        # kwargs["user"].card.max_hp = value
         if L != 0:
             key = keys.pop()
             setattr(card[key], attrs.pop(), self.value)
         else:
             attr1 = attrs.pop(0)
-            copy = getattr(card, attr1).copy()
+            copy = getattr(card, attr1).copy() # copy to avoid sharing
             attr2 = attrs.pop()
             setattr(copy, attr2, self.value)
             setattr(card, attr1, copy)
         return True
     def from_json(json: dict):
+        warn("Don't use SetCardProperty it's too hard to log it will cause countless bugs.")
         path = getordef(json, "path", "user").strip()
         attr = json["attr"].strip()
         if len(attr) == 0:
@@ -598,6 +603,21 @@ class SetCardProperty(AbstractEffect):
         return SetCardProperty(path, attr, value)
     def __str__(self):
         return "set the " + "'s ".join(self.path.split("/") + self.attr.split('.')) + f" to {self.value}"
+
+@dataclass
+class MaxHPAdd(AbstractEffect):
+    "Add max HP to the targets. This is favoured over SetCardProperty or HardCodedEffect as it logs efficiently."
+    amount: Numeric
+    def execute(self, **kwargs):
+        for card in AbstractEffect.targeted_objects(**kwargs):
+            new_card = card.card.copy() # avoids changing the max HP of all cards.
+            new_card.max_hp += self.amount.eval(**kwargs) # evaluate for each targets.
+            card.card = new_card # card is ActiveCard so it doesn't mind being mutated
+            card.heal(0) # log max HP changes
+        return True # the probability that it doesn't work is near 0.
+    def from_json(json: dict):
+        return MaxHPAdd(Numeric.from_json(json["amount"]))
+
 
 @dataclass
 class IfEffect(AbstractEffect):
@@ -713,7 +733,7 @@ class ChangeState(AbstractEffect):
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
-            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {}, (*getordef(json, "tags", ("+-")),))) # feature not bug
+            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {}, (*getordef(json, "tags", ("+-",)),))) # feature not bug
         return effect
     def __str__(self) -> str:
         return f"a change of state of the target⋅s to {self.new_state.name}"
@@ -836,20 +856,19 @@ class CleanseEffect(AbstractEffect):
 @dataclass
 class DamageDrain(AbstractEffect):
     "Heal for a ratio (rational) of total damage (indirect/direct) "
-    numerator: int
-    # doesn't support numeric as Rational are quite too complex to be worked with.
-    denominator: int
+    numerator: Numeric
+    denominator: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        alt_kwargs: dict = kwargs.copy()  # could Python work correctly sometimes?
+        alt_kwargs: dict = kwargs.copy() # avoids sharing
         alt_kwargs["survey"] = EffectSurvey()
         has_worked = self.effect.execute(**alt_kwargs)
         alt_kwargs["survey"].heal += alt_kwargs["user"].heal(
             self.numerator * alt_kwargs["survey"].damage // self.denominator)
         kwargs["survey"] += alt_kwargs["survey"]
-        return has_worked
+        return has_worked # heal and damages are accounted in survey
     def from_json(json: dict):
-        return DamageDrain(json["num"], json["den"], AbstractEffect.from_json(json["effect"]))
+        return DamageDrain(Numeric.from_json(json["num"]), Numeric.from_json(json["den"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
         return f"heal {self.numerator}/{self.denominator} of damage dealt from {str(self.effect)}"
 
@@ -949,10 +968,12 @@ class BoardResize(AbstractEffect):
     target: str
     def execute(self, **kwargs):
         match self.target:
-            case "active": player = kwargs["board"].active_player
-            case "unactive": player = kwargs["board"].unactive_player
+            case "active": player: Player = kwargs["board"].active_player
+            case "unactive": player: Player = kwargs["board"].unactive_player
             case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
-        # TODO: boarddiscard first.
+        # TODO: boarddiscard first
+        # this requires some cleaning, as it needs to apply the passive
+        # boardiscard needs to be called with **kwargs
         boardsize = max(len(player.active) + self.delta, 1)
         if self.delta < 0:
             while boardsize < len(player.active) and None in player.active:
@@ -986,7 +1007,7 @@ class HypnotizeEffect(AbstractEffect):
                     i = j
                     break
             if i == -1:
-                return False and warn("Hypnotization couldn't find the index of the target.")
+                return warn("Hypnotization couldn't find the index of the target.") and False
             ppos = target.namecode() # logging
             target.owner.active[j] = None
             # I could have just done kwargs["player"] but it seems safer this way.
@@ -1019,6 +1040,7 @@ class FormeChange(AbstractEffect):
         actives = AbstractEffect.targeted_objects(**kwargs)
         for active in actives:
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+            # if it ends up mutated then the bug should be fixed where it is mutated.
             active.element = self.new_forme.element
             kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
         return len(actives) != 0
@@ -1249,7 +1271,7 @@ class ActiveCard:
     effects: list[AbstractEffect]
     attacked: bool
     state: State
-    taunt: None # or ActiveCard but I can't annotate thanks to Python
+    taunt: None | object # or ActiveCard but I can't annotate thanks to Python
     taunt_dur: int
     def __init__(self, card: CreatureCard, owner: Player, board: Board):
         self.card = card
@@ -1314,9 +1336,6 @@ class ActiveCard:
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
         #= Gravitational Lensing - start =#
          # overrides everything
-         # wait I just realized it redirects 65535-damage attacks.
-         # "Feature not bug"
-         # I fixed it normally
         if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"] and kwargs["target_mode"].cancommander():
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
@@ -1498,7 +1517,8 @@ class Arena(IntEnum):
     def has_effect(self, other):
         "Return whether self has the same effect Arena effect as other."
         # hardcoded so that chaos always has the effects of all other arenas.
-        return (self == other) or (self == Arena.chaos)
+        return (self is other) or (self is Arena.chaos)
+        # it means if we add Arenas, then chaos has more effects.
 
 class Player:
     name: str
@@ -1585,6 +1605,7 @@ class Player:
             if cleanstr(card.name) == cleanstr(name):
                 return card.id
         # I'm way to lazy to check whether the returned value is valid, so I just return a valid value in case the card doesn't exist.
+        # don't use this method though, use AbstractCard.get_card or AbstractCard.from_id
         return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
     @static
     def get_save_json(name: str) -> dict | None:
@@ -1718,7 +1739,6 @@ class Player:
             "user": self.active[j],
             "survey": EffectSurvey()
         }
-        # TODO: give important informations on card instead of just name.
         board.logs.append(f"place|{self.active[j].namecode()}|{self.active[j].card.name}|{self.active[j].card.max_hp}|{self.active[j].element.value}")
         for passive in self.active[j].card.passives:
             if passive.trigger != PassiveTrigger.whenplaced:
@@ -1726,6 +1746,7 @@ class Player:
             passive.execute(**kwargs)
         return True
     # this is somewhat buggy.
+    # Don't use please
     def reset(self):
         self.deck.extend(self.hand)
         self.deck.exten(self.discard)
