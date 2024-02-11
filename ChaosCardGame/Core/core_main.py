@@ -36,7 +36,7 @@ class Numeric:
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion.from_json(json)
             case "energy": return EnergyCount(json["type"])
-            case "mul": return MultNumeric(Numeric.from_json(json["times"]), Numeric.from_json(json["num"]), json["den"])
+            case "mul": return MultNumeric.from_json(json)
             case "add": return AddNumeric(Numeric.from_json(json["a"]), Numeric.from_json(json["b"]))
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
@@ -48,14 +48,14 @@ class Numeric:
 
 @dataclass
 class TurnNumeric(Numeric):
-    def eval(self, **kwargs):
+    def eval(self, **kwargs) -> int:
         return kwargs["board"].turn
     def __str__(self):
         return "current turn"
 
 @dataclass
 class DamageTaken(Numeric):
-    def eval(self, **kwargs):
+    def eval(self, **kwargs) -> int:
         return getordef(kwargs, "damage_taken", 0)
     def __str__(self):
         return "damage taken"
@@ -82,6 +82,7 @@ class NumericList(Numeric):
 # To get HP from a single target, use `NumericSum(HPList(TargetMode.target))`
 class HPList(NumericList):
     target_mode: object  # slightly spagehtti but this will do for now
+    @static
     def eval(self, **kwargs) -> list[int]:
         return [card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))]
     def __str__(self):
@@ -96,7 +97,7 @@ class CardProperty(Numeric):
         card = kwargs
         keys = self.path.split('/')
         while len(keys) != 0:
-            key = key.pop(0)
+            key = keys.pop(0)
             if not key in card:
                 warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
                 return 0
@@ -110,7 +111,7 @@ class CardProperty(Numeric):
             card = getattr(card, attr)
         return card
     def __str__(self):
-        "'s ".join(self.path.split('/') + self.attr.split('.'))
+        return "'s ".join(self.path.split('/') + self.attr.split('.'))
 
 @dataclass
 class GCDNumeric(Numeric):
@@ -149,7 +150,7 @@ class CountUnion(Numeric):
             (*(Element.from_str(element) for element in getordef(json, "elements", ())),)
         )
     def __str__(self):
-        f"the amount of cards with elements {self.elements} or with tag {self.tags}"
+        return f"the amount of cards with elements {self.elements} or with tag {self.tags}"
 
 @dataclass
 class EnergyCount(Numeric):
@@ -167,15 +168,21 @@ class EnergyCount(Numeric):
 class MultNumeric(Numeric):
     "Evaluate the product of a numeric with a rational."
     numeric: Numeric
-    num: int
+    num: Numeric
     den: int
     def eval(self, **kwargs) -> int:
-        return self.numeric.eval(**kwargs) * self.num // self.den
+        return self.numeric.eval(**kwargs) * self.num.eval(**kwargs) // self.den
+    def from_json(json: dict):
+        return MultNumeric(
+            Numeric.from_json(json["times"]),
+            Numeric.from_json(json["num"]),
+            getordef(json, "den", 1)
+        )
     def __str__(self):
         # TODO: make more verbose
         if self.den == 1:
             return f"{self.num} times {self.numeric}"
-        return f"{self.num} {nth(self.n)} of {self.numeric}"
+        return f"{self.num} {nth(self.den)} of {self.numeric}"
 @dataclass
 class AddNumeric(Numeric):
     "Evaluate the addition of two numerics."
@@ -184,7 +191,7 @@ class AddNumeric(Numeric):
     def eval(self, **kwargs) -> int:
         return self.a.eval(**kwargs) + self.b.eval(**kwargs)
     def __str__(self):
-        return f"{self.a} + {self.b}"
+        return f"the sum of {self.a} & {self.b}"
 
 @dataclass
 class FuncNumeric(Numeric):
@@ -196,11 +203,19 @@ class FuncNumeric(Numeric):
         match cleanstr(json["f"]):
             case "log2": f = np.log2
             case "exp": f = np.exp
+            case "exp2": f = np.exp2
             case "square": f = lambda x: x**2
         return FuncNumeric(
             f,
             Numeric.from_json(json["numeric"])
         )
+    def __str__(self):
+        match self.f.__name__:
+            case "log2": return f"the base 2 logarithm of {self.numeric}"
+            case "exp2": return f"the 2 to the power of {self.numeric}"
+            case "exp": return f"the natural exponential of {self.numeric}"
+            case "<lambda>": return f"the square of {self.numeric}" # don't use other lambdas
+            case name: return f"{name}({self.numeric})"
 
 def getCARDS(CARDS=[]) -> list:
     "Return the list of every card defined in `Data/cards.json`, initializing it if necessary. Must be called without argument, is the identidy function otherwise."
@@ -392,6 +407,7 @@ class TargetMode(IntEnum):
             case "foecommander": return TargetMode.commander
             case "enemycommander": return TargetMode.commander
             case "alliedcommander": return TargetMode.allied_commander
+            case "allycommander": return TargetMode.allied_commander
             case "allcommanders": return TargetMode.all_commanders
             case "bothcommanders": return TargetMode.all_commanders
             case "commanders": return TargetMode.all_commanders
@@ -400,6 +416,7 @@ class TargetMode(IntEnum):
             case "guaranteedchaos": return TargetMode.massivedestruction
             case "nocommander": return TargetMode.nocommander
             case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
+            case _: return warn(f"Invalid TargetMode {name}: returning TargetMode.target") and TargetMode.target
     @static
     def to_str(self) -> str:
         match self:
@@ -558,7 +575,7 @@ class HardCodedEffect(AbstractEffect):
     def from_json(json):
         return HardCodedEffect(getordef(json, "desc", ""), getordef(json, "code", ""))
     def __str__(self):
-        return self.desc
+        return str(self.desc) # just to be sure
 
 @dataclass
 class SetCardProperty(AbstractEffect):
@@ -610,13 +627,16 @@ class MaxHPAdd(AbstractEffect):
     amount: Numeric
     def execute(self, **kwargs):
         for card in AbstractEffect.targeted_objects(**kwargs):
+            amount = self.amount.eval(**kwargs) # evaluate for each targets.
             new_card = card.card.copy() # avoids changing the max HP of all cards.
-            new_card.max_hp += self.amount.eval(**kwargs) # evaluate for each targets.
+            new_card.max_hp += amount
             card.card = new_card # card is ActiveCard so it doesn't mind being mutated
-            card.heal(0) # log max HP changes
+            card.heal(amount) # log max HP changes + heal the gained HP (code issue)
         return True # the probability that it doesn't work is near 0.
     def from_json(json: dict):
         return MaxHPAdd(Numeric.from_json(json["amount"]))
+    def __str__(self):
+        return f"add {self.amount} max HP to the target(s)"
 
 
 @dataclass
@@ -634,7 +654,7 @@ class IfEffect(AbstractEffect):
     def from_json(json: dict):
         return IfEffect(AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
     def __str__(self):
-        return f"{self.effect} if {self.value} is greater or equal to {self.cond}"
+        return f"{self.effect} if {self.value} is greater or equal to {self.cond}, {self.other} othewise"
 
 @dataclass
 class DamageRedirect(AbstractEffect):
@@ -710,7 +730,7 @@ class RandomTargets(AbstractEffect):
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), Numeric.from_json(getordef(json, "sample", 1)))
     def __str__(self):
-        return f"{str(self.effect)} on up to {self.sample} random units among the targets."
+        return f"{str(self.effect)} on up to {self.sample} random units among the targets"
 
 @dataclass
 class ChangeState(AbstractEffect):
@@ -864,13 +884,13 @@ class DamageDrain(AbstractEffect):
         alt_kwargs["survey"] = EffectSurvey()
         has_worked = self.effect.execute(**alt_kwargs)
         alt_kwargs["survey"].heal += alt_kwargs["user"].heal(
-            self.numerator * alt_kwargs["survey"].damage // self.denominator)
+            self.numerator.eval(**kwargs) * alt_kwargs["survey"].damage // self.denominator.eval(**kwargs))
         kwargs["survey"] += alt_kwargs["survey"]
         return has_worked # heal and damages are accounted in survey
     def from_json(json: dict):
         return DamageDrain(Numeric.from_json(json["num"]), Numeric.from_json(json["den"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
-        return f"heal {self.numerator}/{self.denominator} of damage dealt from {str(self.effect)}"
+        return f"heal ({self.numerator})/({self.denominator}) of damage dealt from {str(self.effect)}"
 
 @dataclass
 class HealEffect(AbstractEffect):
@@ -949,7 +969,7 @@ class SummonEffect(AbstractEffect):
         return True
     def from_json(json: dict):
         if "by_name" in json:
-            return SummonEffect(getordef(json, "count", 1), AbstractCard.get_card(json["by_name"]))
+            return SummonEffect(getordef(json, "count", 1), json["by_name"]) # can't parse the card here, as cards aren't defined at parse-time
         card = CreatureCard.from_json(json["creature"], 1j)
         card.tags = (*card.tags, "summon")
         return SummonEffect(getordef(json, "count", 1), card)
@@ -958,8 +978,10 @@ class SummonEffect(AbstractEffect):
             summon = AbstractCard.get_card(self.summon)
             if summon is None:
                 warn(f"Summon {self.summon} doesn't exist.")
-                return "nothing (summong bug)"
-        return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {self.summon.name}"
+                return "nothing (summon bug)"
+        else:
+            summon = self.summon
+        return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {summon.name}"
 
 @dataclass
 class BoardResize(AbstractEffect):
@@ -973,7 +995,7 @@ class BoardResize(AbstractEffect):
             case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
         # TODO: boarddiscard first
         # this requires some cleaning, as it needs to apply the passive
-        # boardiscard needs to be called with **kwargs
+        # boardiscard needs to be callable with **kwargs
         boardsize = max(len(player.active) + self.delta, 1)
         if self.delta < 0:
             while boardsize < len(player.active) and None in player.active:
@@ -981,6 +1003,7 @@ class BoardResize(AbstractEffect):
         else:
             while len(player.active) < boardsize:
                 player.active.append(None)
+        kwargs["board"].logs.append(f"boardsize|{player.namecode()|{len(player.active)}}")
         # TODO: fix return, logging and update replay.py
         return True
     def from_json(json: dict):
@@ -1088,7 +1111,10 @@ class PassiveTrigger(IntEnum):
             case "whendefeated": return PassiveTrigger.whendefeated
             case "whenattack": return PassiveTrigger.whenattack
             case "whenattacking": return PassiveTrigger.whenattack
+            case "whenattacked": return PassiveTrigger.whenattacked
+            case "whendamaged": return PassiveTrigger.whendamaged
             case "never": return PassiveTrigger.never
+            case _: return warn(f"Invalid passive trigger {name}: returning PassiveTrigger.never") and PassiveTrigger.never
     def to_str(self):
         match self:
             case PassiveTrigger.endofturn: return "the turn end"
@@ -1146,7 +1172,7 @@ class Attack:
         kwargs["board"].logs.append(log)
         return kwargs["survey"]
     def __str__(self) -> str:
-        "Return a verbal representation of self."
+        "Return a verbose representation of self."
         s = f"{self.name} (cost:{str(self.cost)}"
         for tag in self.tags:
             s += f" #{tag}"
@@ -1443,12 +1469,13 @@ class ActiveCard:
         if amount > self.hp:
             amount = self.hp
         self.hp -= amount
-        self.board.logs.append(f"-damage|{self.namecode()}|{self.hp}/{self.card.max_hp}")
+        if amount != 0:
+            self.board.logs.append(f"-damage|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
         if DEV() and type(amount) != int:
-            warn(f"Card with name \"{self.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
+            warn(f"Card with name \"{self.card.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
         amount = min(self.card.max_hp - self.hp, amount)
         self.hp += amount
@@ -1697,9 +1724,8 @@ class Player:
         return "p2"
     def forfeit(self):
         self.commander.hp = 0
-        self.commander.board.logs(f"{self.name} forfeited.")
-        if self.commander.board.active_player is self:
-            self.commander.board.endturn()
+        self.commander.board.logs.append(f"{self.name} forfeited.")
+        self.commander.board.endturn()
     def boarddiscard(self) -> list[ActiveCard]:
         "Discard every defeated cards, returning them."
         discards: list[ActiveCard] = []
