@@ -56,7 +56,10 @@ class TurnNumeric(Numeric):
 @dataclass
 class DamageTaken(Numeric):
     def eval(self, **kwargs) -> int:
-        return getordef(kwargs, "damage_taken", 0)
+        print("DEBUG: Evaluating DamageTaken")
+        if not "damage_taken" in kwargs:
+            return warn("Tried to get damage taken without whendamaged trigger.") and 0
+        return kwargs["damage_taken"]
     def __str__(self):
         return "damage taken"
 
@@ -385,6 +388,8 @@ class TargetMode(IntEnum):
     massivedestruction = 7
     all = 8
     nocommander = 9
+    foesc = 10
+    alliesc = 11
     def cancommander(self) -> bool:
         if self in [
             TargetMode.foes,
@@ -415,6 +420,13 @@ class TargetMode(IntEnum):
             case "massivedestruction": return TargetMode.massivedestruction
             case "guaranteedchaos": return TargetMode.massivedestruction
             case "nocommander": return TargetMode.nocommander
+            case "anytargetbutcommanders": return TargetMode.nocommander
+            case "foesc": return TargetMode.foesc
+            case "alliesc": return TargetMode.alliesc
+            case "foescommander": return TargetMode.foesc
+            case "foesandtheircommander": return TargetMode.foesc
+            case "alliescommander": return TargetMode.alliesc
+            case "alliesandtheircommander": return TargetMode.allies
             case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
             case _: return warn(f"Invalid TargetMode {name}: returning TargetMode.target") and TargetMode.target
     @static
@@ -426,6 +438,9 @@ class TargetMode(IntEnum):
             case TargetMode.all_commanders: return "both Commanders"
             case TargetMode.massivedestruction: return "every creature that has ever set foot in this Arena"
             case TargetMode.random_chaos: return "randomly selected random targets"
+            case TargetMode.nocommander: return "any target but commanders"
+            case TargetMode.foesc: return "foes and their commander"
+            case TargetMode.foesc: return "allies and their commander"
             case target: return target.name
 
 class DamageMode(IntEnum):
@@ -485,11 +500,12 @@ class AbstractEffect:
         return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
     def targeted_objects(**kwargs):
         match kwargs["target_mode"]:
-            case TargetMode.foes: return [*filter((lambda x: x != None), kwargs["board"].unactive_player.active)]
-            case TargetMode.allies: return [*filter((lambda x: x != None), kwargs["board"].active_player.active)]
+            # TODO clean that absolute mess using bits as keys for easy composition.
+            case TargetMode.foes: return kwargs["user"].owner.opponent.get_actives()
+            case TargetMode.allies: return kwargs["user"].owner.get_actives()
             case TargetMode.self: return [kwargs["user"]]
-            case TargetMode.commander: return [kwargs["board"].unactive_player.commander]
-            case TargetMode.allied_commander: return [kwargs["board"].active_player.commander]
+            case TargetMode.commander: return [kwargs["user"].owner.opponent.commander]
+            case TargetMode.allied_commander: return [kwargs["user"].owner.commander]
             case TargetMode.all_commanders: return [kwargs["board"].unactive_player.commander, kwargs["board"].active_player.commander]
             case TargetMode.all:
                 return [
@@ -508,6 +524,8 @@ class AbstractEffect:
                     kwargs["board"].active_player.commander
                 ]
             case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(9))))
+            case TargetMode.alliesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allies)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allied_commander))
+            case TargetMode.foesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.commander))
             case _: return [kwargs["main_target"]] # target, noccommander
     def get_tags(self):
         return warn(f"Tried to get tags from a {type(self)}") and ()
@@ -800,7 +818,7 @@ class DOTEffect(AbstractEffect):
         return self.turn.value > 0
     def __str__(self) -> str:
         return f"{self.damage} damage over {self.turn} turns"
-    def get_tags(self): return ("-")
+    def get_tags(self): return ("-",)
 
 @dataclass
 class LoopEffect(AbstractEffect):
@@ -812,7 +830,9 @@ class LoopEffect(AbstractEffect):
     def with_kwargs(self, kwargs: dict):
         return LoopEffect(self.effect, self.infinite, kwargs, self.tags)
     def from_json(json: dict):
-        return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {}, getordef(json, "tags", ("+-")))
+        if not "tags" in json:
+            warn(f"LoopEffect {json} has no field tags.")
+        return LoopEffect(AbstractEffect.from_json(json["effect"]), getordef(json, "infinite", False), {}, getordef(json, "tags", ("+-",)))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -839,7 +859,9 @@ class DelayEffect(AbstractEffect):
     def with_kwargs(self, kwargs: dict):
         return DelayEffect(self.effect, self.time, kwargs, self.tags)
     def from_json(json: dict):
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-")))
+        if not "tags" in json:
+            warn(f"DelayEffect {json} has no field tags.")
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-",)))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -1003,7 +1025,7 @@ class BoardResize(AbstractEffect):
         else:
             while len(player.active) < boardsize:
                 player.active.append(None)
-        kwargs["board"].logs.append(f"boardsize|{player.namecode()|{len(player.active)}}")
+        kwargs["board"].logs.append(f"boardsize|{player.namecode()}|{len(player.active)}")
         # TODO: fix return, logging and update replay.py
         return True
     def from_json(json: dict):
@@ -1085,7 +1107,7 @@ class TauntTargets:
             return False
         targets = AbstractEffect.targeted_objects(**kwargs)
         for target in targets:
-            target.taunt = rng.choice(targets)
+            target.taunt = rng.choice(new_targets)
             target.taunt_dur = self.duration
         return True
     def from_json(json: dict):
@@ -1250,13 +1272,13 @@ class CreatureCard(AbstractCard):
             args[7] = (*args[7], json["tag"])
         if cleanstr(json["name"]) == "bobtheblobfish":
             args[4][0] = Attack("Splish-Splosh", 0,
-                                TargetMode.self, 0, NullEffect(), ("useless"))
+                                TargetMode.self, 0, NullEffect(), ("useless",))
         # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
         if getordef(json, "commander", False):
             return CommanderCard(*args)
         if len(args[4]) == 1:
             args[4].append(Attack("Prayer", 0, TargetMode.target,
-                           1, HealEffect(30), tags=("heal")))
+                           1, HealEffect(30), tags=("heal",)))
         return CreatureCard(*args)
     def __str__(self) -> str:
         "Return a 'beautiful' string reprensenting self instead of ugly mess defaulting from dataclasses."
@@ -1427,34 +1449,23 @@ class ActiveCard:
     def damage(self, amount, **kwargs) -> int:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
-        if mode == DamageMode.indirect:
-            amount = self.indirectdamage(amount)
-            for passive in self.card.passives:
-                if passive.trigger != PassiveTrigger.whendamaged:
-                    continue
-                kwargs_ = kwargs.copy()
-                kwargs_.update({
-                    "damage_taken":amount,
-                    "main_target":kwargs["user"],
-                    "target_mode":TargetMode.target
-                })
-                passive.execute(**kwargs_)
-            return amount
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
                          and attacker.element.effectiveness(self.element), 12, 10)
         amount //= ifelse(mode.can_weak()
                           and self.element.resist(attacker.element), 12, 10)
-        if self.card.iscommander() and mode.can_weak():
+        if self.iscommander() and mode.can_weak():
             amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
         amount = self.indirectdamage(amount)
         for passive in self.card.passives:
-            if passive.trigger != PassiveTrigger.whendamaged:
+            if passive.trigger is not PassiveTrigger.whendamaged:
                 continue
+            print("DEBUG: Executing whendamaged passive.")
             kwargs_ = kwargs.copy()
             kwargs_.update({
                 "damage_taken":amount,
                 "main_target":kwargs["user"],
+                "user":kwargs["user"],
                 "target_mode":TargetMode.target
             })
             passive.execute(**kwargs_)
@@ -1513,7 +1524,7 @@ class SpellCard(AbstractCard):
         board = target.board
         sim = ActiveCard(
             CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
-                         self.on_use], passives=[], cost=0, tags=("spell")),
+                         self.on_use], passives=[], cost=0, tags=("spell",)),
             board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
@@ -1610,9 +1621,14 @@ class Player:
         # yes, it's ugly, it's Python
         return rng.choice(list(getCOMMANDERS().values()))
     def get_deck(*_) -> list[AbstractCard]:
-        return [*rng.choice(getCARDS(), Constants.default_deck_size)]
+        return [*rng.choice([card for card in getCARDS() if not isinstance(card, CreatureCard) or not hasany(card.tags, ("secret", "forme", "summon"))], Constants.default_deck_size)]
     def get_actives(self) -> list[ActiveCard]:
         return [card for card in self.active if card is not None]
+    @property
+    def opponent(self):
+        if self is self.commander.board.player1:
+            return self.commander.board.player2
+        return self.commander.board.player1
     def get_actives_json(self) -> list[None | dict]:
         actives = []
         for card in self.active:
