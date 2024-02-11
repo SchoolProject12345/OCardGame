@@ -20,14 +20,14 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
         to be finished, it works even though its not perfect so dont touch it
     """
 
-    sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav")
+    sfx_path = os.path.join(cwd_path, "Assets", "Sfx", str(track) + ".wav") # put only filename, not extension in track
     
     sfxchannel = mixer.Channel(channel)
     sound = mixer.Sound(sfx_path)
     sound.set_volume(volume/100)
 
     if action_type == "play":
-        sfxchannel.play(sound, loops=-1 if loop else 0)
+        sfxchannel.play(sound, loops= -1 if loop else 0)
 
     if action_type == "stop":
         sfxchannel.stop()

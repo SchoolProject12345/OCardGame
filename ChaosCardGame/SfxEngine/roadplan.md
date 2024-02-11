@@ -4,7 +4,8 @@ feel free to add things, but dont remove or change any.
 
 basic navigation sounds:
 - [x]   click and release - channel Default (change this)
-- [x]   key presses
+- [x]   key presses(space and esc)
+- [ ]   hand and deck buttons
 
 dialogues:
 - [x]  lore man 1 to 11 - channel 7
@@ -14,7 +15,7 @@ functions:
 - [x]  basic playing 
 - [x]  volume
 - [x]  custom track
-- [ ]  mute unmute toggle
+- [~]  mute unmute toggle - kinda works?
 - [x]  channels
 - [ ]  effects(fade ...) (?)
 
