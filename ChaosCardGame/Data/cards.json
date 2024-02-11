@@ -1142,10 +1142,8 @@
      "by_name":"Chaos Brigade"
     },
     "else":{
-     "type":"setproperty",
-     "path":"user",
-     "attr":"card.max_hp",
-     "value":{
+     "type":"maxhp_add",
+     "amount":{
       "type":"mul",
       "num":2,
       "den":1,
