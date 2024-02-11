@@ -191,8 +191,23 @@ class ReplayHandler:
                 self.state[ind]["commander"]["element"] = int(args[4])
                 ret = f"Contestant {args[1]} commands through {args[2]}."
             case "boardsize":
-                self.state[args[0]]["board"] += [None]*(int(args[1]) - len(self.state[args[0]]["board"]))
-                ret = ""
+                psize = len(self.state[args[0]]["board"])
+                delta = int(args[1]) - psize
+                l = delta
+                if l < 0:
+                    while l < 0:
+                        self.state[args[0]].remove(None) # no error handling
+                        l += 1
+                else:
+                    self.state[args[0]]["board"] += [None]*l
+                if psize == 0:
+                    ret = ""
+                else:
+                    ret = f"{self.state[args[0]]['name']} "
+                    if delta > 0:
+                        ret += f"gained {delta} slots on their board."
+                    else:
+                        ret += f"lost {-delta} slots on their board."
             case "discard":
                 # No error handling AT ALL
                 if args[1] in self.state[args[0]]["hand"]:
@@ -304,7 +319,7 @@ class ReplayHandler:
                 ret = f"{args[1]} won the game!"
             case "raw":
                 ret = args[0]
-            case "errror":
+            case "error":
                 return "\033[1;31m┌ Error:\n└\033[0m " + "".join(args)
             case "energy":
                 player = self.state[args[0]]
