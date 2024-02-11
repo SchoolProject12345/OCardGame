@@ -29,7 +29,7 @@ class Numeric:
     def from_json(json: dict | int):
         if type(json) == int:
             return RawNumeric(json)
-        match json["type"].lower():
+        match cleanstr(json["type"]):
             case "raw": return RawNumeric(json["value"])
             case "hps": return HPList(TargetMode.from_str(json["target_mode"]))
             case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
