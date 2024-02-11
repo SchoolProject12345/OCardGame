@@ -183,7 +183,6 @@ class ReplayHandler:
         head, *args = log.split('|')
         match head:
             case "player":
-                print(log)
                 ind = args[0]
                 self.state[ind]["name"] = args[1]
                 self.state[ind]["commander"]["name"] = args[2]
