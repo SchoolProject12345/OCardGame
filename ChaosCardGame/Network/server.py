@@ -5,11 +5,9 @@ import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "debug"] # debug prints gamestate.
-core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even if not their turn.
+core.Constants.anytime_actions = ["chat", "forfeit"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
-core.Constants.progressbar_sytle = 1
 
-@core.dataclass
 class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
@@ -29,9 +27,6 @@ class ServerHandler(ReplayHandler):
             return all([self(_data) for _data in data.split('\n')])
         datas: list[str] = data.split('|')
         head = core.cleanstr(datas[0])
-        if head == "sync":
-            self.sync()
-            return True
         if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
             self.client_socket.send(b"error|Wrong turn.")
             return True
@@ -131,61 +126,14 @@ class ServerHandler(ReplayHandler):
         print("\033[2D ")
 
         return self # to chain
-    def sync(self):
-        "Update `network.get_data()` to prepare to send"
-        data = net.get_data()
 
-        player = self.board.player1
-        server = data["server"]
-        # name is constant, no need to update
-        server["deck_length"] = len(player.deck)
-        server["hand"] = len(player.hand)
-
-        server["commander"]["hp"] = player.commander.hp
-        server["commander"]["max_hp"] = player.commander.card.max_hp
-        server["commander"]["element"] = player.commander.element.value
-        server["commander"]["charges"] = player.commander_charges
-
-        server["board"] = player.get_actives_json()
-        server["discard"] = [card.name for card in player.discard]
-        server["energy"] = player.energy
-        server["max_energy"] = player.max_energy
-        server["energy_per_turn"] = player.energy_per_turn
-
-        data["turn"] = self.board.turn
-        data["server_turn"] = self.board.active_player is player
-        data["arena"] = self.board.arena.value
-
-        player = self.board.player2
-        client = data["client"]
-        # name is constant, no need to update
-        client["deck_length"] = len(player.deck)
-        client["hand"] = [card.name for card in player.hand]
-
-        client["commander"]["hp"] = player.commander.hp
-        client["commander"]["max_hp"] = player.commander.card.max_hp
-        client["commander"]["element"] = player.commander.element.value
-        client["commander"]["charges"] = player.commander_charges
-
-        client["board"] = player.get_actives_json()
-        client["discard"] = [card.name for card in player.discard]
-        client["energy"] = player.energy
-        client["max_energy"] = player.max_energy
-        client["energy_per_turn"] = player.energy_per_turn
-
-        self.client_socket.send(("sync|" + net.json.dumps(data, separators=(',', ':'))).encode())
-        return self
-
-@core.dataclass
 class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
     waiting: bool = False
-    synced: bool = False
     @static
-    def __init__(self, server_socket: net.socket.socket, waiting: bool = False, synced: bool = False):
+    def __init__(self, server_socket: net.socket.socket, waiting: bool = False):
         ReplayHandler.__init__(self)
         self.server_socket = server_socket
-        self.synced = synced
         self.waiting = False
     @static
     def __call__(self, data: str) -> bool:
@@ -196,11 +144,6 @@ class ClientHandler(ReplayHandler):
         if '\n' in data:
             return all([self(_data) for _data in data.split('\n')])
         datas: list[str] = data.split('|')
-        head = core.cleanstr(datas[0])
-        if head == "sync":
-            net.get_data().update(net.json.loads(datas[1]))
-            self.synced = True
-            return True
         try:
             devlog(self.play_log(data))
         except:
@@ -281,18 +224,6 @@ class ClientHandler(ReplayHandler):
             print("∅  ", end="")
         print("\033[2D ")
 
-        return self
-    def sync(self, wait: bool = True, max_wait: int = 100_000_000):
-        "Ask `self`'s sever for a synchronization, waiting its sucess for up to `max_wait` nanoseconds if `wait` is set to `True`."
-        start = time_ns()
-        self.synced = False
-        self.server_socket.send(b"sync")
-        # result is automatically obtained through listen(server_socket, self) running on separate thread
-        while wait and not self.synced: # wait until update is done, ugly but it works ¯\_(ツ)_/¯
-            if time_ns() - start > max_wait:
-                core.warn(f"Synchronization undetected after {max_wait/1_000_000_000:.4}s. Continuing thread anyway.")
-                self.sync(False)
-                return self
         return self
 
 @static
