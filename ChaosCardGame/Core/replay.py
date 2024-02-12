@@ -64,7 +64,7 @@ class ReplayHandler:
         print(progressbar(
             server["commander"]["charges"],
             ReplayHandler.get_required_charges(server["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(server["commander"], '⋆'))
         for card in server["board"]:
@@ -76,7 +76,7 @@ class ReplayHandler:
         print(progressbar(
             client["commander"]["charges"],
             ReplayHandler.get_required_charges(client["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(client["commander"], '⋆'))
         for card in client["board"]:
@@ -399,6 +399,15 @@ def gradient(x: int | float):
 
 @static
 def progressbar(total: int, on: int, size: int = 15, style: int = 0):
+    if style == 3:
+        complete = size * total // on # can exceed 15
+        stack = complete // size # number of times it exceeds 15
+        complete = complete % (size + 1)
+        bar = "["
+        bar += gradient(min((stack + 1) * 0.2, 1.0)) + "=" * (complete) # max 5 stacks
+        if complete < size:
+            bar += ">" + gradient(min(stack * 0.2, 1.0)) + core.ifelse(stack == 0, ' ', '=') * (14 - complete)
+        return bar + "\033[0m]"
     total = min(total, on)
     if total == on:
         if style == 0:
