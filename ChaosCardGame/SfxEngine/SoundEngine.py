@@ -44,9 +44,19 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
             sfxchannel.set_volume(0)
             print("tried to mute")
         else:
-            sfxchannel.set_volume(get_setting("volume", 100))
+            sfxchannel.set_volume(get_setting("volume", 100)/100)
+            # why it say nono error here ^
             print("tried to unmute")
             get_settings()["volume"] = int(sfxchannel.get_volume()*100)
+
+
+
+
+
+
+
+
+
 
 
 
