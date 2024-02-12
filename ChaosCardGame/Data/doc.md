@@ -139,7 +139,9 @@ An attack object is formed as follow:
 With possible values for field `"target_mode"` being:
 - `"self"`: the user of the move.
 - `"foes"`: all of the opponent's cards.
+- `"foes"`: foes + commander
 - `"allies"`: all of your cards.
+- `"alliesc"`: allies + allied_commander
 - `"target"`: the card targeted by the attack.
 - `"nocommander"`: same as target but commander can't be selected.
 - `"commander"`: your opponent's commander.
@@ -160,7 +162,7 @@ To select a (or multiple) random target among the target distribution, use the f
 A Passive object is formed as follow:
 ```js
 {
- "name":"passive's name"
+ "name":"passive's name",
  "trigger":"{PassiveTrigger string}",
  "effect":{/*effect object*/}
 }
@@ -285,6 +287,14 @@ Redirect `amount` damages from `from` distribution to targets.
  "amount":0
 }
 ```
+Add to max HP and heal (doesn't change missing health):
+```
+{
+ "type":"addmaxhp",
+ "amount":0
+}
+```
+
 
 ### Energy Manipulation
 ```js
@@ -295,6 +305,7 @@ Redirect `amount` damages from `from` distribution to targets.
  "energy_per_turn":0 // add to the user's owner's energy per turn
 }
 ```
+Additionaly, a `"player"` field may be set to either `"foe"` or `"ally"` to change the targeted player.
 
 ### Creature Maniplation
 Summon a creature card on the user's owner's board if possible
@@ -481,7 +492,6 @@ kwargs["user"].hp
 kwargs["user"].card.cost
 kwargs["board"].turn
 ```
-This will probably be extented.
 
 ### Current turn
 ```js
