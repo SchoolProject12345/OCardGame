@@ -1022,10 +1022,22 @@
   "type": "creature",
   "attacks": [
    {
-    "name": "Photosynthesis Slash",
+    "name": "Photosynthetic Slash",
     "cost": 1,
     "target_mode": "target",
-    "power": 30
+    "power": 65,
+    "effect":{
+     "type":"union",
+     "effect1":{
+      "type":"add_energy",
+      "per_turn":1
+     },
+     "effect2":{
+      "type":"add_energy",
+      "per_turn":-1,
+      "player":"foe"
+     }
+    }
    }
   ]
  },
