@@ -948,17 +948,22 @@ class EnergyEffect(AbstractEffect):
     energy: Numeric
     max_energy: Numeric
     energy_per_turn: Numeric
+    player: str
     def execute(self, **kwargs) -> bool:
-        Δmax_energy = self.max_energy.eval(**kwargs)
-        kwargs["player"].max_energy += Δmax_energy
-        Δenergy_per_turn = self.energy_per_turn.eval(**kwargs)
-        kwargs["player"].energy_per_turn += Δenergy_per_turn
-        return (kwargs["player"].add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
+        match self.player:
+            case "foe": player = kwargs["user"].owner.opponent
+            case "ally": player = kwargs["user"].owner
+        Δmax_energy = min(self.max_energy.eval(**kwargs), player.max_energy - 1)
+        player.max_energy += Δmax_energy
+        Δenergy_per_turn = min(self.energy_per_turn.eval(**kwargs), player.energy_per_turn - 1)
+        player.energy_per_turn += Δenergy_per_turn
+        return (player.add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
     def from_json(json: dict):
         return EnergyEffect(
             Numeric.from_json(getordef(json, "gain", 0)),
             Numeric.from_json(getordef(json, "max", 0)),
-            Numeric.from_json(getordef(json, "per_turn", 0))
+            Numeric.from_json(getordef(json, "per_turn", 0)),
+            getordef(json, "player", "ally")
         )
     def __str__(self):
         # TODO: find prettier way to write this.
@@ -1707,7 +1712,7 @@ class Player:
         self.commander.board.logs.append(log)
         return log
     def add_energy(self, amount: int) -> int:
-        "Add `amount` energy to self while never going above `self.max_energy` nor below 0."
+        "Add (or remove) `amount` energy to self while never going above `self.max_energy` nor below 0."
         if amount < 0:
             amount = max(amount, -self.energy)
         else:
