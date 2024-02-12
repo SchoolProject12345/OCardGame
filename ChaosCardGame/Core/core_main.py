@@ -10,7 +10,7 @@ import re
 class Constants:  # to change variables quickly, easily and buglessly.
     # Client settings (DEV() is through function)
     path = cwd_path
-    progressbar_style = get_setting("progressbar_style", 1) # must clamp between 0-2 but needs cleaning first
+    progressbar_style = clamp(get_setting("progressbar_style", 1), 0, 3)
     # Server settings
     default_max_energy = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
