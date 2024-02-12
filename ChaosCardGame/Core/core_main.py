@@ -113,7 +113,7 @@ class CardProperty(Numeric):
             card = getattr(card, attr)
         return card
     def __str__(self):
-        return "'s ".join(self.path.split('/') + self.attr.split('.'))
+        return "'s ".join(self.path.split('/') + self.attr.split('.')).replace("_", " ")
 
 @dataclass
 class GCDNumeric(Numeric):
