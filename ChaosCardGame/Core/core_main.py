@@ -17,7 +17,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_hand_size = max(1, get_setting("hand_size", 5))
     default_deck_size = max(1, get_setting("deck_size", 15))
     strong_increase = max(0, get_setting("strong_percent_increase", 20))
-    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
+    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause bugs
     commander_heal = max(0, get_setting("passive_commander_heal", 20))
     commander_power = 65
     base_power = 3
@@ -75,6 +75,16 @@ class RawNumeric(Numeric):
     def __isub__(self, value: int):
         self.value -= value
         return self
+
+@dataclass
+class NumericConstant(Numeric):
+    "Retrieve "
+    attr: str
+    @safe_static # so you don't take "path" as attr.
+    def eval(self, **_) -> int:
+        return getattr(Constants, self.attr)
+    def __str__(self):
+        return str(getattr(Constants, self.attr))
 
 class NumericList(Numeric):
     def eval(self, **_) -> list[int]:
@@ -662,14 +672,26 @@ class IfEffect(AbstractEffect):
     effect: AbstractEffect
     other: AbstractEffect
     value: Numeric
-    cond: Numeric
+    cond: Numeric | AbstractEffect
     def execute(self, **kwargs) -> bool:
-        if not self.value.eval(**kwargs) < self.cond.eval(**kwargs):
+        if (self.cond.execute(**kwargs) if isinstance(self.cond, AbstractEffect) else not self.value.eval(**kwargs) < self.cond.eval(**kwargs)):
             return self.effect.execute(**kwargs)
         else:
             return self.other.execute(**kwargs)
     def from_json(json: dict):
-        return IfEffect(AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
+        if "if_successful" in json:
+            return AbstractEffect(
+                AbstractEffect.from_json("if_successful"),
+                AbstractEffect.from_json(getordef(json, "else", {"type":"null"})),
+                RawNumeric(0), # value is unsed if cond is effect
+                AbstractEffect.from_json(json["effect"])
+            )
+        return IfEffect(
+            AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), # if we want only "else"
+            AbstractEffect.from_json(getordef(json, "else", {"type":"null"})),
+            Numeric.from_json(json["value"]),
+            Numeric.from_json(getordef(json, "cond", 0))
+        )
     def __str__(self):
         return f"{self.effect} if {self.value} is greater or equal to {self.cond}, {self.other} othewise"
 
@@ -743,7 +765,7 @@ class RandomTargets(AbstractEffect):
         while len(targets) > sample:
             targets.pop()
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
-        return np.any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
+        return any(self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets)
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), Numeric.from_json(getordef(json, "sample", 1)))
     def __str__(self):
@@ -953,11 +975,11 @@ class EnergyEffect(AbstractEffect):
         match self.player:
             case "foe": player = kwargs["user"].owner.opponent
             case "ally": player = kwargs["user"].owner
-        Δmax_energy = min(self.max_energy.eval(**kwargs), player.max_energy - 1)
+        Δmax_energy = max(self.max_energy.eval(**kwargs), 1 - player.max_energy)
         player.max_energy += Δmax_energy
-        Δenergy_per_turn = min(self.energy_per_turn.eval(**kwargs), player.energy_per_turn - 1)
+        Δenergy_per_turn = max(self.energy_per_turn.eval(**kwargs), 1 - player.energy_per_turn)
         player.energy_per_turn += Δenergy_per_turn
-        return (player.add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
+        return (player.add_energy(self.energy.eval(**kwargs)) != 0) | (Δenergy_per_turn != 0) | (Δmax_energy != 0)
     def from_json(json: dict):
         return EnergyEffect(
             Numeric.from_json(getordef(json, "gain", 0)),
@@ -1088,7 +1110,10 @@ class FormeChange(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         actives = AbstractEffect.targeted_objects(**kwargs)
         for active in actives:
+            old_hp = active.card.max_hp
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+            new_hp = active.card.max_hp
+            active.hp += new_hp - old_hp # hp logged through -formechange so no need to heal/damage. I must redo the HP system anyway.
             # if it ends up mutated then the bug should be fixed where it is mutated.
             active.element = self.new_forme.element
             kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
@@ -1339,7 +1364,7 @@ class ActiveCard:
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
-        if self.iscommander() and np.any([card is not None for card in self.owner.active]):
+        if self.iscommander() and any(card is not None for card in self.owner.active):
             return False
         if self.board is None or self.owner != self.board.active_player:
             return False
@@ -1939,7 +1964,7 @@ class AIPlayer(Player): # I hate OOP
                 return True
         if not self.commander.attacked and self.energy >= 1 and len(self.get_actives()) == 0:
             return True
-        if not np.any([card is None for card in self.active]):
+        if not any(card is None for card in self.active):
             return False
         for card in self.hand:
             if card.get_cost() <= self.energy:
