@@ -947,7 +947,11 @@
       "effect":{
        "type":"random_target",
        "sample":1,
-       "effect":{"type":"damage","amount":10,"damage_mode":"indirect"}
+       "effect":{
+        "type":"damage",
+        "amount":10,
+        "damage_mode":"indirect"
+       }
       }
      }
     }
@@ -1027,15 +1031,15 @@
     "target_mode": "target",
     "power": 65,
     "effect":{
-     "type":"union",
-     "effect1":{
-      "type":"add_energy",
-      "per_turn":1
-     },
-     "effect2":{
+     "type":"if",
+     "effect":{
       "type":"add_energy",
       "per_turn":-1,
       "player":"foe"
+     },
+     "if_successful":{
+      "type":"add_energy",
+      "per_turn":1
      }
     }
    }
@@ -1079,7 +1083,7 @@
    }
   }],
   "passives":[{
-    "name":"Empirs thougness",
+    "name":"Emperor's Thougness",
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]
