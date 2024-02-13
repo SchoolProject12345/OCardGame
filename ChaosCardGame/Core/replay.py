@@ -173,7 +173,7 @@ class ReplayHandler:
             return self.state[index[0:2]]["commander"]
         player, i = player_index(index)
         return self.state[player]["board"][i]
-    @core.static
+    @static
     def play_log(self, log: str) -> str:
         """
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
@@ -356,7 +356,7 @@ class ReplayHandler:
         self.replay.append(log)
         return ret
 
-@core.static
+@static
 def format_name_ui_elt(name: str) -> str:
     "Same as `core.format_name_ui` but infer element."
     card = core.AbstractCard.get_card(name)
@@ -364,7 +364,7 @@ def format_name_ui_elt(name: str) -> str:
         return core.format_name_ui(name)
     return card.ui_id
 
-@core.static
+@static
 def format_active_ui(active: dict[str, object] | None) -> dict[str, object] | None:
     if active is None:
         return
