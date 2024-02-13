@@ -1188,7 +1188,9 @@ class Passive:
                        PassiveTrigger.from_str(json["trigger"]),
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
-    def execute(self, **kwargs): return self.effect.execute(**kwargs)
+    def execute(self, **kwargs):
+        kwargs["board"].logs.append(f"passive|{kwargs['user']}|{self.name}")
+        return self.effect.execute(**kwargs)
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
 
