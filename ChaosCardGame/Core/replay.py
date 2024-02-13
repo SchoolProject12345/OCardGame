@@ -180,7 +180,7 @@ class ReplayHandler:
         Note: `log` is considered to be a correctly formed log, if not there is no guarantee that it will return without crash/bug.
         """
         log = log.strip() # might always be useful
-        head, *args = log.split('|')
+        head, *args, kwargs = kwargssplit(log)
         match head:
             case "player":
                 ind = args[0]
@@ -452,3 +452,19 @@ def get_commander(name: str) -> core.CommanderCard:
 def devlog(*msg, dev: bool = core.DEV()):
     dev and print(*msg)
     return True
+
+def kwargssplit(log: str) -> list[str | dict[str, str]]:
+    logs = log.split('|')
+    rexpr: str = "\\[(.*?)\\] +(.*)"
+    i: int = len(logs)
+    for j in range(len(logs)):
+        if re.match(rexpr, logs[j]):
+            i = j
+            break
+    args: list[str] = logs[0:i]
+    kwargs: dict[str, str] = {}
+    for j in logs[i:]:
+        m = re.match(rexpr, j)
+        kwargs[m[1]] = m[2]
+    args.append(kwargs)
+    return args
