@@ -458,13 +458,13 @@ def kwargssplit(log: str) -> list[str | dict[str, str]]:
     rexpr: str = "\\[(.*?)\\] +(.*)"
     i: int = len(logs)
     for j in range(len(logs)):
-        if re.match(rexpr, logs[j]):
+        if core.re.match(rexpr, logs[j]):
             i = j
             break
     args: list[str] = logs[0:i]
     kwargs: dict[str, str] = {}
     for j in logs[i:]:
-        m = re.match(rexpr, j)
+        m = core.re.match(rexpr, j)
         kwargs[m[1]] = m[2]
     args.append(kwargs)
     return args
