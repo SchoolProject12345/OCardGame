@@ -55,6 +55,7 @@ class TurnNumeric(Numeric):
 
 @dataclass
 class DamageTaken(Numeric):
+    # Actually you can probably use CardProperty instead
     def eval(self, **kwargs) -> int:
         if not "damage_taken" in kwargs:
             return warn("Tried to get damage taken without whendamaged trigger.") and 0
@@ -78,7 +79,7 @@ class RawNumeric(Numeric):
 
 @dataclass
 class NumericConstant(Numeric):
-    "Retrieve "
+    "Retrieve an attribute from Core.core_main.Constants."
     attr: str
     @safe_static # so you don't take "path" as attr.
     def eval(self, **_) -> int:
@@ -148,11 +149,14 @@ class CountUnion(Numeric):
     "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
     target_mode: any
     tags: tuple
-    elements: tuple # a list of element IntEnum.
+    elements: tuple # a tuple of element IntEnum.
+    meta: tuple
     def eval(self, **kwargs) -> int:
         i = 0
         for creature in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode)):
             if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
+                i += 1
+            elif "taunted" in meta and creature.taunt is not None:
                 i += 1
         return i
     def from_json(json: dict):
@@ -160,8 +164,10 @@ class CountUnion(Numeric):
             TargetMode.from_str(json["target_mode"]),
             (*getordef(json, "tags", ()),),
             (*(Element.from_str(element) for element in getordef(json, "elements", ())),)
+            (*getordef(json, "meta", ()),)
         )
     def __str__(self):
+        # TODO: make this less ugly
         return f"the amount of cards with elements {self.elements} or with tag {self.tags}"
 
 @dataclass
