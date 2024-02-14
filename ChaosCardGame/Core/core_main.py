@@ -15,13 +15,16 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_max_energy = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size = max(1, get_setting("hand_size", 5))
-    default_deck_size = max(1, get_setting("deck_size", 15))
-    strong_increase = max(0, get_setting("strong_percent_increase", 20))
+    default_deck_size = max(1, get_setting("deck_size", 15)) 
+    strong_increase = get_setting("strong_percent_increase", 20) # negative cause reverse type matchup
     passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause bugs
     commander_heal = max(0, get_setting("passive_commander_heal", 20))
-    commander_power = 65
-    base_power = 3
-    power_increase = 7
+    commander_power = get_setting("commanders_default_power", 65)
+    base_power = get_setting("defaults_power", 3)
+    power_increase = get_setting("defaults_power", 7)
+    min_board_size = max(1, get_setting("min_board_size", 2))
+    max_board_size = min(26, get_setting("max_board_size", 6)) # crash logging above 26 (might be fixed later)
+    per_minion_reduction = get_setting("per_minion_reduction", 8) # you can try negative or higher than 100% if you want
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -163,7 +166,7 @@ class CountUnion(Numeric):
         return CountUnion(
             TargetMode.from_str(json["target_mode"]),
             (*getordef(json, "tags", ()),),
-            (*(Element.from_str(element) for element in getordef(json, "elements", ())),)
+            (*(Element.from_str(element) for element in getordef(json, "elements", ())),),
             (*getordef(json, "meta", ()),)
         )
     def __str__(self):
@@ -1050,7 +1053,7 @@ class BoardResize(AbstractEffect):
         # TODO: boarddiscard first
         # this requires some cleaning, as it needs to apply the passive
         # boardiscard needs to be callable with **kwargs
-        boardsize = max(len(player.active) + self.delta, 1)
+        boardsize = clamp(len(player.active) + self.delta, 1, 26)
         if self.delta < 0:
             while boardsize < len(player.active) and None in player.active:
                 player.active.remove(None)
@@ -1195,7 +1198,7 @@ class Passive:
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
     def execute(self, **kwargs):
-        kwargs["board"].logs.append(f"passive|{kwargs['user']}|{self.name}")
+        kwargs["board"].logs.append(f"passive|{kwargs['user'].namecode()}|{self.name}")
         return self.effect.execute(**kwargs)
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
@@ -1488,11 +1491,11 @@ class ActiveCard:
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
-                         and attacker.element.effectiveness(self.element), 12, 10)
+                         and attacker.element.effectiveness(self.element), 100 + Constants.strong_increase, 100)
         amount //= ifelse(mode.can_weak()
-                          and self.element.resist(attacker.element), 12, 10)
+                          and self.element.resist(attacker.element), 100 + Constants.strong_increase, 100)
         if self.iscommander() and mode.can_weak():
-            amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
+            amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) // 100
         amount = self.indirectdamage(amount)
         for passive in self.card.passives:
             if passive.trigger is not PassiveTrigger.whendamaged:
@@ -1882,7 +1885,7 @@ class Board:
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(
-            1, 7) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
+            Constants.min_board_size, Constants.max_board_size + 1) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1 # To compensate disadvantage
