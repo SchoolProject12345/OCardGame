@@ -1124,7 +1124,57 @@
   "element":"air",
   "cost":2,
   "hp":210,
-  "type":"creature"
+  "type":"creature",
+  "attacks":[
+   {
+    "name":"Serpent Strangle",
+    "cost":1,
+    "target_mode":"target",
+    "power":0,
+    "effect":{
+     "type":"if",
+     "value":{
+      "type":"count",
+      "target_mode":"self",
+      "meta":"taunted"
+     },
+     "cond":1,
+     "effect":{
+      "type":"union",
+      "effect1":{
+       "type":"damage",
+       "amount":100,
+       "damage_mode":"resistance_ignoring"
+      },
+      "effect2":{
+       "type":"taunt",
+       "new_targets":"target",
+       "duration":3
+      }
+     },
+     "else":{
+      "type":"damage",
+      "amount":50,
+      "damage_mode":"direct"
+     }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Second Wind",
+    "trigger":"whendefeated",
+    "effect":{
+     "type":"change_target",
+     "new_target":"foesc",
+     "effect":{
+      "type":"redirect",
+      "from":"alliesc",
+      "amount":100
+     }
+    }
+   }
+  ]
  },
  {
   "name": "Chaos Brigade",
