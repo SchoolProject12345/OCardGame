@@ -1389,10 +1389,10 @@
      "name":"black hole",
      "cost":1,
      "power":20,
-     "target_mode":"foes",
+     "target_mode":"foesc",
      "effect":{
-       "type":"cleanse",
-       "by_tags":["+"]
+      "type":"cleanse",
+      "by_tags":["+"]
      }
    }
  },
@@ -1422,7 +1422,7 @@
  },
  {
    "type":"spell",
-   "name":"Deep Sea",
+   "name":"Deep Sea Potion",
    "element":"water",
    "on_use":{
      "name":"Sea",
@@ -1441,7 +1441,7 @@
      "cost":1,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"damage","amount":{"type":"turn"}}
+     "effect":{"type":"damage","amount":{"type":"mul","num":10,"den":1,{"type":"turn"}}}
   }
  },
  {
