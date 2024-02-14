@@ -709,7 +709,7 @@ class DamageRedirect(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         amount = self.amount.eval(**kwargs)
         targets = AbstractEffect.targeted_objects(**kwargs)
-        from_ = AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.from_))
+        from_ = [card for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.from_)) if card not in targets]
         if amount == 0 or len(targets) == 0 or len(from_) == 0:
             return False
         while amount > 0 and len(targets) > 0 and len(from_) > 0:
