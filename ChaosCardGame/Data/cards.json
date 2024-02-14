@@ -1,21 +1,5 @@
 [
 {
- "type":"spell",
- "name":"Call to Arms",
- "element":"chaos",
- "on_use":{
-  "name":"Call to Arms",
-  "power":0,
-  "cost":3,
-  "target_mode":"allies",
-  "effect":{
-   "type":"union",
-   "effect1":{"type":"add_energy","gain":2},
-   "effect2":{"type":"state_change","new_state":"unattacked"}
-  }
- }
-},
-{
   "name": "Sky Monkey",
   "element": "air",
   "cost": 1,
@@ -1491,7 +1475,7 @@
      "cost":1,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"damage","amount":{"type":"mul","num":10,"den":1,{"type":"turn"}}}
+     "effect":{"type":"damage","amount":{"type":"mul","num":10,"den":1,"times":{"type":"turn"}}}
   }
  },
  {
