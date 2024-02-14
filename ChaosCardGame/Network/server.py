@@ -295,7 +295,7 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
         }
     if len(user["deck"]) != core.Constants.default_deck_size:
         core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
-        user["deck"] = core.Player.get_deck()
+        user["deck"] = [card.name for card in core.Player.get_deck()]
     sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
     handle = ClientHandler(server_socket)
     net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
