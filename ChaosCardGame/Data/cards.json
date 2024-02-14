@@ -496,6 +496,7 @@
      },
      "effect2":{
       "type":"damage",
+      "damage_mode":"direct",
       "amount":{
        "type":"add",
        "a":150,
