@@ -3,6 +3,7 @@
 .DS_Store
 .vscode
 options.txt
+players.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
