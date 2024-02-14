@@ -4,10 +4,10 @@ OCardGame is a little chaotic card game coded exhaustively in Python. Inspired b
 
 ## Rules
 
-- Each player start with one commander and a deck of 30 cards, drawing 5 cards from it.
-- The player who move first is determined by 5 rounds of Rock Paper Scissors.
+- Each player start with one commander and a deck of 15 cards, drawing 5 cards from it.
 - During their turn a player may place (costing energy) or discard a card from their hand, attack with their creatures (once per turn per creature costing energy) and use spells (costing energy)
 - At the end of their turn, the player gain energy and draw cards until they have 5 in hand.
+- The backend is extremely modular (see `options.txt`).
 
 ## Coding Conventions & Rules
 
