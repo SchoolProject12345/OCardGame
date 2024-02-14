@@ -156,7 +156,7 @@ class CountUnion(Numeric):
         for creature in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode)):
             if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
                 i += 1
-            elif "taunted" in meta and creature.taunt is not None:
+            elif "taunted" in self.meta and creature.taunt is not None:
                 i += 1
         return i
     def from_json(json: dict):
@@ -1690,7 +1690,7 @@ class Player:
         # don't use this method though, use AbstractCard.get_card or AbstractCard.from_id
         return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
     @static
-    def get_save_json(name: str) -> dict | None:
+    def get_save_json(name: str) -> dict[str, str | list[str] | int] | None:
         "Try to fetch & return a player witht he same name from `Data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
         io = open(os.path.join(Constants.path, "Data/players.json"))
