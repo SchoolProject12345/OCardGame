@@ -21,7 +21,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     commander_heal = max(0, get_setting("passive_commander_heal", 20))
     commander_power = get_setting("commanders_default_power", 65)
     base_power = get_setting("defaults_power", 3)
-    power_increase = get_setting("defaults_power", 7)
+    power_increase = get_setting("defaults_power_increase", 7)
     min_board_size = max(1, get_setting("min_board_size", 2))
     max_board_size = min(26, get_setting("max_board_size", 6)) # crash logging above 26 (might be fixed later)
     per_minion_reduction = get_setting("per_minion_reduction", 8) # you can try negative or higher than 100% if you want
