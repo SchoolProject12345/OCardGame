@@ -1491,15 +1491,54 @@
     }
  },
  {
-   "type":"spell",
-   "name":"Potion of Regeneration",
-   "element":"earth",
-   "on_use":{
-     "name":"pr",
-     "cost":2,
-     "power":0,
-     "target_mode":"foes",
-     "effect":{"type":"heals", "amount":"50 then 40, then 30, 20, 10 heal over 5 turns."}
+  "type":"spell",
+  "name":"Potion of Regeneration",
+  "element":"earth",
+  "on_use":{
+   "name":"Drink",
+   "cost":2,
+   "power":0,
+   "target_mode":"foes",
+   "effect":{
+    "type":"union",
+    "effect1":{
+     "type":"heal",
+     "amount":50
+    },
+    "effect2":{
+     "type":"union",
+     "effect1":{
+      "type":"delay",
+      "tags":["+"],
+      "delay":1,
+      "effect":{"type":"heal","amount":40}
+     },
+     "effect2":{
+      "type":"union",
+      "effect1":{
+       "type":"delay",
+       "tags":["+"],
+       "delay":2,
+       "effect":{"type":"heal","amount":30}
+      },
+      "effect2":{
+       "type":"union",
+       "effect1":{
+        "type":"delay",
+        "tags":["+"],
+        "delay":3,
+        "effect":{"type":"heal","amount":20}
+       },
+       "effect2":{
+        "type":"delay",
+        "tags":["+"],
+        "delay":4,
+        "effect":{"type":"heal","amount":10}
+       }
+      }
+     }
     }
+   }
+  }
  }  
 ]
