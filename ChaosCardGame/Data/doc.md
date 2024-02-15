@@ -198,6 +198,7 @@ To combine any number of identical objects, use this syntax:
  "n":1 // number of time to repeat the effect for.
 }
 ```
+Additionaly, each effect inside the repeat are evaluated with a special property that can be retrived through `{"type":"property","path":"repeat_depth","attr":""}` and used as an int ∈ [0;n) inside the effects.
 
 ### Target Change:
 Change the target of every sub-effects to a new target_mode.
@@ -491,6 +492,7 @@ This might have many uses, such as:
 kwargs["user"].hp
 kwargs["user"].card.cost
 kwargs["board"].turn
+kwargs["repeat_depth"]
 ```
 
 ### Current turn
