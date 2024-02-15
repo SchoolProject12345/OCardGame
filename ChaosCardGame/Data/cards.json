@@ -1420,7 +1420,7 @@
    "name":"Black Hole spell",
    "element":"chaos",
    "on_use":{
-     "name":"black hole",
+     "name":"Absorb",
      "cost":1,
      "power":20,
      "target_mode":"foesc",
@@ -1435,7 +1435,7 @@
    "name":"Empowering Medicine",
    "element":"earth",
    "on_use":{
-     "name":"medicine",
+     "name":"Apply",
      "cost":1,
      "power":0,
      "target_mode":"allies",
@@ -1447,7 +1447,7 @@
    "name":"Smokeball",
    "element":"fire",
    "on_use":{
-     "name":"ball",
+     "name":"Fog",
      "cost":2,
      "power":0,
      "target_mode":"foes",
@@ -1459,7 +1459,7 @@
    "name":"Deep Sea Potion",
    "element":"water",
    "on_use":{
-     "name":"Sea",
+     "name":"Apply",
      "cost":1,
      "power":0,
      "target_mode":"allies",
@@ -1471,7 +1471,7 @@
    "name":"Corruption Spell",
    "element":"chaos",
    "on_use":{
-     "name":"Corruption",
+     "name":"Corrupt",
      "cost":1,
      "power":0,
      "target_mode":"target",
@@ -1479,16 +1479,33 @@
   }
  },
  {
-   "type":"spell",
-   "name":"Tornado Spell",
-   "element":"air",
-   "on_use":{
-     "name":"tornad",
-     "cost":2,
-     "power":0,
-     "target_mode":"target",
-     "effect":{"type":"todo","desc":"10 then 20, then 30, 40, 50 damages over 5 turns."}
+  "type":"spell",
+  "name":"Tornado Spell",
+  "element":"air",
+  "on_use":{
+   "name":"Unleash",
+   "cost":1,
+   "power":0,
+   "target_mode":"target",
+   "effect":{
+    "type":"repeat",
+    "n":5,
+    "effect":{
+     "type":"delay",
+     "tags":["-"],
+     "delay":{"type":"property","path":"repeat_depth","attr":""},
+     "effect":{
+      "type":"damage",
+      "amount":{
+       "type":"mul",
+       "num":8,
+       "den":1,
+       "times":{"type":"property","path":"repeat_depth","attr":""}
+      }
+     }
     }
+   }
+  }
  },
  {
   "type":"spell",
