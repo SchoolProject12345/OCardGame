@@ -8,7 +8,7 @@ from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox, State
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path
+from utility import cwd_path, get_setting, get_settings
 
 
 class JoinMenu(State):
@@ -33,6 +33,7 @@ class JoinMenu(State):
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="IP Address")
         self.joinmenu_tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
+        self.joinmenu_tb_username.text = get_setting("username", "")
 
         self.joinmenu_join_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.join_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
@@ -52,12 +53,12 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.join_username = self.joinmenu_tb_username.text # IMPLEMENTED INVALID USERNAME
-            self.ipaddress = self.tb_ipaddress.text # IMPLEMENTED INVALID IP ADDRESS
+            get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             self.change_state("LobbyMenu")
-            net.threading.Thread(target=server.join, args=(self.join_username, self.ipaddress), daemon=True).start()
+            net.threading.Thread(target=server.join, args=(self.joinmenu_tb_username.text, self.tb_ipaddress.text), daemon=True).start()
 
         if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
+            get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             self.revert_state(1)
 
     def state_manager_hook(self,app):

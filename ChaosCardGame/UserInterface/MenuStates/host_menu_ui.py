@@ -7,7 +7,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path
+from utility import cwd_path, get_setting, get_settings
 
 
 class HostMenu(State):
@@ -34,6 +34,8 @@ class HostMenu(State):
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
         self.hostmenu_tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
             self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
+        self.hostmenu_tb_username.text = get_setting("username", "")
+        self.tb_roomname.text = get_setting("roomname", "")
 
         self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
@@ -52,12 +54,14 @@ class HostMenu(State):
         self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            self.roomname = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
-            self.host_username = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
+            get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
+            get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             self.change_state("LobbyMenu")
-            net.threading.Thread(target=server.host, args=(self.host_username, self.ipaddress), daemon=True).start()
+            net.threading.Thread(target=server.host, args=(self.hostmenu_tb_username.text, self.ipaddress), daemon=True).start()
 
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+            get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
+            get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             self.revert_state()
 
     def state_manager_hook(self, app):
