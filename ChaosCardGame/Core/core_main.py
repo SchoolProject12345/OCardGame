@@ -1424,7 +1424,9 @@ class ActiveCard:
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
         #= Gravitational Lensing - start =#
          # overrides everything
-        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"] and kwargs["target_mode"].cancommander():
+         # wait I just realized it redirects 65535-damage attacks.
+         # "Feature not bug"
+        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
