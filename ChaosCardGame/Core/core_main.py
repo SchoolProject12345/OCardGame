@@ -104,7 +104,8 @@ class HPList(NumericList):
     def __str__(self):
         return f"the HP from {self.target_mode.to_str()}"
 
-@dataclass # why didn't I do that before? It makes everything 100x easier.
+@dataclass
+# why didn't I do that before? It makes everything 100x easier.
 class CardProperty(Numeric):
     path: str
     attr: str
@@ -114,6 +115,8 @@ class CardProperty(Numeric):
         keys = self.path.split('/')
         while len(keys) != 0:
             key = keys.pop(0)
+            if len(key) == 0: # because python is thrash
+                continue
             if not key in card:
                 warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
                 return 0
@@ -121,6 +124,8 @@ class CardProperty(Numeric):
         attrs = self.attr.split('.')
         while len(attrs) != 0:
             attr = attrs.pop(0)
+            if len(attr) == 0:
+                continue
             if not hasattr(card, attr):
                 warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
                 return 0
