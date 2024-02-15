@@ -888,15 +888,16 @@ class LoopEffect(AbstractEffect):
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
-    time: int  # doesn't support Numeric as it would be kinda useless.
-    kwargs: dict
+    time: Numeric | int
+    kwargs: dict[str, object]
     tags: tuple
     def with_kwargs(self, kwargs: dict):
-        return DelayEffect(self.effect, self.time, kwargs, self.tags)
+        "Return a pseudo copy of self with kwargs, evaluating time field to an int."
+        return DelayEffect(self.effect, self.time.eval(**kwargs), kwargs, self.tags)
     def from_json(json: dict):
         if not "tags" in json:
             warn(f"DelayEffect {json} has no field tags.")
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-",)))
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, (*getordef(json, "tags", ("+-",)),))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -909,6 +910,8 @@ class DelayEffect(AbstractEffect):
         self.kwargs["target_mode"] = TargetMode.target
         self.effect.execute(**self.kwargs)
         return False
+    def get_tags(self):
+        return self.tags
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 
