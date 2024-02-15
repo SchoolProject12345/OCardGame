@@ -186,6 +186,9 @@ class MenuBackgrounds:
     bg_hand_menu_path = bg_dir + "hand_menu_empty.png"
     bg_hand_menu_image = pygame.image.load(bg_hand_menu_path)
 
+    bg_settings_menu_path = bg_dir + "settings_menu_empty.png"
+    bg_settings_menu_image = pygame.image.load(bg_settings_menu_path)
+
     # Tutorial
     bg_tutorial1_path = bg_dir + "tutorial1_empty.png"
     bg_tutorial1_image = pygame.image.load(bg_tutorial1_path)
@@ -358,17 +361,9 @@ class MenuButtons:
     ready_button_path = button_dir + "Ready"
     ready_button_image = transform_button_files(ready_button_path)
 
-    # Mute
-    mute_button_path = button_dir + "Mute"
-    mute_button_image = transform_button_files(mute_button_path)
-
-    # Unmute
-    unmute_button_path = button_dir + "Unmute"
-    unmute_button_image = transform_button_files(unmute_button_path)
-
 
 @dataclass
-class CardsMenuToggles:
+class MenuToggles:
     """
     A class to represent all toggles in the game.
     """
@@ -393,6 +388,10 @@ class CardsMenuToggles:
     # Water
     water_toggle_path = toggle_dir + "WaterToggle"
     water_toggle_image = transform_toggle_files(water_toggle_path)
+
+    # Mute
+    mute_toggle_path = toggle_dir + "MuteToggle"
+    mute_toggle_image = transform_toggle_files(mute_toggle_path)
 
 
 @dataclass
