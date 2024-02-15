@@ -1106,7 +1106,7 @@ class RepeatEffect(AbstractEffect):
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return any(self.effect.execute(**kwargs) for _ in range(self.n.eval(**kwargs)))
+        return any(self.effect.execute(**withfield(kwargs, "repeat_depth", n)) for n in range(self.n.eval(**kwargs)))
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
