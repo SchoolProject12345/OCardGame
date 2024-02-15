@@ -1499,7 +1499,7 @@
      "cost":2,
      "power":0,
      "target_mode":"foes",
-     "effect":{"type":"todo", "desc":"50 then 40, then 30, 20, 10 heal over 5 turns."}
+     "effect":{"type":"heals", "amount":"50 then 40, then 30, 20, 10 heal over 5 turns."}
     }
- }
+ }  
 ]
