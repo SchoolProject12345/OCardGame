@@ -1040,7 +1040,7 @@
    {
     "name": "Tentacle Torrent",
     "cost": 1,
-    "target_mode": "foes",
+    "target_mode": "foesc",
     "power":0,
     "effect":{
      "type":"repeat",
