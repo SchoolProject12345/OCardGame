@@ -86,7 +86,7 @@ Attacks and spell can use the following targets:
 
 ## Contributors
 
-- [AxaQuilPre](https://github.com/AxaQuilPre)
+- [AurelienJt](https://github.com/AurelienJt)
 - [OrnitOnGithub](https://github.com/OrnitOnGithub)
 - [DrN1ghtW0lf](https://github.com/DrN1ghtW0lf)
 - [andrei73457](https://github.com/andrei73457)
