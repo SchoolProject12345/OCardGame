@@ -143,6 +143,3 @@ def rect_grid(position: tuple, position_type: str, dimensions: tuple, alignement
         return curated_grid_rects
     else:
         return curated_grid_rects
-
-# print(rect_grid((0, 0), "topleft", (500, 303),
-#                 (6, 1), 12, return_rect_values=False))
