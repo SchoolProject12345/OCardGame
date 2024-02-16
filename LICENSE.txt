@@ -52,7 +52,7 @@ copies of the Software, __as long as the original author is credited__ , and to 
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the "SoundEngine.py" file.
+copies or substantial portions of the "SoundEngine.py" file, and ErdaBerda shall be credited for each use.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
