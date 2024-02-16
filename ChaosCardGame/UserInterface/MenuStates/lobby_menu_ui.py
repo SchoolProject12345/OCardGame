@@ -1,5 +1,6 @@
 import os
 import pygame
+import Network.server as server
 from random import randint
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
@@ -33,9 +34,9 @@ class LobbyMenu(State):
     def lobby_menu(self):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
-        self.username_text.render("Paladi") # Username goes here - link with network
-        self.ipaddress_text.render("127.0.0.1") # IP Address goes here - link with network
-        self.roomname_text.render("We eating goood") # Roomname goes here - link with network
+        self.username_text.render("Loading...") # Username goes here - link with network
+        self.ipaddress_text.render(server.net.get_ip()) # IP Address goes here - link with network
+        self.roomname_text.render("Loading...") # Roomname goes here - link with network
 
         self.ready_button.render()
 

@@ -15,13 +15,16 @@ class Constants:  # to change variables quickly, easily and buglessly.
     default_max_energy = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size = max(1, get_setting("hand_size", 5))
-    default_deck_size = max(1, get_setting("deck_size", 15))
-    strong_increase = max(0, get_setting("strong_percent_increase", 20))
-    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause crashes
+    default_deck_size = max(1, get_setting("deck_size", 15)) 
+    strong_increase = get_setting("strong_percent_increase", 20) # negative cause reverse type matchup
+    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause bugs
     commander_heal = max(0, get_setting("passive_commander_heal", 20))
-    commander_power = 65
-    base_power = 3
-    power_increase = 7
+    commander_power = get_setting("commanders_default_power", 65)
+    base_power = get_setting("defaults_power", 3)
+    power_increase = get_setting("defaults_power_increase", 7)
+    min_board_size = max(1, get_setting("min_board_size", 2))
+    max_board_size = min(26, get_setting("max_board_size", 6)) # crash logging above 26 (might be fixed later)
+    per_minion_reduction = get_setting("per_minion_reduction", 8) # you can try negative or higher than 100% if you want
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -55,6 +58,7 @@ class TurnNumeric(Numeric):
 
 @dataclass
 class DamageTaken(Numeric):
+    # Actually you can probably use CardProperty instead
     def eval(self, **kwargs) -> int:
         if not "damage_taken" in kwargs:
             return warn("Tried to get damage taken without whendamaged trigger.") and 0
@@ -76,6 +80,16 @@ class RawNumeric(Numeric):
         self.value -= value
         return self
 
+@dataclass
+class NumericConstant(Numeric):
+    "Retrieve an attribute from Core.core_main.Constants."
+    attr: str
+    @safe_static # so you don't take "path" as attr.
+    def eval(self, **_) -> int:
+        return getattr(Constants, self.attr)
+    def __str__(self):
+        return str(getattr(Constants, self.attr))
+
 class NumericList(Numeric):
     def eval(self, **_) -> list[int]:
         return warn(f"Numeric values of type {type(self)} cannot be acessed.") and [0]
@@ -90,7 +104,8 @@ class HPList(NumericList):
     def __str__(self):
         return f"the HP from {self.target_mode.to_str()}"
 
-@dataclass # why didn't I do that before? It makes everything 100x easier.
+@dataclass
+# why didn't I do that before? It makes everything 100x easier.
 class CardProperty(Numeric):
     path: str
     attr: str
@@ -100,6 +115,8 @@ class CardProperty(Numeric):
         keys = self.path.split('/')
         while len(keys) != 0:
             key = keys.pop(0)
+            if len(key) == 0: # because python is thrash
+                continue
             if not key in card:
                 warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
                 return 0
@@ -107,6 +124,8 @@ class CardProperty(Numeric):
         attrs = self.attr.split('.')
         while len(attrs) != 0:
             attr = attrs.pop(0)
+            if len(attr) == 0:
+                continue
             if not hasattr(card, attr):
                 warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
                 return 0
@@ -138,20 +157,25 @@ class CountUnion(Numeric):
     "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
     target_mode: any
     tags: tuple
-    elements: tuple # a list of element IntEnum.
+    elements: tuple # a tuple of element IntEnum.
+    meta: tuple
     def eval(self, **kwargs) -> int:
         i = 0
         for creature in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode)):
             if hasany(creature.card.tags, self.tags) or (creature.element in self.elements):
+                i += 1
+            elif "taunted" in self.meta and creature.taunt is not None:
                 i += 1
         return i
     def from_json(json: dict):
         return CountUnion(
             TargetMode.from_str(json["target_mode"]),
             (*getordef(json, "tags", ()),),
-            (*(Element.from_str(element) for element in getordef(json, "elements", ())),)
+            (*(Element.from_str(element) for element in getordef(json, "elements", ())),),
+            (*getordef(json, "meta", ()),)
         )
     def __str__(self):
+        # TODO: make this less ugly
         return f"the amount of cards with elements {self.elements} or with tag {self.tags}"
 
 @dataclass
@@ -662,14 +686,26 @@ class IfEffect(AbstractEffect):
     effect: AbstractEffect
     other: AbstractEffect
     value: Numeric
-    cond: Numeric
+    cond: Numeric | AbstractEffect
     def execute(self, **kwargs) -> bool:
-        if not self.value.eval(**kwargs) < self.cond.eval(**kwargs):
+        if (self.cond.execute(**kwargs) if isinstance(self.cond, AbstractEffect) else not self.value.eval(**kwargs) < self.cond.eval(**kwargs)):
             return self.effect.execute(**kwargs)
         else:
             return self.other.execute(**kwargs)
     def from_json(json: dict):
-        return IfEffect(AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), AbstractEffect.from_json(getordef(json, "else", {"type":"null"})), Numeric.from_json(json["value"]), Numeric.from_json(getordef(json, "cond", 0)))
+        if "if_successful" in json:
+            return AbstractEffect(
+                AbstractEffect.from_json("if_successful"),
+                AbstractEffect.from_json(getordef(json, "else", {"type":"null"})),
+                RawNumeric(0), # value is unsed if cond is effect
+                AbstractEffect.from_json(json["effect"])
+            )
+        return IfEffect(
+            AbstractEffect.from_json(getordef(json, "effect", {"type":"null"})), # if we want only "else"
+            AbstractEffect.from_json(getordef(json, "else", {"type":"null"})),
+            Numeric.from_json(json["value"]),
+            Numeric.from_json(getordef(json, "cond", 0))
+        )
     def __str__(self):
         return f"{self.effect} if {self.value} is greater or equal to {self.cond}, {self.other} othewise"
 
@@ -681,7 +717,7 @@ class DamageRedirect(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         amount = self.amount.eval(**kwargs)
         targets = AbstractEffect.targeted_objects(**kwargs)
-        from_ = AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.from_))
+        from_ = [card for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.from_)) if card not in targets]
         if amount == 0 or len(targets) == 0 or len(from_) == 0:
             return False
         while amount > 0 and len(targets) > 0 and len(from_) > 0:
@@ -743,7 +779,7 @@ class RandomTargets(AbstractEffect):
         while len(targets) > sample:
             targets.pop()
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
-        return np.any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
+        return any(self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets)
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), Numeric.from_json(getordef(json, "sample", 1)))
     def __str__(self):
@@ -852,15 +888,16 @@ class LoopEffect(AbstractEffect):
 @dataclass
 class DelayEffect(AbstractEffect):
     effect: AbstractEffect
-    time: int  # doesn't support Numeric as it would be kinda useless.
-    kwargs: dict
+    time: Numeric | int
+    kwargs: dict[str, object]
     tags: tuple
     def with_kwargs(self, kwargs: dict):
-        return DelayEffect(self.effect, self.time, kwargs, self.tags)
+        "Return a pseudo copy of self with kwargs, evaluating time field to an int."
+        return DelayEffect(self.effect, self.time.eval(**kwargs), kwargs, self.tags)
     def from_json(json: dict):
         if not "tags" in json:
             warn(f"DelayEffect {json} has no field tags.")
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, getordef(json, "tags", ("+-",)))
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, (*getordef(json, "tags", ("+-",)),))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -873,6 +910,8 @@ class DelayEffect(AbstractEffect):
         self.kwargs["target_mode"] = TargetMode.target
         self.effect.execute(**self.kwargs)
         return False
+    def get_tags(self):
+        return self.tags
     def __str__(self):
         return f"{str(self.effect)} after {self.time} turns"
 
@@ -953,11 +992,11 @@ class EnergyEffect(AbstractEffect):
         match self.player:
             case "foe": player = kwargs["user"].owner.opponent
             case "ally": player = kwargs["user"].owner
-        Δmax_energy = min(self.max_energy.eval(**kwargs), player.max_energy - 1)
+        Δmax_energy = max(self.max_energy.eval(**kwargs), 1 - player.max_energy)
         player.max_energy += Δmax_energy
-        Δenergy_per_turn = min(self.energy_per_turn.eval(**kwargs), player.energy_per_turn - 1)
+        Δenergy_per_turn = max(self.energy_per_turn.eval(**kwargs), 1 - player.energy_per_turn)
         player.energy_per_turn += Δenergy_per_turn
-        return (player.add_energy(self.energy.eval(**kwargs)) > 0) | (Δenergy_per_turn > 0) | (Δmax_energy > 0)
+        return (player.add_energy(self.energy.eval(**kwargs)) != 0) | (Δenergy_per_turn != 0) | (Δmax_energy != 0)
     def from_json(json: dict):
         return EnergyEffect(
             Numeric.from_json(getordef(json, "gain", 0)),
@@ -1022,7 +1061,7 @@ class BoardResize(AbstractEffect):
         # TODO: boarddiscard first
         # this requires some cleaning, as it needs to apply the passive
         # boardiscard needs to be callable with **kwargs
-        boardsize = max(len(player.active) + self.delta, 1)
+        boardsize = clamp(len(player.active) + self.delta, 1, 26)
         if self.delta < 0:
             while boardsize < len(player.active) and None in player.active:
                 player.active.remove(None)
@@ -1075,7 +1114,7 @@ class RepeatEffect(AbstractEffect):
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return any(self.effect.execute(**kwargs) for _ in range(self.n.eval(**kwargs)))
+        return any(self.effect.execute(**withfield(kwargs, "repeat_depth", n)) for n in range(self.n.eval(**kwargs)))
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -1088,7 +1127,10 @@ class FormeChange(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         actives = AbstractEffect.targeted_objects(**kwargs)
         for active in actives:
+            old_hp = active.card.max_hp
             active.card = self.new_forme  # active.card shouldn't be mutated, so there is no need to copy.
+            new_hp = active.card.max_hp
+            active.hp += new_hp - old_hp # hp logged through -formechange so no need to heal/damage. I must redo the HP system anyway.
             # if it ends up mutated then the bug should be fixed where it is mutated.
             active.element = self.new_forme.element
             kwargs["board"].logs.append(f"-formechange|{active.namecode()}|{active.card.name}|{active.hp}/{active.card.max_hp}|{active.element.value}")
@@ -1163,7 +1205,9 @@ class Passive:
                        PassiveTrigger.from_str(json["trigger"]),
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
-    def execute(self, **kwargs): return self.effect.execute(**kwargs)
+    def execute(self, **kwargs):
+        kwargs["board"].logs.append(f"passive|{kwargs['user'].namecode()}|{self.name}")
+        return self.effect.execute(**kwargs)
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
 
@@ -1339,7 +1383,7 @@ class ActiveCard:
     def can_attack(self):
         if self.state in [State.blocked, State.invisible]:
             return False
-        if self.iscommander() and np.any([card is not None for card in self.owner.active]):
+        if self.iscommander() and any(card is not None for card in self.owner.active):
             return False
         if self.board is None or self.owner != self.board.active_player:
             return False
@@ -1388,7 +1432,9 @@ class ActiveCard:
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
         #= Gravitational Lensing - start =#
          # overrides everything
-        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"] and kwargs["target_mode"].cancommander():
+         # wait I just realized it redirects 65535-damage attacks.
+         # "Feature not bug"
+        if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
         if len(AbstractEffect.targeted_objects(**kwargs)) == 0:
@@ -1455,11 +1501,11 @@ class ActiveCard:
         mode = getordef(kwargs, "damage_mode", DamageMode.direct)
         attacker = kwargs["user"]
         amount *= ifelse(mode.can_strong()
-                         and attacker.element.effectiveness(self.element), 12, 10)
+                         and attacker.element.effectiveness(self.element), 100 + Constants.strong_increase, 100)
         amount //= ifelse(mode.can_weak()
-                          and self.element.resist(attacker.element), 12, 10)
+                          and self.element.resist(attacker.element), 100 + Constants.strong_increase, 100)
         if self.iscommander() and mode.can_weak():
-            amount = amount * (100 - 8 * len(self.owner.get_actives())) // 100
+            amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) // 100
         amount = self.indirectdamage(amount)
         for passive in self.card.passives:
             if passive.trigger is not PassiveTrigger.whendamaged:
@@ -1473,27 +1519,30 @@ class ActiveCard:
             })
             passive.execute(**kwargs_)
         return amount
+    @static
     def indirectdamage(self, amount: int) -> int:
         "Reduce HP by amount but never goes into negative, then return damage dealt."
         if self.state == State.damageless:
             return 0
-        if DEV() and type(amount) != int:
+        if DEV() and not isinstance(amount, int):
             warn(f"Card with name \"{self.card.name}\" took non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
         if amount > self.hp:
             amount = self.hp
-        self.hp -= amount
         if amount != 0:
+            self.hp -= amount
             self.board.logs.append(f"-damage|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
+    @static
     def heal(self, amount: int) -> int:
         "Heal `self` from `amount` damage while never overhealing past max HP and return amount healed."
-        if DEV() and type(amount) != int:
+        if DEV() and not isinstance(amount, int):
             warn(f"Card with name \"{self.card.name}\" healed from non integer damages; converting value to int. /!\\ PLEASE FIX: automatic type conversion is disabled when out of DEV mode /!\\")
             amount = int(amount)
         amount = min(self.card.max_hp - self.hp, amount)
-        self.hp += amount
-        self.board.logs.append(f"-heal|{self.namecode()}|{self.hp}/{self.card.max_hp}")
+        if amount != 0:
+            self.hp += amount
+            self.board.logs.append(f"-heal|{self.namecode()}|{self.hp}/{self.card.max_hp}")
         return amount
     def endturn(self):
         "Apply all effects at the end of turn."
@@ -1654,7 +1703,7 @@ class Player:
         # don't use this method though, use AbstractCard.get_card or AbstractCard.from_id
         return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
     @static
-    def get_save_json(name: str) -> dict | None:
+    def get_save_json(name: str) -> dict[str, str | list[str] | int] | None:
         "Try to fetch & return a player witht he same name from `Data/player.json` as a `dict`, returning None if it isn't found."
         fname = cleanstr(name)
         io = open(os.path.join(Constants.path, "Data/players.json"))
@@ -1846,7 +1895,7 @@ class Board:
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(
-            1, 7) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
+            Constants.min_board_size, Constants.max_board_size + 1) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1 # To compensate disadvantage
@@ -1939,7 +1988,7 @@ class AIPlayer(Player): # I hate OOP
                 return True
         if not self.commander.attacked and self.energy >= 1 and len(self.get_actives()) == 0:
             return True
-        if not np.any([card is None for card in self.active]):
+        if not any(card is None for card in self.active):
             return False
         for card in self.hand:
             if card.get_cost() <= self.energy:

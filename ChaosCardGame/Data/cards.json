@@ -1,21 +1,5 @@
 [
 {
- "type":"spell",
- "name":"Call to Arms",
- "element":"chaos",
- "on_use":{
-  "name":"Call to Arms",
-  "power":0,
-  "cost":3,
-  "target_mode":"allies",
-  "effect":{
-   "type":"union",
-   "effect1":{"type":"add_energy","gain":2},
-   "effect2":{"type":"state_change","new_state":"unattacked"}
-  }
- }
-},
-{
   "name": "Sky Monkey",
   "element": "air",
   "cost": 1,
@@ -496,6 +480,7 @@
      },
      "effect2":{
       "type":"damage",
+      "damage_mode":"direct",
       "amount":{
        "type":"add",
        "a":150,
@@ -947,7 +932,11 @@
       "effect":{
        "type":"random_target",
        "sample":1,
-       "effect":{"type":"damage","amount":10,"damage_mode":"indirect"}
+       "effect":{
+        "type":"damage",
+        "amount":10,
+        "damage_mode":"indirect"
+       }
       }
      }
     }
@@ -1027,15 +1016,15 @@
     "target_mode": "target",
     "power": 65,
     "effect":{
-     "type":"union",
-     "effect1":{
-      "type":"add_energy",
-      "per_turn":1
-     },
-     "effect2":{
+     "type":"if",
+     "effect":{
       "type":"add_energy",
       "per_turn":-1,
       "player":"foe"
+     },
+     "if_successful":{
+      "type":"add_energy",
+      "per_turn":1
      }
     }
    }
@@ -1051,7 +1040,7 @@
    {
     "name": "Tentacle Torrent",
     "cost": 1,
-    "target_mode": "foes",
+    "target_mode": "foesc",
     "power":0,
     "effect":{
      "type":"repeat",
@@ -1079,7 +1068,7 @@
    }
   }],
   "passives":[{
-    "name":"Empirs thougness",
+    "name":"Emperor's Thougness",
     "trigger":"whenplaced",
      "effect":{"type":"todo"}
   }]
@@ -1119,7 +1108,57 @@
   "element":"air",
   "cost":2,
   "hp":210,
-  "type":"creature"
+  "type":"creature",
+  "attacks":[
+   {
+    "name":"Serpent Strangle",
+    "cost":1,
+    "target_mode":"target",
+    "power":0,
+    "effect":{
+     "type":"if",
+     "value":{
+      "type":"count",
+      "target_mode":"self",
+      "meta":"taunted"
+     },
+     "cond":1,
+     "effect":{
+      "type":"union",
+      "effect1":{
+       "type":"damage",
+       "amount":100,
+       "damage_mode":"resistance_ignoring"
+      },
+      "effect2":{
+       "type":"taunt",
+       "new_targets":"target",
+       "duration":3
+      }
+     },
+     "else":{
+      "type":"damage",
+      "amount":50,
+      "damage_mode":"direct"
+     }
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Second Wind",
+    "trigger":"whendefeated",
+    "effect":{
+     "type":"change_target",
+     "new_target":"foesc",
+     "effect":{
+      "type":"redirect",
+      "from":"alliesc",
+      "amount":100
+     }
+    }
+   }
+  ]
  },
  {
   "name": "Chaos Brigade",
@@ -1381,13 +1420,13 @@
    "name":"Black Hole spell",
    "element":"chaos",
    "on_use":{
-     "name":"black hole",
+     "name":"Absorb",
      "cost":1,
      "power":20,
-     "target_mode":"foes",
+     "target_mode":"foesc",
      "effect":{
-       "type":"cleanse",
-       "by_tags":["+"]
+      "type":"cleanse",
+      "by_tags":["+"]
      }
    }
  },
@@ -1396,7 +1435,7 @@
    "name":"Empowering Medicine",
    "element":"earth",
    "on_use":{
-     "name":"medicine",
+     "name":"Apply",
      "cost":1,
      "power":0,
      "target_mode":"allies",
@@ -1408,7 +1447,7 @@
    "name":"Smokeball",
    "element":"fire",
    "on_use":{
-     "name":"ball",
+     "name":"Fog",
      "cost":2,
      "power":0,
      "target_mode":"foes",
@@ -1417,10 +1456,10 @@
  },
  {
    "type":"spell",
-   "name":"Deep Sea",
+   "name":"Deep Sea Potion",
    "element":"water",
    "on_use":{
-     "name":"Sea",
+     "name":"Apply",
      "cost":1,
      "power":0,
      "target_mode":"allies",
@@ -1432,35 +1471,91 @@
    "name":"Corruption Spell",
    "element":"chaos",
    "on_use":{
-     "name":"Corruption",
+     "name":"Corrupt",
      "cost":1,
      "power":0,
      "target_mode":"target",
-     "effect":{"type":"damage","amount":{"type":"turn"}}
+     "effect":{"type":"damage","amount":{"type":"mul","num":10,"den":1,"times":{"type":"turn"}}}
   }
  },
  {
-   "type":"spell",
-   "name":"Tornado Spell",
-   "element":"air",
-   "on_use":{
-     "name":"tornad",
-     "cost":2,
-     "power":0,
-     "target_mode":"target",
-     "effect":{"type":"todo","desc":"10 then 20, then 30, 40, 50 damages over 5 turns."}
+  "type":"spell",
+  "name":"Tornado Spell",
+  "element":"air",
+  "on_use":{
+   "name":"Unleash",
+   "cost":1,
+   "power":0,
+   "target_mode":"target",
+   "effect":{
+    "type":"repeat",
+    "n":5,
+    "effect":{
+     "type":"delay",
+     "tags":["-"],
+     "delay":{"type":"property","path":"repeat_depth","attr":""},
+     "effect":{
+      "type":"damage",
+      "amount":{
+       "type":"mul",
+       "num":8,
+       "den":1,
+       "times":{"type":"property","path":"repeat_depth","attr":""}
+      }
+     }
     }
+   }
+  }
  },
  {
-   "type":"spell",
-   "name":"Potion of Regeneration",
-   "element":"earth",
-   "on_use":{
-     "name":"pr",
-     "cost":2,
-     "power":0,
-     "target_mode":"foes",
-     "effect":{"type":"todo", "desc":"50 then 40, then 30, 20, 10 heal over 5 turns."}
+  "type":"spell",
+  "name":"Potion of Regeneration",
+  "element":"earth",
+  "on_use":{
+   "name":"Drink",
+   "cost":2,
+   "power":0,
+   "target_mode":"foes",
+   "effect":{
+    "type":"union",
+    "effect1":{
+     "type":"heal",
+     "amount":50
+    },
+    "effect2":{
+     "type":"union",
+     "effect1":{
+      "type":"delay",
+      "tags":["+"],
+      "delay":1,
+      "effect":{"type":"heal","amount":40}
+     },
+     "effect2":{
+      "type":"union",
+      "effect1":{
+       "type":"delay",
+       "tags":["+"],
+       "delay":2,
+       "effect":{"type":"heal","amount":30}
+      },
+      "effect2":{
+       "type":"union",
+       "effect1":{
+        "type":"delay",
+        "tags":["+"],
+        "delay":3,
+        "effect":{"type":"heal","amount":20}
+       },
+       "effect2":{
+        "type":"delay",
+        "tags":["+"],
+        "delay":4,
+        "effect":{"type":"heal","amount":10}
+       }
+      }
+     }
     }
- }
+   }
+  }
+ }  
 ]

@@ -106,5 +106,4 @@ For each player:
 # TODO
 Add `version|x.y.z` log.\
 Read minor logs together and draw logs together.\
-Add optional `from` kwarg through `head|log|[from] Somewhere` e.g. `-damage|p1a|60/70|[from] Default Attack`.\
 Hide opponent's hand.

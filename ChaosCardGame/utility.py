@@ -3,6 +3,25 @@ from functools import wraps
 
 cwd_path = os.path.dirname(os.path.abspath(__file__))
 
+def value_parser(value: str) -> int | float | bool | str | None:
+    if len(value) == 0:
+        return None
+    if value[0] == value[-1] == '"':
+        return value[1:-1] # no strip after as spaces may be intentional
+    if value == "true":
+        return True
+    if value == "false":
+        return False
+    if value == "none":
+        return None
+    if isintstr(value):
+        # Note: doesn't support negative numbers (should be fixed)
+        return int(value)
+    if isfloatstr(value):
+        return float(value)
+    # technically valid string option even without "": they are only needed for numeric values (e.g. "1", "true") or to have unstriped strings (e.g. "foo ")
+    return value
+
 def get_settings(settings: dict = {}) -> dict:
     """
     Mutate dict passed in argument (defaults to singleton `{}`) to hold settings defined in `options.txt`.
@@ -12,52 +31,39 @@ def get_settings(settings: dict = {}) -> dict:
         return settings # settings shouldn't be changed from file at runtime
     # feel free to add new default options if needed
     default: dict[str, str | int | float | bool | None] = {
-        "version":"0.0.1",
+        "version":"0.0.2",
         "default_max_energy":4,
         "default_energy_per_turn":3,
         "hand_size":5,
         "deck_size":15,
         "progressbar_style":1,
-        "strong_percent_increase":20, # TODO
+        "strong_percent_increase":20, # can be negative to revert type matchup
         "passive_heal":10,
         "passive_commander_heal":20,
         "dev_mode":True,
         "mute":False,
         "mute_sfx":False,
-        "volume":100
+        "volume":100,
+        "min_board_size":2,
+        "max_board_size":6,
+        "per_minion_reduction":8, # % decrease of commander damage per minion on its side.
+        "username":"", # unused yet
+        "defaults_power":3,
+        "defaults_power_increase":7,
+        "commanders_default_power":65
     }
     if "options.txt" not in os.listdir(cwd_path):
-        with open(os.path.join(cwd_path, "options.txt"), "x") as io:
-            content = default
-            io.write(content)
-            io.close()
-    else: # no need to read what was just written
-        with open(os.path.join(cwd_path, "options.txt"), "r") as io:
-            content = io.read()
-            io.close()
+        write_settings(default)
+    with open(os.path.join(cwd_path, "options.txt"), "r") as io:
+        content = io.read()
+        io.close()
     for line in content.split("\n"): # possible bugs on windows due to \r\n but should work with str.strip
         line = line.strip()
         # Ideally there shouldn't be empty lines, but it's better to check anyway
         if len(line) == 0:
             continue
         key, value, *_ = line.split(":") # please don't put two semicolons in a line though
-        value = value.strip()
-        if len(value) == 0:
-            value = "none"
-        if value[0] == value[-1] == '"':
-            value = value[1:-1] # no strip after as spaces may be intentional
-        elif value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        elif value == "none":
-            value = None
-        elif value.isdigit():
-            # Note: doesn't support negative numbers (should be fixed)
-            value = int(value)
-        elif isfloat(value):
-            value = float(value)
-        # technically valid string option even without "": they are only needed for numeric values (e.g. "1", "true")
+        value = value_parser(value.strip())
         settings[key.strip()] = value # value is already stripped/parsed
     if "version" not in settings or ltsemver(settings["version"], default["version"]):
         # Relevant to non-dev users, so printing is fine
@@ -78,9 +84,8 @@ def setting_str(key: str, value: bool | int | float | str | None) -> str:
     elif value is None:
         value = "none"
     elif isinstance(value, str):
-        if isfloat(value) or value in ["none", "false", "true"]:
+        if len(value) == 0 or isfloatstr(value) or value in ["none", "false", "true"]:
             value = '"' + value + '"'
-        value = value
     else:
         value = str(value)
     if ':' in key or ':' in value:
@@ -138,13 +143,19 @@ def toggle_mute():
     settings = get_settings()
     settings["mute"] = not settings["mute"]
 
-# I cannot annotate @static because Python is the worst language known to mankind
-def isfloat(arg: str) -> bool:
+def isfloatstr(arg: str) -> bool:
     "Return `True` if `arg` represent a int or a float (a decimal number)."
     for c in arg:
-        if not (c.isdigit() or c == '.'):
-             return False
+        if not (c.isdigit() or c == '.' or c == '-'):
+            return False
     return True
+def isintstr(arg: str) -> bool:
+    "Return `True` if `arg` represent a int."
+    for c in arg:
+        if not (c.isdigit() or c == '-'):
+            return False
+    return True
+
 
 # Use extensively across code.
 # Do not hesitate to use.
