@@ -3,7 +3,6 @@ import pygame
 import Network.server as server
 import Network.network as net
 from random import randint
-from Core.replay import ReplayHandler as handle
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.OcgVision.vision_io import KeyRel
