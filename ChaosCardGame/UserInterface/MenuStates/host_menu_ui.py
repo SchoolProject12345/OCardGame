@@ -56,6 +56,7 @@ class HostMenu(State):
         if self.hostmenu_host_button.answer():
             get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
+            get_settings()["is_hosting"] = True
             self.change_state("LobbyMenu")
             net.threading.Thread(target=server.host, args=(self.hostmenu_tb_username.text, self.ipaddress), daemon=True).start()
 

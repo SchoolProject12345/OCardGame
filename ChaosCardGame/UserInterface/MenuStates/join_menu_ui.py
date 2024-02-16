@@ -54,6 +54,7 @@ class JoinMenu(State):
 
         if self.joinmenu_join_button.answer():
             get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
+            get_settings()["is_hosting"] = False
             self.change_state("LobbyMenu")
             net.threading.Thread(target=server.join, args=(self.joinmenu_tb_username.text, self.tb_ipaddress.text), daemon=True).start()
 
