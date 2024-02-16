@@ -43,9 +43,9 @@ class LobbyMenu(State):
 
         if self.local_is_hosting == True:
             self.hostusername_text_content = handle.get_state()["local"]["name"]
-            #self.username_text_content = whatever has to go here to get the server's username
+            self.username_text_content = handle.get_state()["remote"]["name"]
         elif self.local_is_hosting == False:
-            #self.hostusername_text = whatever has to go here to get the server's username
+            self.hostusername_text = handle.get_state()["remote"]["name"]
             self.username_text_content = handle.get_state()["local"]["name"]
 
         self.hostusername_text.render(self.hostusername_text_content)
