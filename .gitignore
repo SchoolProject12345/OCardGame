@@ -4,6 +4,7 @@
 .vscode
 options.txt
 players.json
+.VsCodeCounter
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
