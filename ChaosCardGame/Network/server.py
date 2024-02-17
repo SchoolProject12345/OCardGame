@@ -470,7 +470,7 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         if survey.return_code.value > 299:
             if isclientturn:
                 client_socket.send(f"error|Attack failed ({survey.return_code.value}: {survey.return_code.name})".encode())
-            core.warn(f"error|Attack failed ({survey.return_code.value}: {survey.return_code.name})")
+            core.warn(f"Attack failed ({survey.return_code.value}: {survey.return_code.name})")
         return True
     if head == "chat":
         if len(args) == 0:
