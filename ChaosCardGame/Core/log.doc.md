@@ -23,7 +23,7 @@ The game state follow this structure:
  },
  "turn":0,
  "isactive":True, # True is it is local's (self's) turn, False otherwise
- "arena":0 # Arena as an integer, see `./Core/core_main.py@Arena(IntEnum)` to see the different values and their meaning.
+ "arena":Core.core_main.Arena.själøssmängd # Arena enum object, see Core/core_main.py@Arena(IntEnum)
 }
 ```
 It is hence *completely* symmetrical; a code written to display from the host's perspective would work to display the client's perspective without *any* modification, as long as **no method are used outside of `ReplayHandler`'s**.
@@ -70,14 +70,15 @@ Player are refered as `p{i}` (e.g. `p1` is player1, i.e. server) and board index
 Note: field size of 27 or more is not supported.\
 Note: commander are refered through `p{i}@`
 
-`{element}`, `{return_code}` and `{target_mode}` are given as integers.
+`{arena}`, `{element}`, `{return_code}` and `{target_mode}` are given as integers.
 
 ## Initialization
 For each player:
 
 `player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}`\
 `boardsize|p{i}|{size}`\
-`-firstp|p{i}`
+`-firstp|p{i}`\
+`arena|{arena}`
 
 ## Main
 `place|p{i}{j}|{Card Name}|{max_hp}|{element}`\
