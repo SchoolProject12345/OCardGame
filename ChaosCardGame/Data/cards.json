@@ -137,7 +137,19 @@
     "sample":1,
     "effect":{"type":"damage","amount":65535}
    }
-  }]
+  }],
+  "passives":[
+   {
+    "name":"Blinding Chaos",
+    "trigger":"whenplaced",
+    "effect":{
+     "type":"discard",
+     "delta":2,
+     "player":"opponent"
+    }
+   }
+  ],
+  "tags":["random", "mightbreaker"]
  },
  {
   "type":"creature",
@@ -1378,7 +1390,7 @@
    "trigger":"whenattack",
    "effect":{
     "type":"state_change",
-    "new_state":"invisble",
+    "new_state":"invisible",
     "for":2
    }
   }],
