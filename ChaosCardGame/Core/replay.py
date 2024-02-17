@@ -26,7 +26,7 @@ class ReplayHandler:
          "local":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]).copy(),
          "turn":self.state["turn"],
          "isactive":not (self.isp1() ^ (self.state["activep"] == "p1")),
-         "arena":self.state["arena"]
+         "arena":self.state["arena"].value
         }
         state["remote"]["commander"] = format_active_ui(state["remote"]["commander"])
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
@@ -164,7 +164,7 @@ class ReplayHandler:
          },
          "turn":0,
          "activep":"p1",
-         "arena":0,
+         "arena":core.Arena.själløssmängd,
          "pov":"p1" # used for replays.
         }
     def get_target(self, index: str):
@@ -349,7 +349,14 @@ class ReplayHandler:
                 ret = f"{player['name']} shuffled their discard pile into their deck."
             case "-firstp":
                 self.state["activep"] = args[0]
-                ret = "It's " + self.state[self.state["activep"]]["name"] + "'s turn."
+                if (self.state["activep"] == "p1" and self.isp1()) or (self.state["activep"] == "p2" and not self.isp1()):
+                    ret = "It's your turn."
+                else:
+                    ret = "It's " + self.state[self.state["activep"]]["name"] + "'s turn."
+            case "arena":
+                arena = core.Arena(int(args[0]))
+                self.state["arena"] = arena
+                ret = f"The battle take place in the Mighty Arena of {arena.name}"
             case "": # allows to put empty lines in `.log`'s for clarity/time spacing.
                 ret = ""
         # isn't appended if an error is thrown, so that the replay is always valid.
