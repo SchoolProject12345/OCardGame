@@ -23,7 +23,7 @@ The game state follow this structure:
  },
  "turn":0,
  "isactive":True, # True is it is local's (self's) turn, False otherwise
- "arena":Core.core_main.Arena.själøssmängd # Arena enum object, see Core/core_main.py@Arena(IntEnum)
+ "arena":0 # Arena as an integer, see `./Core
 }
 ```
 It is hence *completely* symmetrical; a code written to display from the host's perspective would work to display the client's perspective without *any* modification, as long as **no method are used outside of `ReplayHandler`'s**.
