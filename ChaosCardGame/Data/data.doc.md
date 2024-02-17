@@ -346,12 +346,22 @@ Taunt the targets to a random target from the `new_targets` distribution for `du
 ```
 
 ### Board Resize
-Change the number of slots available by `"target"` (either `"active"` or `"unactive"` player) by `"delta"`, but never goes below 0 (in case `"delta"` is negative) nor remove a creature to remove a slot (if board is full, no slot can be removed).
+Change the number of slots available by `"target"` (either `"active"` or `"unactive"` player) by `"delta"`, but never goes below 1 (in case `"delta"` is negative), nor above 26,  nor remove a creature to remove a slot (if board is full, no slot can be removed).
 ```js
 {
  "type":"boardresize",
  "target":"unactive", // defaults to "unactive"
  "delta":-1
+}
+```
+
+### Discard
+Discard `"delta"` cards from the `"player"` (either `"owner"` or `"opponent"`) player.
+```js
+{
+ "type":"discard",
+ "delta":1,
+ "player":"owner"
 }
 ```
 
