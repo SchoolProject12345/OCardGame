@@ -397,7 +397,7 @@ class State(IntEnum):
             case "unattacked": return State.unattacked
             case "cloudy": return State.cloudy
             case "monotonous": return State.monotonous
-            case _: return (warn("Tried to form State from an non-recognized string; returing State.default instead.") and State.default)
+            case _: return (warn(f"Tried to form State from an non-recognized string ({name}); returing State.default instead.") and State.default)
 
 class TargetMode(IntEnum):
     random_chaos = -1
@@ -585,6 +585,8 @@ class AbstractEffect:
             case "taunt": return TauntTargets.from_json(json)
             case "cleanse": return CleanseEffect.from_json(json)
             case "redirect": return DamageRedirect.from_json(json)
+            case "discard": return DiscardEffect.from_json(json)
+            case "handdiscard": return DiscardEffect.from_json(json)
             case "boardresize": return BoardResize.from_json(json)
             case "if": return IfEffect.from_json(json)
             case "hardcoded": return HardCodedEffect.from_json(json)
@@ -606,6 +608,7 @@ class NullEffect(AbstractEffect):
 
 @dataclass
 class HardCodedEffect(AbstractEffect):
+    "Try to avoid using this."
     desc: str
     code: str
     def execute(self, **kwargs) -> bool:
@@ -629,13 +632,13 @@ class SetCardProperty(AbstractEffect):
         card = kwargs
         keys = self.path.split('/')
         attrs = self.attr.split('.')
-        while (L := len(keys)) != 0 and L + len(keys) > 2:
+        while (L := len(keys)) != 0 and L + len(keys) > 1:
             key = key.pop(0)
             if not key in card:
                 warn(f"Error in CardProperty: no such things at path {self.path} (missing {key}).")
                 return False
             card = card[key]
-        while len(attrs) > 2:
+        while len(attrs) > 1:
             attr = attrs.pop(0)
             if not hasattr(card, attr):
                 warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
@@ -643,16 +646,14 @@ class SetCardProperty(AbstractEffect):
             card = getattr(card, attr)
         if L != 0:
             key = keys.pop()
-            setattr(card[key], attrs.pop(), self.value)
+            setattr(card, key, self.value)
         else:
-            attr1 = attrs.pop(0)
-            copy = getattr(card, attr1).copy() # copy to avoid sharing
-            attr2 = attrs.pop()
-            setattr(copy, attr2, self.value)
-            setattr(card, attr1, copy)
+            attr = attrs.pop(0)
+            setattr(card, attr, self.value) # shares: do not modify anything, and don't use this for what should be logged
         return True
     def from_json(json: dict):
-        warn("Don't use SetCardProperty it's too hard to log it will cause countless bugs.")
+        if not "dismiss_warning" in json or not json["dismiss_warning"]:
+            warn("SetCardProperty is being used: please know what you're doing, it might cause bugs due to sharing and doesn't log anything.")
         path = getordef(json, "path", "user").strip()
         attr = json["attr"].strip()
         if len(attr) == 0:
@@ -679,6 +680,26 @@ class MaxHPAdd(AbstractEffect):
     def __str__(self):
         return f"add {self.amount} max HP to the target(s)"
 
+@dataclass
+class DiscardEffect(AbstractEffect):
+    "Discard a few random cards from either player's deck"
+    delta: Numeric
+    player: str
+    def execute(self, **kwargs):
+        player: Player = kwargs["player"] if self.player == "owner" else kwargs["player"].opponent
+        new_length = max(len(player.hand) - self.delta.eval(), 0)
+        rng.shuffle(player.hand)
+        has_worked = len(player.hand) > new_length
+        while len(player.hand) > new_length:
+            player.handdiscard(0)
+        return has_worked
+    def from_json(json: dict):
+        player = getordef(json, "player", "opponent")
+        if player not in ["owner", "opponent"]:
+            warn(f"Got {player} as DiscardEffect's argument.")
+        return DiscardEffect(Numeric.from_json(json["delta"]), player)
+    def __str__(self):
+        return f"discard {self.delta} cards from the {self.player}"
 
 @dataclass
 class IfEffect(AbstractEffect):
@@ -694,8 +715,8 @@ class IfEffect(AbstractEffect):
             return self.other.execute(**kwargs)
     def from_json(json: dict):
         if "if_successful" in json:
-            return AbstractEffect(
-                AbstractEffect.from_json("if_successful"),
+            return IfEffect(
+                AbstractEffect.from_json(json["if_successful"]),
                 AbstractEffect.from_json(getordef(json, "else", {"type":"null"})),
                 RawNumeric(0), # value is unsed if cond is effect
                 AbstractEffect.from_json(json["effect"])
@@ -897,7 +918,7 @@ class DelayEffect(AbstractEffect):
     def from_json(json: dict):
         if not "tags" in json:
             warn(f"DelayEffect {json} has no field tags.")
-        return DelayEffect(AbstractEffect.from_json(json["effect"]), json["delay"], {}, (*getordef(json, "tags", ("+-",)),))
+        return DelayEffect(AbstractEffect.from_json(json["effect"]), Numeric.from_json(json["delay"]), {}, (*getordef(json, "tags", ("+-",)),))
     def execute(self, **kwargs) -> bool:
         for target in AbstractEffect.targeted_objects(**kwargs):
             target.effects.append(self.with_kwargs(kwargs))
@@ -1013,7 +1034,11 @@ class SummonEffect(AbstractEffect):
     "Summon up to `count` Creatures on random spots of the board, if possible."
     count: int
     summon: object | str # Either CreatureCard or name of CreatureCard.
+    player: str
     def execute(self, **kwargs) -> bool:
+        if self.player not in ["active", "unactive"]:
+            warn(f"Summoning on {self.player} player side.")
+        player = kwargs["player"] if self.player == "active" else kwargs["player"].opponent
         if isinstance(self.summon, str):
             summon = AbstractCard.get_card(self.summon)
             if summon is None:
@@ -1021,23 +1046,23 @@ class SummonEffect(AbstractEffect):
         else:
             summon = self.summon
         valids = [i for i in range(
-            len(kwargs["player"].active)) if kwargs["player"].active[i] is None]
+            len(player.active)) if player.active[i] is None]
         if len(valids) == 0:
             return False
         rng.shuffle(valids)
         while len(valids) > self.count:
             valids.pop()
         for i in valids:
-            kwargs["player"].active[i] = ActiveCard(
-                summon, kwargs["player"], kwargs["board"])
-            kwargs["board"].logs.append(f"-summon|{kwargs['player'].active[i].namecode()}|{summon.name}|{summon.max_hp}|{summon.element.value}")
+            player.active[i] = ActiveCard(
+                summon, player, kwargs["board"])
+            kwargs["board"].logs.append(f"-summon|{player.active[i].namecode()}|{summon.name}|{summon.max_hp}|{summon.element.value}")
         return True
     def from_json(json: dict):
         if "by_name" in json:
-            return SummonEffect(getordef(json, "count", 1), json["by_name"]) # can't parse the card here, as cards aren't defined at parse-time
+            return SummonEffect(getordef(json, "count", 1), json["by_name"], getordef(json, "player", "active")) # can't parse the card here, as cards aren't defined at parse-time
         card = CreatureCard.from_json(json["creature"], 1j)
         card.tags = (*card.tags, "summon")
-        return SummonEffect(getordef(json, "count", 1), card)
+        return SummonEffect(getordef(json, "count", 1), card, getordef(json, "player", "active"))
     def __str__(self):
         if isinstance(self.summon, str):
             summon = AbstractCard.get_card(self.summon)
@@ -1046,7 +1071,7 @@ class SummonEffect(AbstractEffect):
                 return "nothing (summon bug)"
         else:
             summon = self.summon
-        return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {summon.name}"
+        return f"summoning of {ifelse(self.count == 1, 'a', str(self.count))} {summon.name}" + ifelse(self.player == "unactive", " on the opponent's side", "")
 
 @dataclass
 class BoardResize(AbstractEffect):
@@ -1057,7 +1082,7 @@ class BoardResize(AbstractEffect):
         match self.target:
             case "active": player: Player = kwargs["board"].active_player
             case "unactive": player: Player = kwargs["board"].unactive_player
-            case _: return warn(f'Invalid target in BoardResize: excepted "ative" or "unactive" got "{self.target}"') and False
+            case _: return warn(f'Invalid target in BoardResize: excepted "active" or "unactive" got "{self.target}"') and False
         # TODO: boarddiscard first
         # this requires some cleaning, as it needs to apply the passive
         # boardiscard needs to be callable with **kwargs
@@ -1207,7 +1232,10 @@ class Passive:
         )
     def execute(self, **kwargs):
         kwargs["board"].logs.append(f"passive|{kwargs['user'].namecode()}|{self.name}")
-        return self.effect.execute(**kwargs)
+        self.effect.execute(**kwargs)
+        if kwargs["survey"].return_code.value < 299:
+            kwargs["player"].add_charges(kwargs["survey"].damage, kwargs["user"])
+        return kwargs["survey"]
     def __str__(self):
         return f"{self.name} does {str(self.effect)} when {self.trigger.to_str()}."
 
@@ -1381,13 +1409,20 @@ class ActiveCard:
         self.taunt = None
         self.taunt_dur = 0
     def can_attack(self):
-        if self.state in [State.blocked, State.invisible]:
+        if self.is_softlock():
             return False
         if self.iscommander() and any(card is not None for card in self.owner.active):
             return False
         if self.board is None or self.owner != self.board.active_player:
             return False
         return not self.attacked
+    def is_softlock(self):
+        # doesn't check for duration right now because of features with unintuitive behavior,
+        # I might never fix it even if I make it more intuitive, because, even with limited duration,
+        # the softlock might be perpetuated.
+        if self.state in [State.blocked, State.invisible]:
+            return True
+        return False
     @static
     def attack(self, attack: Attack, target, **kwargs) -> EffectSurvey:
         "Make `self` use `attack` on `other`, applying all of its effects, and return a EffectSurvey object (containing total damage and healing done)."
@@ -1455,12 +1490,10 @@ class ActiveCard:
                 continue
             passive.execute(**kwargs)
         if "ultimate" in attack.tags:
-            self.owner.commander_charges -= attack.cost
+            self.owner.add_charges(-attack.cost)
         else:
             self.owner.add_energy(-attack.cost)
-            self.owner.commander_charges += kwargs["survey"].damage
-        # logged in both cases
-        self.board.logs.append(f"-ccharge|{self.owner.namecode()}|{self.owner.commander_charges}")
+            self.owner.add_charges(kwargs["survey"].damage, self)
         for card in self.board.unactive_player.boarddiscard() + self.board.active_player.boarddiscard():
             # must be improved to apply passive of card defeated by passives or other sources
             # nah actually that's a feature.
@@ -1507,17 +1540,19 @@ class ActiveCard:
         if self.iscommander() and mode.can_weak():
             amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) // 100
         amount = self.indirectdamage(amount)
-        for passive in self.card.passives:
-            if passive.trigger is not PassiveTrigger.whendamaged:
-                continue
-            kwargs_ = kwargs.copy()
-            kwargs_.update({
-                "damage_taken":amount,
-                "main_target":kwargs["user"],
-                "user":kwargs["user"],
-                "target_mode":TargetMode.target
-            })
-            passive.execute(**kwargs_)
+        if amount != 0:
+            for passive in self.card.passives:
+                if passive.trigger is not PassiveTrigger.whendamaged:
+                    continue
+                kwargs_ = kwargs.copy()
+                kwargs_.update({
+                    "damage_taken":amount,
+                    "main_target":kwargs["user"],
+                    "user":kwargs["user"],
+                    "target_mode":TargetMode.target,
+                    "source":passive
+                })
+                passive.execute(**kwargs_)
         return amount
     @static
     def indirectdamage(self, amount: int) -> int:
@@ -1600,15 +1635,31 @@ class Arena(IntEnum):
     jordros = 2
     watorvarg = 3
     chaos = 4
+    själløssmängd = 5 # no effect whatsoever
+    # used by Omy, gotta redo
     def image_file(self):
         match self:
             case Arena.chaos: return "assets/chaos-arena.jpg"
+            case Arena.själløssmängd: return "assets/main-background.png"
             case arena: return f"assets/{arena.name}-arena.png"
     def has_effect(self, other):
         "Return whether self has the same effect Arena effect as other."
         # hardcoded so that chaos always has the effects of all other arenas.
         return (self is other) or (self is Arena.chaos)
-        # it means if we add Arenas, then chaos has more effects.
+        # it means if we add Arenas, then chaos has more effects :3
+    @property
+    def name(self) -> str:
+        match self:
+            case Arena.chaos: return "Chaos"
+            case Arena.himinnsokva: return "Himinnsøkva"
+            case Arena.jordros: return "Jordros"
+            case Arena.watorvarg: return "Watōrvarg"
+            case Arena.smigruv: return "Smigruv"
+            case Arena.själøssmängd: return "Själløssmängd"
+    def random():
+        if rng.random() < 0.1: # it's boring
+            return Arena.själløssmängd
+        return Arena(rng.randint(5))
 
 class Player:
     name: str
@@ -1769,18 +1820,30 @@ class Player:
         self.energy += amount
         self.log_energy()
         return amount # used by effect survey
+    @static
+    def add_charges(self, amount: int, source: ActiveCard | None = None):
+        if source is not None and not source.iscommander() and source.element is self.commander.element and amount > 0:
+            # I have no idea why I'm using strong_increase and not creating a new setting
+            # That's a feature I swear
+            amount *= 100 + Constants.strong_increase.__abs__() # no negative that'd be dumb
+            amount //= 100
+        self.commander_charges += amount
+        if amount != 0:
+            self.commander.board.logs.append(f"-ccharge|{self.namecode()}|{self.commander_charges}")
     def haslost(self) -> bool:
         "Return True is this Player's CommanderCard is defeated, False otherwise."
         if self.commander.hp <= 0:
             return True
         return False
+    @static
     def handdiscard(self, i: int) -> AbstractCard:
         "Discard the `i`th card in `self`'s `hand`, returning it."
         card = self.hand.pop(i)
         self.commander.board.logs.append(f"discard|{self.namecode()}|{card.name}")
         self.discard.append(card)
         return card
-    def iddiscard(self, id: int):
+    @static
+    def iddiscard(self, id: int) -> AbstractCard | None:
         "Discard the first card in `self`'s `hand` with `id`, returning it."
         for i in range(len(self.hand)):
             if self.hand[i].id == id:
@@ -1839,6 +1902,11 @@ class Player:
                 continue
             passive.execute(**kwargs)
         return True
+    def is_softlock(self):
+        for card in self.active:
+            if self.card is None or not self.card.is_softlock():
+                return False # If None => can still place card to unlock
+        return True
     # this is somewhat buggy.
     # Don't use please
     def reset(self):
@@ -1886,7 +1954,7 @@ class Board:
             self.active_player, self.unactive_player = self.unactive_player, self.active_player
         player1.commander.board = self
         player2.commander.board = self
-        self.arena = Arena(rng.randint(5))
+        self.arena = Arena.random()
         if self.arena.has_effect(Arena.smigruv):
             player1.max_energy += 1
             player2.max_energy += 1
@@ -1908,6 +1976,7 @@ class Board:
             player2.deck = Player.get_deck()
         self.logs.append(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
         self.logs.append(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
+        self.logs.append(f"arena|{self.arena.value}")
         self.logs.append(f"boardsize|p1|{len(self.player1.active)}")
         self.logs.append(f"boardsize|p2|{len(self.player2.active)}")
         self.logs.append(ifelse(self.active_player is self.player1, "-firstp|p1", "-firstp|p2"))
@@ -1939,6 +2008,42 @@ class Board:
             self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
         if ret[4] is not None:
             self.logs.append(f"win|{ret[4].namecode()}|{ret[4].name}")
+        # Check for softlock to avoid it.
+        if self.player1.is_softlock or self.player2.is_softlock:
+            self.logs.append(f"raw|The Great Kortgudomlighet sensed some spacetime irregularities in the Mighty Arena of {self.arena.name.title()} and descended from unfathomable dimensions, disturbing the fight happenning in it.")
+            if len(self.player1.get_actives()) != 0:
+                rng.choice(self.player1.get_actives()).indirectdamage(65535)
+                self.player1.boarddiscard()
+            if len(self.player2.get_actives()) != 0:
+                rng.choice(self.player2.get_actives()).indirectdaamge(65535)
+                self.player2.boarddiscard()
+        if self.arena == Arena.himinnsokva and rng.random() < 0.5: # This is 100% random
+            # Himinnsøkva's divine interventions
+            # Because it's close to the sky y'know
+            # I needed something for Himinnsøkva
+            # I need to sleep more I think
+            spells: list[SpellCard] = [
+                SpellCard("Kortgudomlighet's Soft Breeze", 1+2j, Element.air,
+                          Attack("Healing Whisper", 0, TargetMode.massivedestruction, 0,
+                          HealEffect(20), ("divine"))),
+                SpellCard("Kortgudomlighet's Lighting Gamble", 1+2j, Element.fire,
+                          Attack("Lighting Gamble", 0, TargetMode.massivedestruction, 0,
+                          RandomTargets(DamageEffect(RawNumeric(40), DamageMode.ignore_resist), RawNumeric(4)), ("divine"))),
+                # What's better than random in random? Random in random randomness.
+                SpellCard("Kortgudomlighet's Unfair Summoning", 1+2j, Element.chaos,
+                          Attack("( ͡° ͜ʖ ͡°)", 0, TargetMode.self, 0, # I could think of no better name
+                          EffectUnion(SummonEffect(1, rng.choice(getCARDS()), "active"), SummonEffect(1, rng.choice(getCARDS()), "unactive")), ("divine"))),
+                SpellCard("Kortgudomlighet's Quantum Physics Experiment", 1+2j, Element.chaos,
+                          Attack("Blink", 0, TargetMode.all, 0,
+                                 RandomTargets(DamageEffect(RawNumeric(65535), DamageMode.indirect), 1), ("divine")))
+            ]
+            # Don't hesitate to add more spells if you have any idea.
+            # I should add more normal spells
+            # This is nonsense
+            spell: SpellCard = rng.choice(spells)
+            self.logs.append(f"raw|Kortgumdolighet descended from an unfathomable dimension and taught {self.active_player.name} the mysterious {spell.name} technique which they used without hesitation.")
+            if spell.use(self.active_player.commander).return_code is ReturnCode.failed and (self.player1.get_actives() or self.player2.get_actives()):
+                spell.use(rng.choice(self.player1.get_actives() + self.player2.get_actives()))
         elif self.autoplay and self.active_player.isai():
             return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
