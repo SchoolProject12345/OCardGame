@@ -41,11 +41,11 @@ class LobbyMenu(State):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
         if self.local_is_hosting == True:
-            self.hostusername_text_content = handle.get_state()["local"]["name"]
+            self.hostusername_text_content = get_setting("username", "")
             self.username_text_content = handle.get_state()["remote"]["name"]
         elif self.local_is_hosting == False:
             self.hostusername_text = handle.get_state()["remote"]["name"]
-            self.username_text_content = handle.get_state()["local"]["name"]
+            self.username_text_content = get_setting("username", "")
 
         self.hostusername_text.render(self.hostusername_text_content)
         self.username_text.render(self.username_text_content)
