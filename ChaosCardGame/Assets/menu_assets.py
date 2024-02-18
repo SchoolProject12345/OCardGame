@@ -91,39 +91,26 @@ def transform_toggle_files(path: str):
     return [small_toggle, big_toggle]
 
 
-def process_card_dir(path, i):
-    curated_list = ["placeholder" for _ in range(i)]
-
-    for file in os.listdir(path):
-        filepath = os.path.join(path, file)
-        if file.startswith("."):
-            continue
-        elif file.startswith("s_"):
-            curated_list[0] = pygame.image.load(filepath)
-        else:
-            curated_list[1] = pygame.image.load(filepath)
-    return curated_list
-
-
-def process_card_dir_2(path, i: int, prefixes: list):
-    curated_list = ["placeholder" for _ in range(i)]
+def process_dir(path, size: int, prefixes: list):
+    curated_list = ["placeholder" for _ in range(size)]
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
         for prefix in prefixes:
+            print(file)
             if file.startswith(prefix):
-                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)    
+                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)
     return curated_list
 
 
-def handle_card_assets(directory_path):
-    cards_assets = {}
+def handle_assets(directory_path: str, size: int,prefixes:list):
+    assets = {}
     for dirpath, dirname, filename in os.walk(directory_path):
         if filename:
-            cards_assets[os.path.basename(dirpath)] = {
+            assets[os.path.basename(dirpath)] = {
                 "path": dirpath,
-                "processed_img": process_card_dir_2(dirpath, 2,["s_"]),
+                "processed_img": process_dir(dirpath, size, prefixes),
             }
-    return cards_assets
+    return assets
 
 
 graphics_path = os.path.join(utility.cwd_path, "Assets", "Graphics", "")
@@ -254,79 +241,7 @@ class MenuButtons:
     """
 
     button_dir = os.path.join(graphics_path, "Buttons", "")
-
-    # Play
-    play_button_path = button_dir + "Play"
-    play_button_image = transform_button_files(play_button_path)
-
-    # Cards
-    cards_button_path = button_dir + "Cards"
-    cards_button_image = transform_button_files(cards_button_path)
-
-    # Credits
-    credits_button_path = button_dir + "Credits"
-    credits_button_image = transform_button_files(credits_button_path)
-
-    # Join
-    join_button_path = button_dir + "Join"
-    join_button_image = transform_button_files(join_button_path)
-
-    # Host
-    host_button_path = button_dir + "Host"
-    host_button_image = transform_button_files(host_button_path)
-
-    # Exit arrow
-    exit_arrow_button_path = button_dir + "ExitArrow"
-    exit_arrow_button_image = transform_button_files(exit_arrow_button_path)
-
-    # Exit
-    exit_button_path = button_dir + "Exit"
-    exit_button_image = transform_button_files(exit_button_path)
-
-    # Back
-    back_button_path = button_dir + "Back"
-    back_button_image = transform_button_files(back_button_path)
-
-    # Settings
-    settings_button_path = button_dir + "Settings"
-    settings_button_image = transform_button_files(settings_button_path)
-
-    # Surrender
-    surrender_button_path = button_dir + "Surrender"
-    surrender_button_image = transform_button_files(surrender_button_path)
-
-    # Hand
-    hand_button_path = button_dir + "Hand"
-    hand_button_image = transform_button_files(hand_button_path)
-
-    # Deck
-    deck_button_path = button_dir + "Deck"
-    deck_button_image = transform_button_files(deck_button_path)
-
-    # Place
-    place_button_path = button_dir + "Place"
-    place_button_image = transform_button_files(place_button_path)
-
-    # End Tutorial
-    endtutorial_button_path = button_dir + "EndTutorial"
-    endtutorial_button_image = transform_button_files(endtutorial_button_path)
-
-    # Next Tutorial
-    nexttutorial_button_path = button_dir + "NextTutorial"
-    nexttutorial_button_image = transform_button_files(nexttutorial_button_path)
-
-    # Skip Tutorial
-    skiptutorial_button_path = button_dir + "SkipTutorial"
-    skiptutorial_button_image = transform_button_files(skiptutorial_button_path)
-
-    # Start Tutorial
-    starttutorial_button_path = button_dir + "StartTutorial"
-    starttutorial_button_image = transform_button_files(starttutorial_button_path)
-
-    # View Lore
-    viewlore_button_path = button_dir + "ViewLore"
-    viewlore_button_image = transform_button_files(viewlore_button_path)
-
+    button_assets = handle_assets(button_dir, 3,['_i_','_h_','_c_'])
     logging.info("Successfully loaded buttons")
 
 
@@ -381,11 +296,12 @@ class CardAssets:
     """
 
     if load_cards:
-        card_sprites = handle_card_assets(os.path.join(graphics_path, "Cards"))
+        card_sprites = handle_assets(os.path.join(graphics_path, "Cards"),2,["s_","b_"])
 
     else:
-        card_sprites = handle_card_assets(
-            os.path.join(utility.cwd_path, "Debug", "debug_cards")
+        card_sprites = handle_assets(
+            os.path.join(utility.cwd_path, "Debug", "debug_cards"),2,["s_","b_"]
         )
+        print(card_sprites)
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
