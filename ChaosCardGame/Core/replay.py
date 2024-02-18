@@ -12,6 +12,7 @@ class ReplayHandler:
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = True
+        self.state["pov"] = ("p1" if self.isp1() else "p2") # for inheritance
     def isp1(self) -> bool: return self.state["pov"] == "p1" # POV can be used to change replay POV
     def get_state(self) -> dict:
         """
@@ -26,7 +27,8 @@ class ReplayHandler:
          "local":core.ifelse(self.isp1(), self.state["p1"], self.state["p2"]).copy(),
          "turn":self.state["turn"],
          "isactive":not (self.isp1() ^ (self.state["activep"] == "p1")),
-         "arena":self.state["arena"].value
+         "arena":self.state["arena"].value,
+         "roomname":self.state["roomname"]
         }
         state["remote"]["commander"] = format_active_ui(state["remote"]["commander"])
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
@@ -52,39 +54,39 @@ class ReplayHandler:
         data = self.state
         local, remote = core.ifelse(self.isp1(), ("p1", "p2"), ("p2", "p1"))
 
-        print(f"Turn {data['turn']} ", end="")
+        print(f"Turn {data['turn']} in the Arena of {data['arena'].name} ", end="")
         server = data[remote]
         if data["activep"] == remote:
-            print(f"({server['name']}'s turn)")
+            print(f"({server['name']}'s turn)\033[0K")
         else:
-            print("(Your turn)")
+            print("(Your turn)\033[0K")
 
-        print(f"\n\033[1;4m{server['name']}'s Side\033[0m")
-        print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)")
+        print(f"\n\033[1;4m{server['name']}'s Side\033[0m\033[0K")
+        print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)\033[0K")
         print(progressbar(
             server["commander"]["charges"],
             ReplayHandler.get_required_charges(server["commander"]["name"]),
             style = core.Constants.progressbar_style
         ))
-        print("\033[4m" + ansi_card(server["commander"], '⋆'))
+        print("\033[4m" + ansi_card(server["commander"], '⋆') + "\033[0K")
         for card in server["board"]:
             print(ansi_card(card), end=" ")
 
         client = data[local]
-        print(f"\n\n\033[1;4m{client['name']}'s Side\033[0m")
-        print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)")
+        print(f"\033[0K\n\033[0K\n\033[1;4m{client['name']}'s Side\033[0m\033[0K")
+        print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)\033[0K")
         print(progressbar(
             client["commander"]["charges"],
             ReplayHandler.get_required_charges(client["commander"]["name"]),
             style = core.Constants.progressbar_style
         ))
-        print("\033[4m" + ansi_card(client["commander"], '⋆'))
+        print("\033[4m" + ansi_card(client["commander"], '⋆') + "\033[0K")
         for card in client["board"]:
             print(ansi_card(card), end=" ")
-        print()
+        print("\033[0K")
         print("Your hand: ", end="")
         for card in client["hand"]:
-            print(card.replace(",", " -"), end=", ")
+            print(card.replace(",", " -"), end=", \033[0K")
         if len(client["hand"]) == 0:
             print("∅  ", end="")
         print("\033[2D ")
@@ -95,6 +97,7 @@ class ReplayHandler:
         for log in self.replay:
             replay += log + "\n"
         return replay.strip()
+    @static
     def read_replay(self, name: str, delay: float = 0.0):
         """
         Try to read replay contained at `./Replays/{name}`,
@@ -112,9 +115,37 @@ class ReplayHandler:
         logs = logs.split("\n")
         for log in logs:
             try:
-                devlog(self.play_log(log))
+                head, *args, kwargs = kwargssplit(log)
+                devlog(self.play_log(log, head, *args, **kwargs))
+                if core.DEV() and head == "turn":
+                    self.showboard()
+                    print("\n")
             except:
                 devlog("Error with:", log)
+            sleep(delay)
+        return self
+    @static
+    def read_replay_ansi(self, name: str, delay: float = 0.4):
+        "Dynamic text-based replay player (replayer)."
+        with open(core.os.path.join(core.Constants.path, "Replays", name), "r", encoding="utf-8") as io:
+            try:
+                logs = io.read()
+            except:
+                core.warn(f"An error occured while trying to load {name}.")
+                io.close()
+                return self
+            io.close()
+        logs = logs.split("\n")
+        print("\033[0H\033[0J")
+        for log in logs:
+            try:
+                head, *args, kwargs = kwargssplit(log)
+                msg = self.play_log(log, head, *args, **kwargs)
+            except:
+                msg = "Error with:" + log
+            print("\033[H")
+            self.showboard() # showboard after parsing msg to be up to date
+            print(msg + "\033[0J")
             sleep(delay)
         return self
     def save_replay(self):
@@ -122,11 +153,11 @@ class ReplayHandler:
         Generate a unique (unless you actively try with a stupid stuborness to break the code) name to
         save current replay as a `.log` in the `./Replays/` folder without conflicts.
         """
-        name = (core.cleanstr(self.state["p1"]["name"]) +
+        name = (name if len(name := self.state["roomname"]) != 0 else
+                core.cleanstr(self.state["p1"]["name"]) +
                 "-vs-" +
-                core.cleanstr(self.state["p2"]["name"]) +
-                str(datetime.now()) + # datetime avoids duplicates.
-                ".log")
+                core.cleanstr(self.state["p2"]["name"]))
+        name += datetime.now().strftime("%j-%Y-%I%p%M-%f.log") # datetime avoids duplicates.
         return self.save_replay_as(name)
     def save_replay_as(self, name: str):
         "Save current replay in the `./Replays/` folder. Name should end in `.log`."
@@ -134,7 +165,7 @@ class ReplayHandler:
             core.os.mkdir(core.os.path.join(core.Constants.path, "Replays"))
         with open(core.os.path.join(core.Constants.path, "Replays", name), "x", encoding="utf-8") as io:
             try:
-                io.write(self.get_replay())
+                io.write(f"pov|{self.state['pov']}\n" + self.get_replay())
             finally:
                 io.close()
         return self
@@ -165,22 +196,27 @@ class ReplayHandler:
          "turn":0,
          "activep":"p1",
          "arena":core.Arena.själløssmängd,
+         "roomname":"",
          "pov":"p1" # used for replays.
         }
+    @static
     def get_target(self, index: str):
         "Return the active dict corresponding to the pix index, supporting commander's @ indices."
         if index[2] == '@':
             return self.state[index[0:2]]["commander"]
         player, i = player_index(index)
         return self.state[player]["board"][i]
+    def endgame(self):
+        self.ongoing = False
+        return self
     @static
-    def play_log(self, log: str) -> str:
+    def play_log(self, log: str, head: str = None, *args: str, **kwargs: str) -> str:
         """
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
         Note: `log` is considered to be a correctly formed log, if not there is no guarantee that it will return without crash/bug.
         """
-        log = log.strip() # might always be useful
-        head, *args, kwargs = kwargssplit(log)
+        if head is None:
+            head, *args, kwargs = kwargssplit(log)
         match head:
             case "player":
                 ind = args[0]
@@ -245,7 +281,7 @@ class ReplayHandler:
                 self.state[args[0]]["hand"].append(args[1])
                 self.state[args[0]]["deck_length"] -= 1
                 name = self.state[args[0]]["name"]
-                return f"{name} drew a {args[1]}."
+                ret = f"{name} drew a {args[1]}."
             case "chat":
                 msg = "\033[1m" + stringclr(args[0]) + args[0] + "\033[0m: " + args[1]
                 if not core.DEV():
@@ -291,7 +327,7 @@ class ReplayHandler:
                 target["max_hp"] = max_hp
                 ret = f"{target['name']} healed {raw_hp - pre_hp} damages."
             case "passive":
-                user = self.get_target(args[0])["name"]
+                user = args[0]
                 ret = f"{user}'s {args[1]} activated."
             case "-formechange":
                 # Please don't change the commander's forme though
@@ -314,7 +350,7 @@ class ReplayHandler:
                 self.state[owner]["board"][i] = None
                 ret = f"{self.state[oppon]['board'][j]['name']} changed of side."
             case "win":
-                self.ongoing = False
+                self.endgame()
                 ret = f"{args[1]} won the game!"
             case "raw":
                 ret = args[0]
@@ -357,6 +393,9 @@ class ReplayHandler:
                 arena = core.Arena(int(args[0]))
                 self.state["arena"] = arena
                 ret = f"The battle take place in the Mighty Arena of {arena.name}"
+            case "pov": # used for replays ONLY
+                self.state["pov"] = args[0]
+                ret = ""
             case "": # allows to put empty lines in `.log`'s for clarity/time spacing.
                 ret = ""
         # isn't appended if an error is thrown, so that the replay is always valid.
@@ -410,10 +449,12 @@ def progressbar(total: int, on: int, size: int = 15, style: int = 0):
         complete = size * total // on # can exceed 15
         stack = complete // size # number of times it exceeds 15
         complete = complete % (size + 1)
+        if complete == size:
+            return "[" + gradient(min(stack * 0.2, 1.0)) + "=" * size + "\033[0m]"
         bar = "["
         bar += gradient(min((stack + 1) * 0.2, 1.0)) + "=" * (complete) # max 5 stacks
         if complete < size:
-            bar += ">" + gradient(min(stack * 0.2, 1.0)) + core.ifelse(stack == 0, ' ', '=') * (14 - complete)
+            bar += ">" + gradient(min(stack * 0.2, 1.0)) + core.ifelse(stack == 0, ' ', '=') * (size - 1 - complete)
         return bar + "\033[0m]"
     total = min(total, on)
     if total == on:
@@ -461,7 +502,7 @@ def devlog(*msg, dev: bool = core.DEV()):
     return True
 
 def kwargssplit(log: str) -> list[str | dict[str, str]]:
-    logs = log.split('|')
+    logs = log.strip().split('|')
     rexpr: str = "\\[(.*?)\\] +(.*)"
     i: int = len(logs)
     for j in range(len(logs)):
