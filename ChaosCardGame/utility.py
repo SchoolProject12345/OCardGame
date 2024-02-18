@@ -31,7 +31,7 @@ def get_settings(settings: dict = {}) -> dict:
         return settings # settings shouldn't be changed from file at runtime
     # feel free to add new default options if needed
     default: dict[str, str | int | float | bool | None] = {
-        "version":"0.0.2",
+        "version":"0.0.3",
         "default_max_energy":4,
         "default_energy_per_turn":3,
         "hand_size":5,
@@ -47,10 +47,12 @@ def get_settings(settings: dict = {}) -> dict:
         "min_board_size":2,
         "max_board_size":6,
         "per_minion_reduction":8, # % decrease of commander damage per minion on its side.
-        "username":"", # unused yet
-        "defaults_power":3,
-        "defaults_power_increase":7,
-        "commanders_default_power":65
+        "username":"",
+        "default_power":3,
+        "power_increase":7,
+        "commanders_default_power":65,
+        "automatically_save_replay":True,
+        "automatically_ask_for_replay":False # download from the host's computer in when playing as the client (TODO)
     }
     if "options.txt" not in os.listdir(cwd_path):
         write_settings(default)
@@ -156,14 +158,6 @@ def isintstr(arg: str) -> bool:
             return False
     return True
 
-
-# Use extensively across code.
-# Do not hesitate to use.
-# I didn't spend 3 hours to make this for nothing.
-# Use it. Seriously do.
-# Stand against Duck Typing's tyranny.
-# Just one @static before your function, and Duck Typing is gone.
-# It's that simple.
 def safe_static(f):
     """
     Use as a decorator. Eleminate duck typing by allowing the given function to enforce static typing on arguments.
@@ -242,7 +236,7 @@ def write_settings(settings: dict[str, bool | int | float | str | None]) -> dict
     return settings
 
 @safe_static
-def write_setting(key: str, value: str | bool | int | float | None) -> dict:
+def write_setting(key: str, value: str | bool | int | float | None) -> None:
     "Append a single setting in `./options.txt` and in `get_settings()`, returning it."
     setting = "\n" + setting_str(key, value)
     get_settings()[key] = value
@@ -364,7 +358,7 @@ def static(f):
     return f
 
 @static # no need for safe as called functions are safe
-def get_setting(key: str, default: bool | int | float | str | None):
+def get_setting(key: str, default: bool | int | float | str | None) -> bool | int | float | str | None:
     """
     Safely retrieve a single setting from `get_settings()`.
     Write the `default`ing value to `options.txt` if necessary, returning `default`.
@@ -374,8 +368,10 @@ def get_setting(key: str, default: bool | int | float | str | None):
     if key in settings:
         return settings[key]
     
+    warn(f"Setting {key} is not defined in `options.txt`, appending default.")
     write_setting(key, default)
     settings[key] = default
+
     return default
 
 def warn(*args, dev: bool = get_setting("dev_mode", False), **kwargs) -> bool:
