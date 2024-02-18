@@ -402,5 +402,6 @@ class CardAssets:
     else:
         card_sprites = handle_card_assets(os.path.join(
             utility.cwd_path, "Debug", "debug_cards"))
+        print(card_sprites)
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")

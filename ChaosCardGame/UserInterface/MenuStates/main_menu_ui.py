@@ -9,6 +9,7 @@ from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from SfxEngine.SoundEngine import sound_handle
 import os
+from UserInterface.card_handler import CardHolder
 
 
 class MainMenu(State):
@@ -73,6 +74,8 @@ class MainMenu(State):
             position=(1065, 685),
         )
 
+        self.test = CardHolder(self.screen, 0, "board", "debug_cards")
+
 
     def main_menu(self):
 
@@ -83,6 +86,12 @@ class MainMenu(State):
         self.exit_button.render()
         self.viewlore_button.render()
         self.starttutorial_button.render()
+
+        for event in pygame.event.get(pygame.MOUSEBUTTONDOWN):
+                self.test.toggle_active()
+                
+                
+        self.test.render((100, 100))
 
         if self.credits_button.answer():
             self.change_state("CreditsMenu")
