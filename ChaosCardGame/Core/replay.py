@@ -175,7 +175,7 @@ class ReplayHandler:
           "name":"",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"charges":0},
+          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"state":"default","charges":0},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -186,7 +186,7 @@ class ReplayHandler:
           "name":"",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"charges":0},
+          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"state":"default","charges":0},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -260,7 +260,8 @@ class ReplayHandler:
                     "name":args[1],
                     "hp":int(args[2]),
                     "max_hp":int(args[2]),
-                    "element":int(args[3])
+                    "element":int(args[3]),
+                    "state":"default"
                 }
                 if args[1] in self.state[player]["hand"]:
                     self.state[player]["hand"].remove(args[1])
@@ -349,6 +350,11 @@ class ReplayHandler:
                 self.state[oppon]["board"][j] = self.state[owner]["board"][i]
                 self.state[owner]["board"][i] = None
                 ret = f"{self.state[oppon]['board'][j]['name']} changed of side."
+            case "-state":
+                target = self.get_target(args[0])
+                target["state"] = args[1]
+                # TODO: make this more verbose (e.g. "target['name'] got blocked.")
+                ret = f"{target['name']} state changed to {args[1]}."
             case "win":
                 self.endgame()
                 ret = f"{args[1]} won the game!"
