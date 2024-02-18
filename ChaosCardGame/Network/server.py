@@ -5,17 +5,19 @@ import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
 core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "debug"] # debug prints gamestate.
-core.Constants.anytime_actions = ["chat", "forfeit"] # can be used even if not their turn.
+core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
 class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
+    closed: bool = False
     @static
     def __init__(self, board: core.Board, client_socket: net.socket.socket):
         ReplayHandler.__init__(self)
         self.board = board
         self.client_socket = client_socket
+        self.closed = False
     @static # Just realized I destroy duck typing everywhere, while literally using it one line lower.
     def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
         if not self.ongoing:
@@ -36,6 +38,14 @@ class ServerHandler(ReplayHandler):
             return self.ongoing
         self.client_socket.send(b"error|Unrecognized action.")
         return True
+    def endgame(self):
+        if core.get_setting("automatically_save_replay", True):
+            self.save_replay()
+        def endgame(handle: ServerHandler):
+            sleep(3.0)
+            handle.ongoing = False # avoids closing before seding the last informations
+        net.threading.Thread(target=endgame, args=(self,))
+        return self
     def isp1(self) -> bool: return True
     @static
     def run_action(self, action: str) -> bool:
@@ -58,10 +68,17 @@ class ServerHandler(ReplayHandler):
         logs = ""
         while len(self.board.logs) != 0: # explicit is better than implicit
             log = self.board.logs.pop(0).strip()
+            head, *args, kwargs = kwargssplit(log)
             try:
-                devlog(self.play_log(log)) # TODO: don't log to the terminal when remote draw a card.
+                msg = self.play_log(log, head, *args, **kwargs) # TODO: don't log to the terminal when remote draw a card.
+                if head == "draw" and args[0] == "p2":
+                    devlog(f"{self.state['p2']['name']} drew a card.")
+                else:
+                    devlog(msg)
             except:
                 print("Error with:", log)
+            if head == "draw" and args[0] == "p1":
+                log = f"draw|p1|card" # "{name} drew a card."
             logs += log + "\n"
         logs = logs.strip()
         if len(logs) != 0:
@@ -79,7 +96,7 @@ class ServerHandler(ReplayHandler):
         print(f"\n\n\033[1;4m{player2.name}'s Side\033[0m")
         print(f"Energy: \033[1m{player2.energy}\033[22m/\033[1m{player2.max_energy}\033[22m (\033[1m+{player2.energy_per_turn}/turn\033[22m)")
         if len(player2.commander.card.attacks) > 1:
-            print(progressbar(player2.commander_charges, player2.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+            print(progressbar(player2.commander_charges, player2.commander.card.attacks[1].cost, style=core.Constants.progressbar_style))
         print("\033[4m" + ansi_card({
             "name":player2.commander.card.name,
             "hp":player2.commander.hp,
@@ -100,7 +117,7 @@ class ServerHandler(ReplayHandler):
         print(f"\n\n\033[1;4m{player1.name}'s Side\033[0m")
         print(f"Energy: \033[1m{player1.energy}\033[22m/\033[1m{player1.max_energy}\033[22m (\033[1m+{player1.energy_per_turn}/turn\033[22m)")
         if len(player1.commander.card.attacks) > 1:
-            print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+            print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_style))
         print("\033[4m" + ansi_card({
             "name":player1.commander.card.name,
             "hp":player1.commander.hp,
@@ -125,16 +142,26 @@ class ServerHandler(ReplayHandler):
             print("∅  ", end="")
         print("\033[2D ")
 
+        print("Their hand: ", end="")
+        for card in player2.hand:
+            print(card.name.replace(",", " -"), end=", ")
+        if len(player1.hand) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
         return self # to chain
 
 class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
     waiting: bool = False
+    closed: bool = False
     @static
     def __init__(self, server_socket: net.socket.socket, waiting: bool = False):
         ReplayHandler.__init__(self)
         self.server_socket = server_socket
         self.waiting = False
+        self.state["pov"] = "p2"
+        self.closed = False
     @static
     def __call__(self, data: str) -> bool:
         self.waiting = False
@@ -149,6 +176,14 @@ class ClientHandler(ReplayHandler):
         except:
             print("Error with:", data)
         return True
+    def endgame(self):
+        if core.get_setting("automatically_save_replay", True):
+            self.save_replay() # TODO ask to server
+        def endgame(handle: ServerHandler):
+            sleep(3.0)
+            handle.ongoing = False # avoid closing before fetching last informations from server
+        net.threading.Thread(target=endgame, args=(self,)).start()
+        return self
     @static
     def isp1(self) -> bool: return False
     def sendblock(self, *args, max_wait: int = 100_000_000):
@@ -199,7 +234,7 @@ class ClientHandler(ReplayHandler):
         print(progressbar(
             server["commander"]["charges"],
             ClientHandler.get_required_charges(server["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(server["commander"], '⋆'))
         for card in server["board"]:
@@ -211,7 +246,7 @@ class ClientHandler(ReplayHandler):
         print(progressbar(
             client["commander"]["charges"],
             ClientHandler.get_required_charges(client["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(client["commander"], '⋆'))
         for card in client["board"]:
@@ -270,10 +305,23 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     net.get_data()["server"]["commander"]["name"] = host.commander.card.name
     board = core.Board(host, client)
     handle = ServerHandler(board, client_socket)
-    net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
+    def listen(handler: ServerHandler):
+        while handler.ongoing and not handler.closed:
+            # The client shouldn't have to send more than 1024 bytes at once
+            # Please don't chat too much
+            if not handler(handler.client_socket.recv(1024).decode()) and not handler.closed:
+                handler.client_socket.close()
+                handler.ongoing = False
+                handler.closed = True
+    net.threading.Thread(target=listen, args=(handle,)).start()
     handle.log_sync()
-    while core.DEV() and handle.ongoing:
-        handle.run_action(input())
+    if core.DEV():
+        def dev_read_for_actions(handle: ServerHandler):
+            while handle.ongoing:
+                action = input()
+                if handle.ongoing and not handle.closed:
+                    handle.run_action(action)
+        net.threading.Thread(target=dev_read_for_actions, args=(handle,)).start()
     return handle
 
 @static
@@ -298,9 +346,21 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
         user["deck"] = [card.name for card in core.Player.get_deck()]
     sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
     handle = ClientHandler(server_socket)
-    net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
-    while core.DEV() and handle.ongoing:
-        handle.run_action(input())
+    def listen(handler: ClientHandler):
+        while handler.ongoing:
+            # Logs may be quite big so 4096 bytes buffer to be sure
+            if not handler(handler.server_socket.recv(4096).decode()) and not handler.closed:
+                handler.server_socket.close()
+                handler.ongoing = False
+                handler.closed = True
+    net.threading.Thread(target=listen, args=(handle,)).start()
+    if core.DEV():
+        def dev_read_for_actions(handle: ClientHandler):
+            while handle.ongoing:
+                action = input()
+                if handle.ongoing and not handle.closed:
+                    handle.run_action(action)
+        net.threading.Thread(target=dev_read_for_actions, args=(handle,)).start()
     return handle
 
 @static
@@ -331,9 +391,11 @@ def str2target_client(index: str) -> core.ActiveCard | None:
         return allies[i]
     match core.cleanstr(index):
         case "allycommander": return allyc
+        case "allyat": return allyc
         case "alliedcommander": return allyc
         case "enemycommander": return foec
         case "foecommander": return foec
+        case "foeat": return foec
         case "commander": return foec
         case _: return None
 
@@ -354,8 +416,10 @@ def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
     match core.cleanstr(index):
         case "allycommander": return board.active_player.commander
         case "alliedcommander": return board.active_player.commander
+        case "allyat": return board.active_player.commander
         case "enemycommander": return board.unactive_player.commander
         case "foecommander": return board.unactive_player.commander
+        case "foeat": return board.unactive_player.commander
         case "commander": return board.unactive_player.commander
         case _: return None
 
