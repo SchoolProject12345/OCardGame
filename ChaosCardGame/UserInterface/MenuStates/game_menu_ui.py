@@ -29,14 +29,14 @@ class GameMenu(State):
         self.enemy_energy = 2
 
         # Game Menu
-        self.bg_game_menu_image = MenuBackgrounds.bg_game_menu_image.convert_alpha()
+        self.bg_game_menu_image = MenuBackgrounds.bg_assets["game_menu_empty"]["processed_img"].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
 
         # Buttons
         self.hand_button = ImageButton(
                                         self.screen,
                                         True,
-                                        image=alpha_converter(MenuButtons.button_assets["Hand"]["processed_img"][0,1,2]),
+                                        image=alpha_converter(MenuButtons.button_assets["Hand"]["processed_img"]),
                                         position_type="topleft",
                                         position=(296, 706)
                                         )
@@ -44,7 +44,7 @@ class GameMenu(State):
         self.deck_button = ImageButton(
                                         self.screen,
                                         True,
-                                        image=alpha_converter(MenuButtons.button_assets["Deck"]["processed_img"][0,1,2]),
+                                        image=alpha_converter(MenuButtons.button_assets["Deck"]["processed_img"]),
                                         position_type="topleft",
                                         position=(824, 706)
                                         )
@@ -156,7 +156,7 @@ class GameMenu(State):
             )
 
         # Pause Menu
-        self.bg_pause_menu_image = MenuBackgrounds.bg_pause_menu_image.convert_alpha()
+        self.bg_pause_menu_image = MenuBackgrounds.bg_assets["pause_menu_empty"]["processed_img"].convert_alpha()
         self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(
             center=SCREEN_CENTER)
 
@@ -164,7 +164,7 @@ class GameMenu(State):
         self.pauseback_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], 294)
             )
@@ -172,7 +172,7 @@ class GameMenu(State):
         self.settings_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Settings"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Settings"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], 392)
             )
@@ -180,13 +180,13 @@ class GameMenu(State):
         self.surrender_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Surrender"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Surrender"]["processed_img"]),
             postion_type="center",
             position=(SCREEN_CENTER[0], 490)
             )
 
         # Deck Menu
-        self.bg_deck_menu_image = MenuBackgrounds.bg_deck_menu_image.convert_alpha()
+        self.bg_deck_menu_image = MenuBackgrounds.bg_assets["deck_menu_empty"]["processed_img"].convert_alpha()
         self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
             center=SCREEN_CENTER)
 
@@ -194,13 +194,13 @@ class GameMenu(State):
         self.deckback_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], 555)
             )
 
         # Hand Menu
-        self.bg_hand_menu_image = MenuBackgrounds.bg_hand_menu_image.convert_alpha()
+        self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"]["processed_img"].convert_alpha()
         self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
             center=SCREEN_CENTER)
 
@@ -208,7 +208,7 @@ class GameMenu(State):
         self.handback_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"][0,1,2]), 
+            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]), 
             position_type="center",
             position=(SCREEN_CENTER[0], 555)
             )

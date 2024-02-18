@@ -16,18 +16,18 @@ class LoreMenu(State):
 
         self.lore_index = 0
 
-        self.bg_lore1_menu_image = MenuBackgrounds.bg_lore1_image.convert_alpha()
-        self.bg_lore2_menu_image = MenuBackgrounds.bg_lore2_image.convert_alpha()
-        self.bg_lore3_menu_image = MenuBackgrounds.bg_lore3_image.convert_alpha()
-        self.bg_lore4_menu_image = MenuBackgrounds.bg_lore4_image.convert_alpha()
-        self.bg_lore5_menu_image = MenuBackgrounds.bg_lore5_image.convert_alpha()
-        self.bg_lore6_menu_image = MenuBackgrounds.bg_lore6_image.convert_alpha()
-        self.bg_lore7_menu_image = MenuBackgrounds.bg_lore7_image.convert_alpha()
-        self.bg_lore8_menu_image = MenuBackgrounds.bg_lore8_image.convert_alpha()
-        self.bg_lore9_menu_image = MenuBackgrounds.bg_lore9_image.convert_alpha()
-        self.bg_lore10_menu_image = MenuBackgrounds.bg_lore10_image.convert_alpha()
-        self.bg_lore11_menu_image = MenuBackgrounds.bg_lore11_image.convert_alpha()
-        self.bg_lore12_menu_image = MenuBackgrounds.bg_lore12_image.convert_alpha()
+        self.bg_lore1_menu_image = MenuBackgrounds.bg_assets["lore1_menu_empty"].convert_alpha()
+        self.bg_lore2_menu_image = MenuBackgrounds.bg_assets["lore2_menu_empty"].convert_alpha()
+        self.bg_lore3_menu_image = MenuBackgrounds.bg_assets["lore3_menu_empty"].convert_alpha()
+        self.bg_lore4_menu_image = MenuBackgrounds.bg_assets["lore4_menu_empty"].convert_alpha()
+        self.bg_lore5_menu_image = MenuBackgrounds.bg_assets["lore5_menu_empty"].convert_alpha()
+        self.bg_lore6_menu_image = MenuBackgrounds.bg_assets["lore6_menu_empty"].convert_alpha()
+        self.bg_lore7_menu_image = MenuBackgrounds.bg_assets["lore7_menu_empty"].convert_alpha()
+        self.bg_lore8_menu_image = MenuBackgrounds.bg_assets["lore8_menu_empty"].convert_alpha()
+        self.bg_lore9_menu_image = MenuBackgrounds.bg_assets["lore9_menu_empty"].convert_alpha()
+        self.bg_lore10_menu_image = MenuBackgrounds.bg_assets["lore10_menu_empty"].convert_alpha()
+        self.bg_lore11_menu_image = MenuBackgrounds.bg_assets["lore11_menu_empty"].convert_alpha()
+        self.bg_lore12_menu_image = MenuBackgrounds.bg_assets["lore12_menu_empty"].convert_alpha()
         self.bg_lore_menu_rect = self.bg_lore1_menu_image.get_rect()
         
         self.bg_lore_images = []

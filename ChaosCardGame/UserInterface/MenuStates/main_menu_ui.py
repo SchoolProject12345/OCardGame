@@ -20,9 +20,8 @@ class MainMenu(State):
             ["MainMenu", "PlayMenu", "CardsMenu", "CreditsMenu", "TutorialMenu", "LoreMenu"]
         )
 
-        self.bg_main_menu_image = MenuBackgrounds.bg_main_menu_image.convert_alpha()
-        self.bg_main_menu_rect = self.bg_main_menu_image.get_rect(
-            topleft=(0, 0))
+        self.bg_main_menu_image = MenuBackgrounds.bg_assets["main_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_main_menu_rect = self.bg_main_menu_image.get_rect(topleft=(0, 0))
 
         self.quit_event = pygame.event.Event(pygame.QUIT)
 
@@ -30,7 +29,7 @@ class MainMenu(State):
         self.play_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Play"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Play"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 2),
         )
@@ -38,7 +37,7 @@ class MainMenu(State):
         self.cards_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Cards"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Cards"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 102),
         )
@@ -46,7 +45,7 @@ class MainMenu(State):
         self.credits_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Credits"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Credits"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202),
         )
@@ -54,7 +53,7 @@ class MainMenu(State):
         self.exit_button = ImageButton(
             self.screen,
             self.quit_event,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 302),
         )
@@ -62,7 +61,7 @@ class MainMenu(State):
         self.viewlore_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["ViewLore"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["ViewLore"]["processed_img"]),
             position_type="topleft",
             position=(91, 683),
         )
@@ -70,7 +69,7 @@ class MainMenu(State):
         self.starttutorial_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["StartTutorial"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["StartTutorial"]["processed_img"]),
             position_type="topleft",
             position=(1065, 685),
         )

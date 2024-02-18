@@ -42,7 +42,7 @@ class TutorialMenu(State):
         self.skiptutorial_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["SkipTutorial"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["SkipTutorial"]["processed_img"]),
             position_type="topleft",
             position=(1105,632)
             )
@@ -50,7 +50,7 @@ class TutorialMenu(State):
         self.nexttutorial_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["NextTutorial"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["NextTutorial"]["processed_img"]),
             position_type="topleft",
             position=(1105,691)
             )

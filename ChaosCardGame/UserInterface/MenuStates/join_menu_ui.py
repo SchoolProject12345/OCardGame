@@ -18,7 +18,7 @@ class JoinMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_key = KeyRel(pygame.K_ESCAPE)
 
-        self.bg_join_menu_image = MenuBackgrounds.bg_join_menu_image.convert_alpha()
+        self.bg_join_menu_image = MenuBackgrounds.bg_assets["join_menu_empty"]["processed_img"].convert_alpha()
         self.bg_join_menu_rect = self.bg_join_menu_image.get_rect()
 
         # Select Text Boxes
@@ -56,7 +56,7 @@ class JoinMenu(State):
         self.joinmenu_join_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Join"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Join"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202)
             )
@@ -64,7 +64,7 @@ class JoinMenu(State):
         self.joinmenu_exit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0],
             SCREEN_CENTER[1]+302)

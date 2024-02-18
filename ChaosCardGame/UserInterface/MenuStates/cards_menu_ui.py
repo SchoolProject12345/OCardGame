@@ -31,20 +31,20 @@ class CardsMenu(State):
         self.is_anchor = False
         self.local_options = ["CardsMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
-        self.bg_cards_menu_image = MenuBackgrounds.bg_cards_menu_image.convert_alpha()
+        self.bg_cards_menu_image = MenuBackgrounds.bg_assets["cards_menu_empty"]["processed_img"].convert_alpha()
         self.bg_cards_menu_rect = self.bg_cards_menu_image.get_rect()
-        # Exit Button
+
         self.exit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]), 
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]), 
             position_type="topleft",
             position=(25, 25)
             )
         
         # Toggle Grids
         padding = 25
-        object_width = CardsMenuToggles.air_toggle_image[0][0].get_width()
+        object_width = CardsMenuToggles.toggle_assets["AirToggle"]["processed_img"][0].get_width()
         number_of_toggles = 5
         total_width = SCREEN_WIDTH - 2 * padding - object_width * number_of_toggles
         gap_width = total_width / (number_of_toggles-1)
@@ -53,15 +53,15 @@ class CardsMenu(State):
         # Toggles
         self.element_toggles = [
             ImageToggle(
-                self.screen, "AirToggle", image=alpha_converter(CardsMenuToggles.air_toggle_image), position=(toggle_xpos[0], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "AirToggle", image=alpha_converter(CardsMenuToggles.toggle_assets["AirToggle"]["processed_img"]), position=(toggle_xpos[0], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "ChaosToggle", image=alpha_converter(CardsMenuToggles.chaos_toggle_image), position=(toggle_xpos[1], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "ChaosToggle", image=alpha_converter(CardsMenuToggles.toggle_assets["ChaosToggle"]["processed_img"]), position=(toggle_xpos[1], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "EarthToggle", is_toggled=True, image=alpha_converter(CardsMenuToggles.earth_toggle_image), position=(toggle_xpos[2], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "EarthToggle", is_toggled=True, image=alpha_converter(CardsMenuToggles.toggle_assets["EarthToggle"]["processed_img"]), position=(toggle_xpos[2], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "WaterToggle", image=alpha_converter(CardsMenuToggles.water_toggle_image), position=(toggle_xpos[3], SCREEN_HEIGHT-20), position_type="midbottom"),
+                self.screen, "WaterToggle", image=alpha_converter(CardsMenuToggles.toggle_assets["WaterToggle"]["processed_img"]), position=(toggle_xpos[3], SCREEN_HEIGHT-20), position_type="midbottom"),
             ImageToggle(
-                self.screen, "FireToggle", image=alpha_converter(CardsMenuToggles.fire_toggle_image), position=(toggle_xpos[4], SCREEN_HEIGHT-20), position_type="midbottom")
+                self.screen, "FireToggle", image=alpha_converter(CardsMenuToggles.toggle_assets["FireToggle"]["processed_img"]), position=(toggle_xpos[4], SCREEN_HEIGHT-20), position_type="midbottom")
         ]
         self.active_toggle = -1
         self.new_toggle = None

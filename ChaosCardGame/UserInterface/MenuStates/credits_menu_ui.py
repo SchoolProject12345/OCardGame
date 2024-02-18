@@ -8,13 +8,13 @@ class CreditsMenu(State):
     def __init__(self, screen):
         super().__init__(screen, False, ["CreditsMenu"])
 
-        self.bg_credits_menu_image = MenuBackgrounds.bg_credits_menu_image.convert_alpha()
+        self.bg_credits_menu_image = MenuBackgrounds.bg_assets["credits_menu_empty"]["processed_img"].convert_alpha()
         self.bg_credits_menu_rect = self.bg_credits_menu_image.get_rect(topleft=(0, 0))
 
         self.creditsexit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]),
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302)
             )
