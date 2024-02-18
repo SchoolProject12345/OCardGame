@@ -91,8 +91,8 @@ def transform_toggle_files(path: str):
     return [small_toggle, big_toggle]
 
 
-def process_dir(path, size: int, prefixes: list):
-    curated_list = ["placeholder" for _ in range(size)]
+def process_dir(path, prefixes: list):
+    curated_list = ["placeholder" for _ in range(len(prefixes))]
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
         for prefix in prefixes:
@@ -105,21 +105,22 @@ def process_dir(path, size: int, prefixes: list):
 
 
 def handle_assets(
-    directory_path: str, size: int, prefixes: list, name_file: bool = False
+    directory_path: str, size: int, prefixes: list, per_file: bool = False
 ):
     assets = {}
-    for dirpath, dirname, filename in os.walk(directory_path):
-        if filename:
-            if name_file:
-                if type(filename) == list:
-                    key = (filename[0].split(".")[0],)
-                else:
-                    key = filename.split(".")[0]
-            else:
-                key = os.path.basename(dirpath)
+    for dirpath, _, filename in os.walk(directory_path):
+        if per_file:
+            for file in filename:
+                key = file.split(".")[0]
+                assets[key] = {
+                    "path": dirpath,
+                    "processed_img": pygame.image.load(os.path.join(dirpath, file)),
+                }
+        else:
+            key = os.path.basename(dirpath)
             assets[key] = {
                 "path": dirpath,
-                "processed_img": process_dir(dirpath, size, prefixes),
+                "processed_img": process_dir(dirpath, prefixes),
             }
     return assets
 
@@ -159,38 +160,19 @@ class CardsMenuToggles:
     """
 
     toggle_dir = os.path.join(graphics_path, "Toggles", "")
-
-    # Air
-    air_toggle_path = toggle_dir + "AirToggle"
-    air_toggle_image = transform_toggle_files(air_toggle_path)
-
-    # Chaos
-    chaos_toggle_path = toggle_dir + "ChaosToggle"
-    chaos_toggle_image = transform_toggle_files(chaos_toggle_path)
-
-    # Earth
-    earth_toggle_path = toggle_dir + "EarthToggle"
-    earth_toggle_image = transform_toggle_files(earth_toggle_path)
-
-    # Fire
-    fire_toggle_path = toggle_dir + "FireToggle"
-    fire_toggle_image = transform_toggle_files(fire_toggle_path)
-
-    # Water
-    water_toggle_path = toggle_dir + "WaterToggle"
-    water_toggle_image = transform_toggle_files(water_toggle_path)
-
+    toggle_assets = handle_assets(toggle_dir, 2, ["_i2_","_h2_","_c2_","_i1_","_h1_","_c1_"])
     logging.info("Successfully loaded card menu toggles")
 
 
 @dataclass
 class TextBoxes:
+    """
+    A class to represent all textboxes in the game.
+    """
     textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
-
     # TextBox 1
     textbox_1_path = textbox_dir + "textbox_1.png"
     textbox_1_image = pygame.image.load(textbox_1_path)
-
     logging.info("Successfully loaded textboxes")
 
 
