@@ -9,22 +9,22 @@ import re
 
 class Constants:  # to change variables quickly, easily and buglessly.
     # Client settings (DEV() is through function)
-    path = cwd_path
-    progressbar_style = clamp(get_setting("progressbar_style", 1), 0, 3)
+    path: str = cwd_path
+    progressbar_style: int = clamp(get_setting("progressbar_style", 1), 0, 3)
     # Server settings
-    default_max_energy = max(1, get_setting("default_max_energy", 4))
-    default_energy_per_turn = max(1, get_setting("default_energy_per_turn", 3))
-    default_hand_size = max(1, get_setting("hand_size", 5))
-    default_deck_size = max(1, get_setting("deck_size", 15)) 
-    strong_increase = get_setting("strong_percent_increase", 20) # negative cause reverse type matchup
-    passive_heal = max(0, get_setting("passive_heal", 10)) # negative may cause bugs
-    commander_heal = max(0, get_setting("passive_commander_heal", 20))
-    commander_power = get_setting("commanders_default_power", 65)
-    base_power = get_setting("defaults_power", 3)
-    power_increase = get_setting("defaults_power_increase", 7)
-    min_board_size = max(1, get_setting("min_board_size", 2))
-    max_board_size = min(26, get_setting("max_board_size", 6)) # crash logging above 26 (might be fixed later)
-    per_minion_reduction = get_setting("per_minion_reduction", 8) # you can try negative or higher than 100% if you want
+    default_max_energy: int = max(1, get_setting("default_max_energy", 4))
+    default_energy_per_turn: int = max(1, get_setting("default_energy_per_turn", 3))
+    default_hand_size: int = max(1, get_setting("hand_size", 5))
+    default_deck_size: int = max(1, get_setting("deck_size", 15)) 
+    strong_increase: int = get_setting("strong_percent_increase", 20) # negative cause reverse type matchup
+    passive_heal: int = max(0, get_setting("passive_heal", 10)) # negative may cause bugs
+    commander_heal: int = max(0, get_setting("passive_commander_heal", 20))
+    commander_power: int = get_setting("commanders_default_power", 65)
+    base_power: int = get_setting("default_power", 3)
+    power_increase: int = get_setting("power_increase", 7)
+    min_board_size: int = max(1, get_setting("min_board_size", 2))
+    max_board_size: int = min(26, get_setting("max_board_size", 6)) # crash logging above 26 (might be fixed later)
+    per_minion_reduction: int = get_setting("per_minion_reduction", 8) # you can try negative or higher than 100% if you want
 
 class Numeric:
     def eval(self, **_) -> int:
@@ -687,11 +687,10 @@ class DiscardEffect(AbstractEffect):
     player: str
     def execute(self, **kwargs):
         player: Player = kwargs["player"] if self.player == "owner" else kwargs["player"].opponent
-        new_length = max(len(player.hand) - self.delta.eval(), 0)
-        rng.shuffle(player.hand)
-        has_worked = len(player.hand) > new_length
-        while len(player.hand) > new_length:
-            player.handdiscard(0)
+        new_length = max((L := len(player.hand)) - self.delta.eval(), 0)
+        has_worked = L > new_length
+        while (L := len(player.hand)) > new_length:
+            player.handdiscard(rng.randint(L)) # shuffle cause bugs.
         return has_worked
     def from_json(json: dict):
         player = getordef(json, "player", "opponent")
@@ -827,7 +826,7 @@ class ChangeState(AbstractEffect):
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
-            return EffectUnion(effect, DelayEffect(ChangeState(State.default), json["for"], {}, (*getordef(json, "tags", ("+-",)),))) # feature not bug
+            return EffectUnion(effect, DelayEffect(ChangeState(State.default), Numeric.from_json(json["for"]), {}, (*getordef(json, "tags", ("+-",)),))) # feature not bug
         return effect
     def __str__(self) -> str:
         return f"a change of state of the target⋅s to {self.new_state.name}"
@@ -1231,8 +1230,11 @@ class Passive:
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
     def execute(self, **kwargs):
-        kwargs["board"].logs.append(f"passive|{kwargs['user'].namecode()}|{self.name}")
-        self.effect.execute(**kwargs)
+        kwargs["survey"] = EffectSurvey()
+        kwargs["source"] = self
+        kwargs["board"].logs.append(f"passive|{kwargs['user'].card.name}|{self.name}") # card.name to handle whendefeated passive.
+        if not self.effect.execute(**kwargs) and kwargs["survey"].damage == kwargs["survey"].heal == 0:
+            kwargs["survey"].return_code = ReturnCode.failed
         if kwargs["survey"].return_code.value < 299:
             kwargs["player"].add_charges(kwargs["survey"].damage, kwargs["user"])
         return kwargs["survey"]
@@ -1484,6 +1486,7 @@ class ActiveCard:
                 passive.execute(**kwargs)
         if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
             kwargs["survey"].return_code = ReturnCode.failed
+            kwargs["board"].logs.pop() # doesn't log failed attacks.
             return kwargs["survey"]
         for passive in self.card.passives:
             if passive.trigger != PassiveTrigger.whenattack:
@@ -1549,8 +1552,7 @@ class ActiveCard:
                     "damage_taken":amount,
                     "main_target":kwargs["user"],
                     "user":kwargs["user"],
-                    "target_mode":TargetMode.target,
-                    "source":passive
+                    "target_mode":TargetMode.target
                 })
                 passive.execute(**kwargs_)
         return amount
@@ -1655,7 +1657,7 @@ class Arena(IntEnum):
             case Arena.jordros: return "Jordros"
             case Arena.watorvarg: return "Watōrvarg"
             case Arena.smigruv: return "Smigruv"
-            case Arena.själøssmängd: return "Själløssmängd"
+            case Arena.själløssmängd: return "Själløssmängd"
     def random():
         if rng.random() < 0.1: # it's boring
             return Arena.själløssmängd
@@ -1695,6 +1697,8 @@ class Player:
             if isinstance(card, CreatureCard):
                 if "summon" in card.tags or "forme" in card.tags:
                     return False
+                if not DEV() and "debug" in card.tags:
+                    return False
         return True
     @static
     def isinvalid_deck(deck: list[str]) -> list[str]:
@@ -1719,12 +1723,14 @@ class Player:
                     issues.append(f"Code exclusive card {card_.name} tagged #summon.")
                 if "forme" in card_.tags:
                     issues.append(f"Code exclusive card {card_.name} tagged #forme.")
+                if not DEV() and "debug" in card_.tags:
+                    issues.append(f"Code exclusive card {card_.name} tagged #debug.")
         return issues
     def get_commander(*_) -> CommanderCard:
         # yes, it's ugly, it's Python
         return rng.choice(list(getCOMMANDERS().values()))
     def get_deck(*_) -> list[AbstractCard]:
-        return [*rng.choice([card for card in getCARDS() if not isinstance(card, CreatureCard) or not hasany(card.tags, ("secret", "forme", "summon"))], Constants.default_deck_size)]
+        return [*rng.choice([card for card in getCARDS() if not isinstance(card, CreatureCard) or not hasany(card.tags, ("secret", "forme", "summon", *ifelse(DEV(), (), ("debug",))))], Constants.default_deck_size)]
     def get_actives(self) -> list[ActiveCard]:
         return [card for card in self.active if card is not None]
     @property
@@ -1903,8 +1909,11 @@ class Player:
             passive.execute(**kwargs)
         return True
     def is_softlock(self):
+        # Doesn't check for commander which:
+        # - Cannot use its default attack while commanding.
+        # - Cannot charge its ultimate if all allies are locked.
         for card in self.active:
-            if self.card is None or not self.card.is_softlock():
+            if card is None or not card.is_softlock():
                 return False # If None => can still place card to unlock
         return True
     # this is somewhat buggy.
@@ -1996,20 +2005,18 @@ class Board:
     def endturn(self) -> tuple[Player, int, list[AbstractCard], int, None | Player]:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
         winner = self.getwinner() # evaluate before healing
-        for card in self.active_player.active:
-            if card is None:
-                continue
+        for card in self.active_player.get_actives():
             card.endturn()
         self.active_player.commander.endturn()
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
-        self.turn += 1
-        self.logs.append(f"turn|{self.turn}")
         ret = (self.unactive_player, self.unactive_player.add_energy(
             self.unactive_player.energy_per_turn), self.unactive_player.draw(), self.turn, winner)
+        self.turn += 1
+        self.logs.append(f"turn|{self.turn}")
         if ret[4] is not None:
             self.logs.append(f"win|{ret[4].namecode()}|{ret[4].name}")
         # Check for softlock to avoid it.
-        if self.player1.is_softlock or self.player2.is_softlock:
+        if self.player1.is_softlock() or self.player2.is_softlock():
             self.logs.append(f"raw|The Great Kortgudomlighet sensed some spacetime irregularities in the Mighty Arena of {self.arena.name.title()} and descended from unfathomable dimensions, disturbing the fight happenning in it.")
             if len(self.player1.get_actives()) != 0:
                 rng.choice(self.player1.get_actives()).indirectdamage(65535)
@@ -2017,7 +2024,7 @@ class Board:
             if len(self.player2.get_actives()) != 0:
                 rng.choice(self.player2.get_actives()).indirectdaamge(65535)
                 self.player2.boarddiscard()
-        if self.arena == Arena.himinnsokva and rng.random() < 0.5: # This is 100% random
+        if self.arena.has_effect(Arena.himinnsokva) and rng.random() < 0.5: # This is 100% random
             # Himinnsøkva's divine interventions
             # Because it's close to the sky y'know
             # I needed something for Himinnsøkva
