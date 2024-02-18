@@ -96,17 +96,28 @@ def process_dir(path, size: int, prefixes: list):
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
         for prefix in prefixes:
-            print(file)
             if file.startswith(prefix):
                 curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)
+            elif prefix == "any":
+                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)
+
     return curated_list
 
 
-def handle_assets(directory_path: str, size: int,prefixes:list):
+def handle_assets(
+    directory_path: str, size: int, prefixes: list, name_file: bool = False
+):
     assets = {}
     for dirpath, dirname, filename in os.walk(directory_path):
         if filename:
-            assets[os.path.basename(dirpath)] = {
+            if name_file:
+                if type(filename) == list:
+                    key = (filename[0].split(".")[0],)
+                else:
+                    key = filename.split(".")[0]
+            else:
+                key = os.path.basename(dirpath)
+            assets[key] = {
                 "path": dirpath,
                 "processed_img": process_dir(dirpath, size, prefixes),
             }
@@ -125,111 +136,7 @@ class MenuBackgrounds:
 
     # Background Images
     bg_dir = os.path.join(graphics_path, "Backgrounds", "")
-
-    bg_main_menu_path = bg_dir + "main_menu_empty.png"
-    bg_main_menu_image = pygame.image.load(bg_main_menu_path)
-
-    bg_credits_menu_path = bg_dir + "credits_menu_empty.png"
-    bg_credits_menu_image = pygame.image.load(bg_credits_menu_path)
-
-    bg_play_menu_path = bg_dir + "play_menu_empty.png"
-    bg_play_menu_image = pygame.image.load(bg_play_menu_path)
-
-    bg_cards_menu_path = bg_dir + "cards_menu_empty.png"
-    bg_cards_menu_image = pygame.image.load(bg_cards_menu_path)
-
-    bg_game_menu_path = bg_dir + "game_menu_empty.png"
-    bg_game_menu_image = pygame.image.load(bg_game_menu_path)
-
-    bg_card_holder_path = bg_dir + "card_holder_empty.png"
-    bg_card_holder_image = pygame.image.load(bg_card_holder_path)
-
-    bg_pause_menu_path = bg_dir + "pause_menu_empty.png"
-    bg_pause_menu_image = pygame.image.load(bg_pause_menu_path)
-
-    bg_host_menu_path = bg_dir + "host_menu_empty.png"
-    bg_host_menu_image = pygame.image.load(bg_host_menu_path)
-
-    bg_host_menu_path = bg_dir + "host_menu_empty.png"
-    bg_host_menu_image = pygame.image.load(bg_host_menu_path)
-
-    bg_join_menu_path = bg_dir + "join_menu_empty.png"
-    bg_join_menu_image = pygame.image.load(bg_join_menu_path)
-
-    bg_deck_menu_path = bg_dir + "deck_menu_empty.png"
-    bg_deck_menu_image = pygame.image.load(bg_deck_menu_path)
-
-    bg_hand_menu_path = bg_dir + "hand_menu_empty.png"
-    bg_hand_menu_image = pygame.image.load(bg_hand_menu_path)
-
-    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
-    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
-
-    # Tutorial
-    bg_tutorial1_path = bg_dir + "tutorial1_empty.png"
-    bg_tutorial1_image = pygame.image.load(bg_tutorial1_path)
-
-    bg_tutorial2_path = bg_dir + "tutorial2_empty.png"
-    bg_tutorial2_image = pygame.image.load(bg_tutorial2_path)
-
-    bg_tutorial3_path = bg_dir + "tutorial3_empty.png"
-    bg_tutorial3_image = pygame.image.load(bg_tutorial3_path)
-
-    bg_tutorial4_path = bg_dir + "tutorial4_empty.png"
-    bg_tutorial4_image = pygame.image.load(bg_tutorial4_path)
-
-    bg_tutorial5_path = bg_dir + "tutorial5_empty.png"
-    bg_tutorial5_image = pygame.image.load(bg_tutorial5_path)
-
-    bg_tutorial6_path = bg_dir + "tutorial6_empty.png"
-    bg_tutorial6_image = pygame.image.load(bg_tutorial6_path)
-
-    bg_tutorial7_path = bg_dir + "tutorial7_empty.png"
-    bg_tutorial7_image = pygame.image.load(bg_tutorial7_path)
-
-    bg_tutorial8_path = bg_dir + "tutorial8_empty.png"
-    bg_tutorial8_image = pygame.image.load(bg_tutorial8_path)
-
-    bg_tutorial9_path = bg_dir + "tutorial9_empty.png"
-    bg_tutorial9_image = pygame.image.load(bg_tutorial9_path)
-
-    # Lore
-    bg_lore1_path = bg_dir + "lore_1_empty.png"
-    bg_lore1_image = pygame.image.load(bg_lore1_path)
-
-    bg_lore2_path = bg_dir + "lore_2_empty.png"
-    bg_lore2_image = pygame.image.load(bg_lore2_path)
-
-    bg_lore3_path = bg_dir + "lore_3_empty.png"
-    bg_lore3_image = pygame.image.load(bg_lore3_path)
-
-    bg_lore4_path = bg_dir + "lore_4_empty.png"
-    bg_lore4_image = pygame.image.load(bg_lore4_path)
-
-    bg_lore5_path = bg_dir + "lore_5_empty.png"
-    bg_lore5_image = pygame.image.load(bg_lore5_path)
-
-    bg_lore6_path = bg_dir + "lore_6_empty.png"
-    bg_lore6_image = pygame.image.load(bg_lore6_path)
-
-    bg_lore7_path = bg_dir + "lore_7_empty.png"
-    bg_lore7_image = pygame.image.load(bg_lore7_path)
-
-    bg_lore8_path = bg_dir + "lore_8_empty.png"
-    bg_lore8_image = pygame.image.load(bg_lore8_path)
-
-    bg_lore9_path = bg_dir + "lore_9_empty.png"
-    bg_lore9_image = pygame.image.load(bg_lore9_path)
-
-    bg_lore10_path = bg_dir + "lore_10_empty.png"
-    bg_lore10_image = pygame.image.load(bg_lore10_path)
-
-    bg_lore11_path = bg_dir + "lore_11_empty.png"
-    bg_lore11_image = pygame.image.load(bg_lore11_path)
-
-    bg_lore12_path = bg_dir + "lore_12_empty.png"
-    bg_lore12_image = pygame.image.load(bg_lore12_path)
-
+    bg_assets = handle_assets(bg_dir, 1, ["any"], True)
     logging.info("Successfully loaded backgrounds")
 
 
@@ -241,7 +148,7 @@ class MenuButtons:
     """
 
     button_dir = os.path.join(graphics_path, "Buttons", "")
-    button_assets = handle_assets(button_dir, 3,['_i_','_h_','_c_'])
+    button_assets = handle_assets(button_dir, 3, ["_i_", "_h_", "_c_"])
     logging.info("Successfully loaded buttons")
 
 
@@ -296,12 +203,13 @@ class CardAssets:
     """
 
     if load_cards:
-        card_sprites = handle_assets(os.path.join(graphics_path, "Cards"),2,["s_","b_"])
+        card_sprites = handle_assets(
+            os.path.join(graphics_path, "Cards"), 2, ["s_", "b_"]
+        )
 
     else:
         card_sprites = handle_assets(
-            os.path.join(utility.cwd_path, "Debug", "debug_cards"),2,["s_","b_"]
+            os.path.join(utility.cwd_path, "Debug", "debug_cards"), 2, ["s_", "b_"]
         )
-        print(card_sprites)
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
