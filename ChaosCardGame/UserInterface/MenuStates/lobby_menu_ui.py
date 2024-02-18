@@ -35,20 +35,26 @@ class LobbyMenu(State):
             MenuButtons.ready_button_image), position_type="topleft", position=(508, 606))
         
         self.roomname_text_content = get_setting("roomname", "Default")
-        self.local_is_hosting = get_setting("is_hosting", False)
+        self.local_is_hosting = get_setting("is_hosting", None)
+        print(self.local_is_hosting)
         
     def lobby_menu(self):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
         if self.local_is_hosting == True:
             self.hostusername_text_content = get_setting("username", "")
-        #    self.username_text_content = handle.get_state()["remote"]["name"]
-        elif self.local_is_hosting == False:
-        #     self.hostusername_text = handle.get_state()["remote"]["name"]
+            #self.username_text_content
+        else:
+            #self.hostusername_text_content
             self.username_text_content = get_setting("username", "")
 
-        # self.hostusername_text.render(self.hostusername_text_content)
-        # self.username_text.render(self.username_text_content)
+        if self.local_is_hosting:
+            self.hostusername_text.render(self.hostusername_text_content)
+            #self.username_text.render(self.username_text_content)
+        else:
+            #self.hostusername_text.render(self.hostusername_text_content)
+            self.username_text.render(self.username_text_content)
+
         self.ipaddress_text.render(server.net.get_ip())
         self.roomname_text.render(self.roomname_text_content)
 
