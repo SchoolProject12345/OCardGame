@@ -58,7 +58,7 @@ def cleanstr(s: str) -> str:
     "foobar73baz"
     ```
     """
-    return "".join(filter(str.isalnum, s)).lower().translate(str.maketrans({
+    return "".join(filter(str.isalnum, s.lower().translate(str.maketrans({
         'ø': 'o',
         'ö': 'o',
         'ó': 'o',
@@ -70,8 +70,9 @@ def cleanstr(s: str) -> str:
         "ü": 'u',
         'ú': 'u',
         'æ': "ae",
-        'þ': "th"
-    }))  # fix bugs with Fyyrönir
+        'þ': "th",
+        '@': "at",
+    }))))  # fix bugs with Fyyrönir
 
 
 def withfield(d: dict, key, value):
