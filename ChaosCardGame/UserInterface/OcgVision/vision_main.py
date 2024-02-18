@@ -251,12 +251,12 @@ class ImageToggle:
         self.factor = kwargs.get("factor", 1)
         self.all_image = kwargs.get("image", None)
         # Core Attributes for untoggled state
-        self.toggle_image = kwargs.get("toggle_image", self.all_image[0])
+        self.toggle_image = kwargs.get("toggle_image", self.all_image[0:3])
         self.position_type = kwargs.get("position_type", "center")
         self.position = kwargs.get("position", (0, 0))
 
         # Core Attributes for toggled state
-        self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[1])
+        self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[3:6])
         self.position_type_T = kwargs.get(
             "position_type_T", self.position_type)
         self.position_T = kwargs.get("position_T", self.position)

@@ -160,39 +160,19 @@ class CardsMenuToggles:
     """
 
     toggle_dir = os.path.join(graphics_path, "Toggles", "")
-    toggle_assets = handle_assets(toggle_dir, 2, ["_i_","_h_","_c_"])
-
-    # Air
-    air_toggle_path = toggle_dir + "AirToggle"
-    air_toggle_image = transform_toggle_files(air_toggle_path)
-
-    # Chaos
-    chaos_toggle_path = toggle_dir + "ChaosToggle"
-    chaos_toggle_image = transform_toggle_files(chaos_toggle_path)
-
-    # Earth
-    earth_toggle_path = toggle_dir + "EarthToggle"
-    earth_toggle_image = transform_toggle_files(earth_toggle_path)
-
-    # Fire
-    fire_toggle_path = toggle_dir + "FireToggle"
-    fire_toggle_image = transform_toggle_files(fire_toggle_path)
-
-    # Water
-    water_toggle_path = toggle_dir + "WaterToggle"
-    water_toggle_image = transform_toggle_files(water_toggle_path)
-
+    toggle_assets = handle_assets(toggle_dir, 2, ["_i2_","_h2_","_c2_","_i1_","_h1_","_c1_"])
     logging.info("Successfully loaded card menu toggles")
 
 
 @dataclass
 class TextBoxes:
+    """
+    A class to represent all textboxes in the game.
+    """
     textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
-
     # TextBox 1
     textbox_1_path = textbox_dir + "textbox_1.png"
     textbox_1_image = pygame.image.load(textbox_1_path)
-
     logging.info("Successfully loaded textboxes")
 
 
