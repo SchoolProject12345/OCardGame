@@ -1,0 +1,315 @@
+pov|p1
+player|p1|Vafisorg|Vafisorg|600|5
+player|p2|Ævilogi|Ævilogi|600|2
+arena|3
+boardsize|p1|4
+boardsize|p2|4
+-firstp|p2
+energy|p1|4/4|3
+energy|p2|3/4|3
+draw|p1|Consumed Werewolf
+draw|p1|Black Hole spell
+draw|p1|Smokeball
+draw|p1|Hand of Ashes
+draw|p1|Crystal Bat
+draw|p1|Void Ultraray
+draw|p2|Fyyrönyr, the Dragon
+draw|p2|Empowering Medicine
+draw|p2|Hand of Ashes
+draw|p2|Eternal Sunseeker
+draw|p2|Wizard of Everburn
+draw|p2|Everstone Symbiote
+discard|p2|Empowering Medicine
+energy|p2|2/4|3
+place|p2b|Hand of Ashes|40|2
+passive|Hand of Ashes|Energy Hold
+energy|p2|2/5|3
+energy|p2|0/5|3
+place|p2a|Eternal Sunseeker|210|1
+chat|Vafisorg|chat test
+chat|Aevilogi|It works!
+attack|p2a|Default Attack|p1@|1|200
+-damage|p1@|580/600
+energy|p2|0/5|3
+-ccharge|p2|20
+attack|p2b|Default Attack|p1@|1|200
+-damage|p1@|568/600
+energy|p2|0/5|3
+-ccharge|p2|34
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/5|3
+turn|1
+energy|p2|5/5|3
+draw|p2|Fiery Lion
+draw|p2|Felix Fyris
+draw|p2|Chaos Emperor
+energy|p1|3/4|3
+place|p1a|Consumed Werewolf|110|5
+discard|p1|Black Hole spell
+discard|p1|Void Ultraray
+attack|p1a|Corruption Bite|p2a|9|200
+-damage|p2a|105/210
+energy|p1|1/4|3
+-ccharge|p1|126
+energy|p1|0/4|3
+place|p1b|Hand of Ashes|40|2
+passive|Hand of Ashes|Energy Hold
+energy|p1|0/5|3
+attack|p1b|Default Attack|p2b|1|200
+-damage|p2b|30/40
+energy|p1|0/5|3
+-ccharge|p1|136
+-heal|p1@|588/600
+turn|2
+energy|p1|3/5|3
+draw|p1|Gargoyle of the Void
+draw|p1|The Thousand-Toothed
+draw|p1|Tormented Warrior
+draw|p1|Chaos Brigade
+energy|p2|3/5|3
+place|p2c|Fyyrönyr, the Dragon|135|2
+attack|p2b|Burning Grab|p1@|1|200
+-damage|p1@|558/600
+energy|p2|2/5|3
+-ccharge|p2|70
+attack|p2c|Molten Breath|p1@|0|200
+-damage|p1a|50/110
+-damage|p1b|0/40
+energy|p2|0/5|3
+-ccharge|p2|190
+defeat|p1b
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|0/110
+-ccharge|p2|65
+defeat|p1a
+discard|p2|Felix Fyris
+discard|p2|Chaos Emperor
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/5|3
+-heal|p2a|115/210
+turn|3
+energy|p2|5/5|3
+draw|p2|Large Fireball
+draw|p2|Hydra of the Seas
+draw|p2|Magma Golem
+spell|Smokeball|p2a|0|200
+energy|p1|1/5|3
+discard|p1|Smokeball
+energy|p1|0/5|3
+place|p1a|Gargoyle of the Void|120|5
+passive|Gargoyle of the Void|Blinding Chaos
+discard|p2|Hydra of the Seas
+discard|p2|Everstone Symbiote
+-damage|p1@|550/600
+-heal|p1@|570/600
+turn|4
+energy|p1|3/5|3
+draw|p1|Fiery Lion
+draw|p1|Chaos Emperor
+attack|p2c|Molten Breath|p1@|0|200
+-damage|p1@|515/600
+energy|p2|3/5|3
+-ccharge|p2|131
+attack|p2a|Radiant Aura|p1@|2|200
+-heal|p1@|545/600
+energy|p2|1/5|3
+chat|Aevilogi|X3
+chat|Aevilogi|It redirects zone healing.
+chat|Vafisorg|( ͡° ͜ʖ ͡°)
+chat|Vafisorg|Feature not bug.
+attack|p2b|Burning Grab|p1@|1|200
+-damage|p1@|512/600
+energy|p2|0/5|3
+-ccharge|p2|170
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/5|3
+turn|5
+energy|p2|5/5|3
+draw|p2|The Silver Crow
+draw|p2|Soulfire Demon
+attack|p1a|Shadow Realm|p2a|0|200
+-damage|p2b|0/40
+energy|p1|0/5|3
+-ccharge|p1|172
+defeat|p2b
+-damage|p1@|498/600
+-heal|p1@|518/600
+turn|6
+energy|p1|3/5|3
+attack|p2c|Molten Breath|p1@|0|200
+-damage|p1@|463/600
+energy|p2|3/5|3
+-ccharge|p2|236
+chat|Aevilogi|why does it still redirect?
+chat|Vafisorg|I guess it lasts two turns.
+energy|p2|2/5|3
+place|p2b|The Silver Crow|130|3
+attack|p2b|Instant Dash|p1@|1|200
+-damage|p1@|383/600
+energy|p2|0/5|3
+-ccharge|p2|316
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/5|3
+-heal|p2a|125/210
+turn|7
+energy|p2|5/5|3
+draw|p2|Magic Scrolls of Himinnsøkva
+attack|p1a|Shadow Realm|p2a|0|200
+-damage|p2c|0/135
+energy|p1|0/5|3
+-ccharge|p1|334
+defeat|p2c
+chat|Vafisorg|:3
+chat|Aevilogi|...
+-heal|p1@|403/600
+turn|8
+energy|p1|3/5|3
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|36/120
+-ccharge|p2|191
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|0/120
+-ccharge|p2|66
+defeat|p1a
+spell|Magic Scrolls of Himinnsøkva|p1@|3|200
+energy|p2|6/7|4
+energy|p2|2/7|4
+discard|p2|Magic Scrolls of Himinnsøkva
+energy|p2|0/7|4
+place|p2c|Wizard of Everburn|100|2
+attack|p2b|Default Attack|p1@|1|200
+-damage|p1@|391/600
+energy|p2|0/7|4
+-ccharge|p2|78
+attack|p2c|Default Attack|p1@|1|200
+-damage|p1@|371/600
+energy|p2|0/7|4
+-ccharge|p2|102
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/7|4
+-heal|p2a|135/210
+turn|9
+energy|p2|6/7|4
+shuffle|p2
+draw|p2|Everstone Symbiote
+draw|p2|Chaos Emperor
+energy|p1|0/5|3
+place|p1a|The Thousand-Toothed|160|1
+attack|p1a|Default Attack|p2a|1|200
+-damage|p2a|111/210
+energy|p1|0/5|3
+-ccharge|p1|358
+passive|The Thousand-Toothed|Reef's Calling
+-damage|p2c|90/100
+-ccharge|p1|368
+-heal|p1@|391/600
+turn|10
+energy|p1|3/5|3
+draw|p1|Soulfire Demon
+energy|p2|4/7|4
+place|p2d|Magma Golem|125|2
+attack|p2d|Magmatic Separation|p1@|10|200
+-damage|p1a|105/160
+-damage|p1@|319/600
+-damage|p2d|100/125
+energy|p2|3/7|4
+-ccharge|p2|284
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|47/160
+-ccharge|p2|159
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|0/160
+-ccharge|p2|34
+defeat|p1a
+attack|p2c|Infernal Fireball|p1@|1|200
+-damage|p1@|271/600
+energy|p2|0/7|4
+-ccharge|p2|91
+attack|p2b|Default Attack|p1@|1|200
+-damage|p1@|259/600
+energy|p2|0/7|4
+-ccharge|p2|103
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/7|4
+-heal|p2a|121/210
+turn|11
+energy|p2|6/7|4
+draw|p2|Hand of Ashes
+energy|p1|2/5|3
+place|p1a|Crystal Bat|90|3
+passive|Crystal Bat|Crystal Energy
+energy|p1|2/7|3
+discard|p1|Chaos Emperor
+attack|p1a|Default Attack|p2c|1|200
+-damage|p2c|82/100
+energy|p1|2/7|3
+-ccharge|p1|376
+-damage|p1@|219/600
+-heal|p1@|239/600
+turn|12
+energy|p1|5/7|3
+draw|p1|Kratos
+draw|p1|Tenebrous Mage
+attack|p2a|Radiant Aura|p1@|2|200
+-heal|p2a|151/210
+-heal|p2c|100/100
+-heal|p2d|125/125
+energy|p2|4/7|4
+attack|p2c|Infernal Fireball|p1@|1|200
+-damage|p1@|195/600
+energy|p2|1/7|4
+-ccharge|p2|155
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1a|6/90
+-ccharge|p2|30
+attack|p2d|Magmatic Separation|p1@|10|200
+-damage|p1a|0/90
+-damage|p1@|123/600
+-damage|p2d|100/125
+energy|p2|0/7|4
+-ccharge|p2|153
+defeat|p1a
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|2/7|4
+turn|13
+energy|p2|6/7|4
+energy|p1|2/7|3
+place|p1b|Soulfire Demon|180|5
+discard|p1|Tenebrous Mage
+attack|p1b|Chaos rampage|p2a|0|200
+-damage|p2a|79/210
+-damage|p2b|58/130
+-damage|p2c|28/100
+-damage|p2d|28/125
+energy|p1|0/7|3
+-ccharge|p1|721
+-damage|p1@|83/600
+-damage|p1@|43/600
+-heal|p1@|63/600
+turn|14
+energy|p1|3/7|3
+shuffle|p1
+draw|p1|Smokeball
+draw|p1|Crystal Bat
+attack|p2b|Instant Dash|p1@|1|200
+-damage|p1@|0/600
+energy|p2|4/7|4
+-ccharge|p2|216
+attack|p2d|Magmatic Separation|p1@|10|200
+-damage|p1b|101/180
+-damage|p2d|3/125
+energy|p2|3/7|4
+-ccharge|p2|340
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1b|17/180
+-ccharge|p2|215
+attack|p2@|Ragnarök Blaze|p1@|0|200
+-damage|p1b|0/180
+-ccharge|p2|90
+defeat|p1b
+passive|Eternal Sunseeker|Sun Chanelling
+energy|p2|5/7|4
+-heal|p2a|89/210
+-heal|p2c|38/100
+turn|15
+win|p2|Ævilogi
