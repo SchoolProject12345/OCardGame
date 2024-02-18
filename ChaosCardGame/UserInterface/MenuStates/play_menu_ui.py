@@ -17,21 +17,34 @@ class PlayMenu(State):
         self.bg_play_menu_image = MenuBackgrounds.bg_play_menu_image.convert_alpha()
         self.bg_play_menu_rect = self.bg_play_menu_image.get_rect()
 
-        self.join_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.join_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 102))
+        self.playmenu_join_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Join"]["processed_img"][0,1,2]),
+            position_type="center",
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 102)
+            )
 
-        self.playmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 2))
+        self.playmenu_host_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Host"]["processed_img"][0,1,2]),
+            position_type="center",
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 2)
+            )
 
-        self.playmenu_exit_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.exit_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))
-
-
+        self.playmenu_exit_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]),
+            position_type="center",
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302)
+            )
 
     def play_menu(self):
         self.screen.blit(self.bg_play_menu_image, self.bg_play_menu_rect)
         self.playmenu_host_button.render()
-        self.join_button.render()
+        self.playmenu_join_button.render()
         self.playmenu_exit_button.render()
 
         if self.playmenu_host_button.answer():

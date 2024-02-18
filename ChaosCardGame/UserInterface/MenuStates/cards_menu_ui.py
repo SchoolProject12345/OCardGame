@@ -35,7 +35,13 @@ class CardsMenu(State):
         self.bg_cards_menu_rect = self.bg_cards_menu_image.get_rect()
         # Exit Button
         self.exit_button = ImageButton(
-            self.screen, True, image=MenuButtons.exit_arrow_button_image, position_type="topleft", position=(25, 25))
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"][0,1,2]), 
+            position_type="topleft",
+            position=(25, 25)
+            )
+        
         # Toggle Grids
         padding = 25
         object_width = CardsMenuToggles.air_toggle_image[0][0].get_width()
@@ -59,6 +65,7 @@ class CardsMenu(State):
         ]
         self.active_toggle = -1
         self.new_toggle = None
+        
         # Init all cards and grids here
         self.earth_grid = EarthCards(self.screen)
 

@@ -39,11 +39,21 @@ class TutorialMenu(State):
         self.bg_tutorial_images.append(self.bg_tutorial9_menu_image)
         
         # Buttons
-        self.skiptutorial_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.skiptutorial_button_image),position_type="topleft", position=(1105,632))
-        self.nexttutorial_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.nexttutorial_button_image),position_type="topleft",position=(1105,691))
+        self.skiptutorial_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["SkipTutorial"]["processed_img"][0,1,2]),
+            position_type="topleft",
+            position=(1105,632)
+            )
         
+        self.nexttutorial_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["NextTutorial"]["processed_img"][0,1,2]),
+            position_type="topleft",
+            position=(1105,691)
+            )
 
     def tutorial_menu(self):
         self.screen.blit(self.bg_tutorial_images[self.tutorial_index], self.bg_tutorial_menu_rect)
