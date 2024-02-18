@@ -417,10 +417,15 @@ class TargetMode(IntEnum):
         if self in [
             TargetMode.foes,
             TargetMode.nocommander,
-            TargetMode.allies
+            TargetMode.allies,
+            TargetMode.all
         ]:
             return False
         return True
+    def canself(self) -> bool:
+        if self in [TargetMode.self, TargetMode.allies, TargetMode.all, TargetMode.alliesc]:
+            return True
+        return False
     def from_str(name: str):
         match cleanstr(name):
             case "randomchaos": return TargetMode.random_chaos
@@ -546,7 +551,7 @@ class AbstractEffect:
                     kwargs["board"].unactive_player.commander,
                     kwargs["board"].active_player.commander
                 ]
-            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(9))))
+            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(12))))
             case TargetMode.alliesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allies)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allied_commander))
             case TargetMode.foesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.commander))
             case _: return [kwargs["main_target"]] # target, noccommander
@@ -810,19 +815,7 @@ class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
     new_state: State
     def execute(self, **kwargs) -> bool:
-        has_worked: bool = False
-        for card in AbstractEffect.targeted_objects(**kwargs):
-            if self.new_state == State.unattacked:
-                if card.attacked:
-                    card.attacked = False
-                    has_worked = True
-                    continue
-            # unattacked apply on negative State (feature not bug)
-            # stronger `State`s cannot be overriden by weaker `State`s
-            if card.state.value < self.new_state.value or self.new_state == State.default:
-                has_worked = True
-                card.state = self.new_state
-        return has_worked
+        return any(card.change_state(self.new_state) for card in AbstractEffect.targeted_objects(**kwargs))
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
@@ -941,11 +934,11 @@ class CleanseEffect(AbstractEffect):
     def execute(self, **kwargs):
         for target in AbstractEffect.targeted_objects(**kwargs):
             if "+" in self.by_tags and target.state in [State.damageless]:
-                target.state = State.default
+                target.change_state(State.default)
             if "-" in self.by_tags and target.state in [State.blocked, State.cloudy, State.monotonous]:
-                target.state = State.default
+                target.change_state(State.default)
             if "+-" in self.by_tags and target.state in [State.invisible]:
-                target.state = State.default
+                target.change_state(State.default)
             target.effects = [effect for effect in target.effects if hasany(effect.get_tags(), self.by_tags)]
         return True
     def from_json(json: dict):
@@ -1418,6 +1411,21 @@ class ActiveCard:
         if self.board is None or self.owner != self.board.active_player:
             return False
         return not self.attacked
+    @static
+    def change_state(self, new_state: State) -> bool:
+        "Change `self`'s state to `new_state` if possible, logging it and returing `True` if successful, returning `False` otherwise."
+        if new_state == State.unattacked:
+            if self.attacked:
+                self.attacked = False
+                return True
+        # unattacked apply on negative State (feature not bug)
+        # stronger `State`s cannot be overriden by weaker `State`s
+        if self.state.value < new_state.value or new_state is State.default:
+            self.state = new_state
+            if new_state is not State.discarded:
+                self.board.logs.append(f"-state|{self.namecode()}|{new_state.name}")
+                return True
+        return False
     def is_softlock(self):
         # doesn't check for duration right now because of features with unintuitive behavior,
         # I might never fix it even if I make it more intuitive, because, even with limited duration,
@@ -1504,7 +1512,7 @@ class ActiveCard:
         if self.state is not State.unattacked:
             self.attacked = True
         else:
-            self.state = State.default
+            self.change_state(State.default)
         return kwargs["survey"]
     def defeatedby(self, killer):
         kwargs = {
@@ -2051,6 +2059,7 @@ class Board:
             self.logs.append(f"raw|Kortgumdolighet descended from an unfathomable dimension and taught {self.active_player.name} the mysterious {spell.name} technique which they used without hesitation.")
             if spell.use(self.active_player.commander).return_code is ReturnCode.failed and (self.player1.get_actives() or self.player2.get_actives()):
                 spell.use(rng.choice(self.player1.get_actives() + self.player2.get_actives()))
+                warn("Kortgudomlighet somewhat failed.")
         elif self.autoplay and self.active_player.isai():
             return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
