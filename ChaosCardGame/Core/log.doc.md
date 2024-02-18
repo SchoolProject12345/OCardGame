@@ -70,7 +70,7 @@ Player are refered as `p{i}` (e.g. `p1` is player1, i.e. server) and board index
 Note: field size of 27 or more is not supported.\
 Note: commander are refered through `p{i}@`
 
-`{arena}`, `{element}`, `{return_code}` and `{target_mode}` are given as integers.
+`Arena`, `Element`, `ReturnCode` and `TargetMode` are given as integers, but not `State`s.
 
 ## Initialization
 For each player:
@@ -78,7 +78,8 @@ For each player:
 `player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}`\
 `boardsize|p{i}|{size}`\
 `-firstp|p{i}`\
-`arena|{arena}`
+`arena|{arena}`\
+`pov|p{i}` used by replays.
 
 ## Main
 `place|p{i}{j}|{Card Name}|{max_hp}|{element}`\
@@ -93,6 +94,7 @@ For each player:
 `-formechange|p{i}{j}|{Forme Name}|{hp}/{max_hp}|{element}`\
 `-element|p{i}{j}|{new_element}` Note: not yet supported as useless.\
 `-hypno|p{i}{j}|p{i'}{j'}`\
+`-state|p{i}{j}|{new_state}`\
 `-summon|p{i}{j}|{Card Name}|{max_hp}|{element}`
 
 ## Misc
