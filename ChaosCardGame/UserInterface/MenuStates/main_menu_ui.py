@@ -87,7 +87,7 @@ class MainMenu(State):
         self.viewlore_button.render()
         self.starttutorial_button.render()
 
-        for event in pygame.event.get(pygame.MOUSEBUTTONDOWN):
+        for _ in pygame.event.get(pygame.MOUSEBUTTONDOWN):
                 self.test.toggle_active()
                 
                 

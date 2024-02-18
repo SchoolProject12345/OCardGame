@@ -91,33 +91,9 @@ def transform_toggle_files(path: str):
     return [small_toggle, big_toggle]
 
 
-def transform_card_files(path: str):
-    """
-    Returns a list containing the surfaces to all elements in a directory.
+def process_card_dir(path, i):
+    curated_list = ["placeholder" for _ in range(i)]
 
-    """
-    o_dir = path
-    curated_list = []
-    processed_list = []
-    for object in os.listdir(o_dir):
-        if os.path.isfile(os.path.join(o_dir, object)):
-            curated_list.append(os.path.join(o_dir, object))
-    for path in curated_list:
-        processed_path = path.split("/")[-1]
-        if processed_path.startswith("s_"):
-            index_small = path
-        elif processed_path.endswith(".DS"):
-            pass
-        else:
-            index_big = path
-    curated_list = [index_small, index_big]
-    for path in curated_list:
-        processed_list.append(pygame.image.load(path))
-    return processed_list
-
-
-def process_card_dir(path):
-    curated_list = ["placeholder", "placeholder"]
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
         if file.startswith("."):
@@ -129,13 +105,23 @@ def process_card_dir(path):
     return curated_list
 
 
+def process_card_dir_2(path, i: int, prefixes: list):
+    curated_list = ["placeholder" for _ in range(i)]
+    for file in os.listdir(path):
+        filepath = os.path.join(path, file)
+        for prefix in prefixes:
+            if file.startswith(prefix):
+                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)    
+    return curated_list
+
+
 def handle_card_assets(directory_path):
     cards_assets = {}
     for dirpath, dirname, filename in os.walk(directory_path):
         if filename:
             cards_assets[os.path.basename(dirpath)] = {
                 "path": dirpath,
-                "processed_img": process_card_dir(dirpath)
+                "processed_img": process_card_dir_2(dirpath, 2,["s_"]),
             }
     return cards_assets
 
@@ -327,18 +313,15 @@ class MenuButtons:
 
     # Next Tutorial
     nexttutorial_button_path = button_dir + "NextTutorial"
-    nexttutorial_button_image = transform_button_files(
-        nexttutorial_button_path)
+    nexttutorial_button_image = transform_button_files(nexttutorial_button_path)
 
     # Skip Tutorial
     skiptutorial_button_path = button_dir + "SkipTutorial"
-    skiptutorial_button_image = transform_button_files(
-        skiptutorial_button_path)
+    skiptutorial_button_image = transform_button_files(skiptutorial_button_path)
 
     # Start Tutorial
     starttutorial_button_path = button_dir + "StartTutorial"
-    starttutorial_button_image = transform_button_files(
-        starttutorial_button_path)
+    starttutorial_button_image = transform_button_files(starttutorial_button_path)
 
     # View Lore
     viewlore_button_path = button_dir + "ViewLore"
@@ -352,6 +335,7 @@ class CardsMenuToggles:
     """
     A class to represent all toggles in the game.
     """
+
     toggle_dir = os.path.join(graphics_path, "Toggles", "")
 
     # Air
@@ -395,13 +379,13 @@ class CardAssets:
     the Cards directory. Each key represents a folder name, and its value is a dictionary
     with the path to the folder and the processed images ready for game use.
     """
+
     if load_cards:
-        card_sprites = handle_card_assets(
-            os.path.join(graphics_path, "Cards"))
+        card_sprites = handle_card_assets(os.path.join(graphics_path, "Cards"))
 
     else:
-        card_sprites = handle_card_assets(os.path.join(
-            utility.cwd_path, "Debug", "debug_cards"))
-        print(card_sprites)
+        card_sprites = handle_card_assets(
+            os.path.join(utility.cwd_path, "Debug", "debug_cards")
+        )
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
