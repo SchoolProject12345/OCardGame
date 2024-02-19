@@ -7,6 +7,15 @@ import logging
 
 
 def alpha_converter(objects: list[pygame.Surface] | list[list]):
+    """
+    Recursively converts the images in the list to use alpha channel for transparency.
+
+    Args:
+        objects (list[pygame.Surface] | list[list]): The list of Pygame surface objects or nested lists of surface objects to be converted.
+
+    Returns:
+        list[pygame.Surface] | list[list]: The list of objects with their alpha channel converted for transparency.
+    """
     for object in objects:
         if type(object) == list:
             alpha_converter(object)
@@ -16,6 +25,16 @@ def alpha_converter(objects: list[pygame.Surface] | list[list]):
 
 
 def smoothscale_converter(objects: list[pygame.Surface] | list[list], factor: float):
+    """
+    Recursively scales the surfaces in the given list of objects by the specified factor using pygame's smoothscale function.
+
+    Args:
+        objects (list[pygame.Surface] | list[list]): The list of surfaces or nested lists of surfaces to be scaled.
+        factor (float): The scaling factor to be applied to the surfaces.
+
+    Returns:
+        list[pygame.Surface] | list[list]: The modified list of scaled surfaces.
+    """
     for i, item in enumerate(objects):
         if isinstance(item, list):
             smoothscale_converter(item, factor)
@@ -25,6 +44,16 @@ def smoothscale_converter(objects: list[pygame.Surface] | list[list], factor: fl
 
 
 def process_dir(path, prefixes: list):
+    """
+    Process the files in the given directory and load images based on the specified prefixes.
+
+    Args:
+        path (str): The path of the directory to process.
+        prefixes (list): A list of prefixes to filter the files.
+
+    Returns:
+        list: A curated list of loaded images based on the prefixes.
+    """
     curated_list = ["placeholder" for _ in range(len(prefixes))]
     for file in os.listdir(path):
         filepath = os.path.join(path, file)
@@ -40,6 +69,19 @@ def process_dir(path, prefixes: list):
 def handle_assets(
     directory_path: str, size: int, prefixes: list, per_file: bool = False
 ):
+    """
+    Handle the assets in the specified directory.
+
+    Args:
+        directory_path (str): The path to the directory containing the assets.
+        size (int): The size of the assets.
+        prefixes (list): The list of prefixes to be applied to the assets.
+        per_file (bool, optional): Flag indicating whether to process assets per file or per directory. 
+            Defaults to False.
+
+    Returns:
+        dict: A dictionary containing the processed assets.
+    """
     assets = {}
     for dirpath, _, filename in os.walk(directory_path):
         if per_file:
