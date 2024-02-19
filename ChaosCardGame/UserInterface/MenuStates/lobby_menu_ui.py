@@ -1,7 +1,7 @@
 import os
 import pygame
 import Network.server as server
-import Network.network as net
+import server.HandlerHandler as handle
 from random import randint
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
@@ -55,7 +55,10 @@ class LobbyMenu(State):
             #self.hostusername_text.render(self.hostusername_text_content)
             self.username_text.render(self.username_text_content)
 
-        self.ipaddress_text.render(server.net.get_ip())
+        # Wait, whose IP is that? Is that the host's?
+        # Don't the player enter the IP from join_menu?
+        # I don't really understand what this is for.
+        self.ipaddress_text.render(handle.ip_adress)
         self.roomname_text.render(self.roomname_text_content)
 
         self.ready_button.render()
