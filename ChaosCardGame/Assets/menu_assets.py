@@ -198,7 +198,7 @@ class CardAssets:
         )
         card_sprites.update(
             handle_assets(
-                os.path.join(graphics_path, "Cards", "misc_cards"), 1, ["s_", "b_"]
+                os.path.join(graphics_path, "Cards", "misc_cards"), 2, ["s_", "b_"]
             )
         )
         logging.warning("Enabled debug cards")
