@@ -79,6 +79,7 @@ class CardManager:
         if SLOT_CLICKED :
             self.show_popup = True
             self.displayed_card_info = SLOT_CLICKED
+            pygame.event.post(fetch_event("UI_STATE", {"popped": True}))
 
         if self.show_popup:
             self.popup_bg = MenuBackgrounds.bg_assets["card_popup_empty"][
