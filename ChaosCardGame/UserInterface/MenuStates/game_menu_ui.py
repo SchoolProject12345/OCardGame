@@ -5,6 +5,7 @@ from Assets.menu_assets import CardAssets
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox
+from UserInterface.card_handler import CardHolder
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
 
@@ -212,6 +213,8 @@ class GameMenu(State):
             position_type="center",
             position=(SCREEN_CENTER[0], 555)
             )
+    
+        self.card_test = CardHolder(self.screen, ("remote", 0), "board")
 
     # Toggle State
     def is_paused_toggle(self):
@@ -234,6 +237,8 @@ class GameMenu(State):
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
+
+        self.card_test.render()
 
         # User buttons
         self.deck_button.render()

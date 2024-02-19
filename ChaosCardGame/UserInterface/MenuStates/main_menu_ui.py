@@ -89,8 +89,6 @@ class MainMenu(State):
             position=(1065, 685),
         )
 
-        self.test = CardHolder(self.screen, 0, "board")
-
     def main_menu(self):
 
         self.screen.blit(self.bg_main_menu_image, self.bg_main_menu_rect)
@@ -100,11 +98,6 @@ class MainMenu(State):
         self.exit_button.render()
         self.viewlore_button.render()
         self.starttutorial_button.render()
-
-        for _ in pygame.event.get(pygame.MOUSEBUTTONDOWN):
-            self.test.toggle_active()
-
-        self.test.render((100, 100))
 
         if self.credits_button.answer():
             self.change_state("CreditsMenu")
