@@ -8,7 +8,16 @@ core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "deb
 core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
-class HandlerHandler:
+class Monad(type):
+    def __getattr__(self, name: str):
+        if hasattr(self, name):
+            return super().__getattr__(name) # for ip_adress, methods or such
+        handle: ReplayHandler = super().__getattr__("_handle")
+        if hasattr(handle):
+            return handle.__getattr__(name)
+        return self.donothing # fallback for run_action
+
+class HandlerHandler(metaclass=Monad):
     _handle: ReplayHandler = ReplayHandler()
     ip_address: str = net.get_ip()
     intialized: bool = False
@@ -28,7 +37,7 @@ class HandlerHandler:
         Return `True` if successful, `False` otherwise.
         """
         if method is ReplayHandler.read_replay:
-            args = (super().__getattr__(self, "_handle"), *args)
+            args = (Monad.__getattr__("_handle"), *args)
         if method in [join, host]:
             self.ip_adress = args[1]
         elif method not in [ReplayHandler.read_replay]:
@@ -41,14 +50,6 @@ class HandlerHandler:
             daemon=True
         )
         return True
-    @classmethod
-    def __getattr__(self, name: str):
-        if hasattr(self, name):
-            return super().__getattr__(self, name) # for ip_adress, methods or such
-        handle: ReplayHandler = super().__getattr__(self, "_handle")
-        if hasattr(handle):
-            return handle.__getattr__(name)
-        return self.donothing # fallback for run_action
 
 class ServerHandler(ReplayHandler):
     board: core.Board
