@@ -10,6 +10,7 @@ from UserInterface.OcgVision.vision_main import (
     DualBarVerti,
     TextBox,
 )
+from UserInterface.event_library import fetch_event
 from utility import search_event
 from UserInterface.card_handler import CardManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
@@ -35,7 +36,7 @@ class GameMenu(State):
                     None,
                     None,
                     None,
-                    None
+                    None,
                 ],
                 "commander": {
                     "charges": 0,
@@ -59,7 +60,7 @@ class GameMenu(State):
                 "name": "Ånyks",
             },
             "remote": {
-                "board": [None, None, None, None, None, None,None],
+                "board": [None, None, None, None, None, None, None],
                 "commander": {
                     "charges": 0,
                     "element": 1,
@@ -95,7 +96,7 @@ class GameMenu(State):
             "paused": False,
             "decked": False,
             "handed": False,
-            "popped":False
+            "popped": False,
         }
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
@@ -106,7 +107,6 @@ class GameMenu(State):
         self.enemy_max_energy = 5
         self.enemy_health = 250
         self.enemy_energy = 2
-    
 
         # Game Menu
         self.bg_game_menu_image = MenuBackgrounds.bg_assets["earth_arena"][
@@ -303,8 +303,17 @@ class GameMenu(State):
             position_type="center",
             position=(SCREEN_CENTER[0], 555),
         )
+        self.card_manager = CardManager(
+            self.screen, len(self.game_state["local"]["board"])
+        )
 
-        self.card_manager = CardManager(self.screen, len(self.game_state["local"]["board"]))
+    def handle_events(self, events):
+        for event in events:
+            if event.type == fetch_event("UI_STATE", raw=True):
+                # Access the dictionary attribute using vars()
+                event_dict = vars(event)
+                for state in event_dict.keys():
+                    self.ui_state[state] = event_dict[state]
 
     # Toggle State
     def is_paused_toggle(self):
@@ -315,7 +324,6 @@ class GameMenu(State):
 
     def is_handed_toggle(self):
         self.ui_state["handed"] = not self.ui_state["handed"]
-    
 
     def game_menu(self):
         # Background elements
@@ -328,7 +336,6 @@ class GameMenu(State):
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
-
 
         self.card_manager.render(super().events, self.ui_state, self.game_state)
 
@@ -365,6 +372,8 @@ class GameMenu(State):
             elif self.surrender_button.answer():
                 self.is_paused_toggle()
                 self.revert_state(2)
+
+        self.handle_events(super().events)
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
