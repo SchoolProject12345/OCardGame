@@ -798,13 +798,17 @@ class RandomTargets(AbstractEffect):
     effect: AbstractEffect
     sample: Numeric
     def execute(self, **kwargs) -> bool:
+        print(f"RandomTargets launched with target {kwargs['target_mode'].name} executed.")
         targets = AbstractEffect.targeted_objects(**kwargs)
+        print(f"RandomTargets has {len(targets)} targets.")
         rng.shuffle(targets)  # maybe unefficient but it works.
         sample = self.sample.eval()
         while len(targets) > sample:
             targets.pop()
+        print(f"Only {len(targets)} left.")
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
-        return any(self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets)
+        # [] are necessary to evaluate entirely the generator before short-circuiting (for once Python works correctly).
+        return any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
     def from_json(json: dict):
         return RandomTargets(AbstractEffect.from_json(json["effect"]), Numeric.from_json(getordef(json, "sample", 1)))
     def __str__(self):
@@ -815,7 +819,7 @@ class ChangeState(AbstractEffect):
     "Change the target(s) state to `new_state`."
     new_state: State
     def execute(self, **kwargs) -> bool:
-        return any(card.change_state(self.new_state) for card in AbstractEffect.targeted_objects(**kwargs))
+        return any([card.change_state(self.new_state) for card in AbstractEffect.targeted_objects(**kwargs)])
     def from_json(json: dict):
         effect = ChangeState(State.from_str(json["new_state"]))
         if "for" in json:
@@ -1131,7 +1135,7 @@ class RepeatEffect(AbstractEffect):
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return any(self.effect.execute(**withfield(kwargs, "repeat_depth", n)) for n in range(self.n.eval(**kwargs)))
+        return any([self.effect.execute(**withfield(kwargs, "repeat_depth", n)) for n in range(self.n.eval(**kwargs))])
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -1417,7 +1421,7 @@ class ActiveCard:
         if new_state == State.unattacked:
             if self.attacked:
                 self.attacked = False
-                return True
+                return True # no logging
         # unattacked apply on negative State (feature not bug)
         # stronger `State`s cannot be overriden by weaker `State`s
         if self.state.value < new_state.value or new_state is State.default:
@@ -1477,8 +1481,6 @@ class ActiveCard:
                 kwargs["main_target"] = rng.choice(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)))
         #= Gravitational Lensing - start =#
          # overrides everything
-         # wait I just realized it redirects 65535-damage attacks.
-         # "Feature not bug"
         if self.board.unactive_player.commander.card is getCOMMANDERS()["vafisorg"]:
             kwargs["main_target"] = self.board.unactive_player.commander
         #= Gravitational Lensing - end =#
@@ -1489,9 +1491,14 @@ class ActiveCard:
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
             for passive in card.card.passives:
-                if passive.trigger != PassiveTrigger.whenattack:
+                if passive.trigger != PassiveTrigger.whenattacked:
                     continue
-                passive.execute(**kwargs)
+                _kwargs = kwargs.copy()
+                _kwargs.update({
+                 "user":card,
+                 "main_target":kwargs["user"]
+                })
+                passive.execute(**_kwargs)
         if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
             kwargs["survey"].return_code = ReturnCode.failed
             kwargs["board"].logs.pop() # doesn't log failed attacks.
@@ -1621,7 +1628,7 @@ class SpellCard(AbstractCard):
         board = target.board
         sim = ActiveCard(
             CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
-                         self.on_use], passives=[], cost=0, tags=("spell",)),
+                         self.on_use], passives=[], cost=0, tags=self.on_use.tags),
             board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
@@ -1667,6 +1674,7 @@ class Arena(IntEnum):
             case Arena.smigruv: return "Smigruv"
             case Arena.själløssmängd: return "Själløssmängd"
     def random():
+        return Arena.himinnsokva # I need to test it.
         if rng.random() < 0.1: # it's boring
             return Arena.själløssmängd
         return Arena(rng.randint(5))
@@ -1836,6 +1844,8 @@ class Player:
         return amount # used by effect survey
     @static
     def add_charges(self, amount: int, source: ActiveCard | None = None):
+        if "divine" in source.card.tags:
+            return 0
         if source is not None and not source.iscommander() and source.element is self.commander.element and amount > 0:
             # I have no idea why I'm using strong_increase and not creating a new setting
             # That's a feature I swear
@@ -1856,7 +1866,7 @@ class Player:
         self.commander.board.logs.append(f"discard|{self.namecode()}|{card.name}")
         self.discard.append(card)
         return card
-    @static
+    @soft_static # to support complex id
     def iddiscard(self, id: int) -> AbstractCard | None:
         "Discard the first card in `self`'s `hand` with `id`, returning it."
         for i in range(len(self.hand)):
@@ -1871,6 +1881,7 @@ class Player:
         self.commander.hp = 0
         self.commander.board.logs.append(f"{self.name} forfeited.")
         self.commander.board.endturn()
+    @static
     def boarddiscard(self) -> list[ActiveCard]:
         "Discard every defeated cards, returning them."
         discards: list[ActiveCard] = []
@@ -1886,6 +1897,7 @@ class Player:
                 board.logs.append(f"defeat|{cards[i].namecode()}")
                 cards[i] = None
         return discards
+    @static
     def place(self, i: int, j: int):
         board: Board = self.commander.board
         "Place the `i`th card of hand onto the `j`th tile of board, activing it. Return `True` if sucessful, `False` otherwise."
@@ -1895,7 +1907,7 @@ class Player:
             return False
         if self.active[j] is not None:
             return False
-        if type(self.hand[i]) == SpellCard:
+        if isinstance(self.hand[i], SpellCard):
             return False
         if self.energy < self.hand[i].cost:
             return False
@@ -1916,7 +1928,7 @@ class Player:
                 continue
             passive.execute(**kwargs)
         return True
-    def is_softlock(self):
+    def is_softlock(self) -> bool:
         # Doesn't check for commander which:
         # - Cannot use its default attack while commanding.
         # - Cannot charge its ultimate if all allies are locked.
@@ -1933,6 +1945,7 @@ class Player:
         self.discard.clear()
         self.commander = ActiveCard(
             self.commander.card, self, self.commander.board)
+        return self
 
 def rps2int(rpc: str):
     match rpc:
@@ -2030,27 +2043,28 @@ class Board:
                 rng.choice(self.player1.get_actives()).indirectdamage(65535)
                 self.player1.boarddiscard()
             if len(self.player2.get_actives()) != 0:
-                rng.choice(self.player2.get_actives()).indirectdaamge(65535)
+                rng.choice(self.player2.get_actives()).indirectdamage(65535)
                 self.player2.boarddiscard()
         if self.arena.has_effect(Arena.himinnsokva) and rng.random() < 0.5: # This is 100% random
             # Himinnsøkva's divine interventions
             # Because it's close to the sky y'know
             # I needed something for Himinnsøkva
             # I need to sleep more I think
+            _all_creature_cards: list[CreatureCard] = [card for card in getCARDS() if isinstance(card, CreatureCard)]
             spells: list[SpellCard] = [
                 SpellCard("Kortgudomlighet's Soft Breeze", 1+2j, Element.air,
                           Attack("Healing Whisper", 0, TargetMode.massivedestruction, 0,
-                          HealEffect(20), ("divine"))),
+                          HealEffect(RawNumeric(20)), ("divine", "spell"))),
                 SpellCard("Kortgudomlighet's Lighting Gamble", 1+2j, Element.fire,
                           Attack("Lighting Gamble", 0, TargetMode.massivedestruction, 0,
-                          RandomTargets(DamageEffect(RawNumeric(40), DamageMode.ignore_resist), RawNumeric(4)), ("divine"))),
+                          RandomTargets(DamageEffect(RawNumeric(40), DamageMode.ignore_resist), RawNumeric(4)), ("divine", "spell"))),
                 # What's better than random in random? Random in random randomness.
                 SpellCard("Kortgudomlighet's Unfair Summoning", 1+2j, Element.chaos,
                           Attack("( ͡° ͜ʖ ͡°)", 0, TargetMode.self, 0, # I could think of no better name
-                          EffectUnion(SummonEffect(1, rng.choice(getCARDS()), "active"), SummonEffect(1, rng.choice(getCARDS()), "unactive")), ("divine"))),
+                          EffectUnion(SummonEffect(1, rng.choice(_all_creature_cards), "active"), SummonEffect(1, rng.choice(_all_creature_cards), "unactive")), ("divine", "spell"))),
                 SpellCard("Kortgudomlighet's Quantum Physics Experiment", 1+2j, Element.chaos,
                           Attack("Blink", 0, TargetMode.all, 0,
-                                 RandomTargets(DamageEffect(RawNumeric(65535), DamageMode.indirect), 1), ("divine")))
+                                 RandomTargets(DamageEffect(RawNumeric(65535), DamageMode.indirect), 1), ("divine", "spell")))
             ]
             # Don't hesitate to add more spells if you have any idea.
             # I should add more normal spells
@@ -2063,6 +2077,9 @@ class Board:
         elif self.autoplay and self.active_player.isai():
             return self.active_player.auto_play(self) # can crash due to Python's stupid recursion limit
         return ret
+    def log(self, log: str) -> str:
+        self.logs.append(log)
+        return log
     def get_replay(self):
         replay = ""
         for log in self.logs:
