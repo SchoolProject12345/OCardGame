@@ -17,10 +17,19 @@ class MainMenu(State):
         super().__init__(
             screen,
             True,
-            ["MainMenu", "PlayMenu", "CardsMenu", "CreditsMenu", "TutorialMenu", "LoreMenu"]
+            [
+                "MainMenu",
+                "PlayMenu",
+                "CardsMenu",
+                "CreditsMenu",
+                "TutorialMenu",
+                "LoreMenu",
+            ],
         )
 
-        self.bg_main_menu_image = MenuBackgrounds.bg_assets["main_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_main_menu_image = MenuBackgrounds.bg_assets["main_menu_empty"][
+            "processed_img"
+        ].convert_alpha()
         self.bg_main_menu_rect = self.bg_main_menu_image.get_rect(topleft=(0, 0))
 
         self.quit_event = pygame.event.Event(pygame.QUIT)
@@ -45,7 +54,9 @@ class MainMenu(State):
         self.credits_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Credits"]["processed_img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["Credits"]["processed_img"]
+            ),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202),
         )
@@ -61,7 +72,9 @@ class MainMenu(State):
         self.viewlore_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["ViewLore"]["processed_img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["ViewLore"]["processed_img"]
+            ),
             position_type="topleft",
             position=(91, 683),
         )
@@ -69,13 +82,14 @@ class MainMenu(State):
         self.starttutorial_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["StartTutorial"]["processed_img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["StartTutorial"]["processed_img"]
+            ),
             position_type="topleft",
             position=(1065, 685),
         )
 
-        self.test = CardHolder(self.screen, 0, "board", "debug_cards")
-
+        self.test = CardHolder(self.screen, 0, "board")
 
     def main_menu(self):
 
@@ -88,9 +102,8 @@ class MainMenu(State):
         self.starttutorial_button.render()
 
         for _ in pygame.event.get(pygame.MOUSEBUTTONDOWN):
-                self.test.toggle_active()
-                
-                
+            self.test.toggle_active()
+
         self.test.render((100, 100))
 
         if self.credits_button.answer():
@@ -108,7 +121,7 @@ class MainMenu(State):
             self.change_state("LoreMenu")
         self.exit_button.answer()
 
-    def state_manager_hook(self,app):
+    def state_manager_hook(self, app):
         if len(State.state_tree) >= 2:
             if State.state_tree[1] == self.local_options[1]:
                 app.menu_instances["play_menu"].state_manager(app)

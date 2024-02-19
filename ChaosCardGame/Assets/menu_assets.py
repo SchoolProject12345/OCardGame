@@ -160,7 +160,9 @@ class CardsMenuToggles:
     """
 
     toggle_dir = os.path.join(graphics_path, "Toggles", "")
-    toggle_assets = handle_assets(toggle_dir, 2, ["_i2_","_h2_","_c2_","_i1_","_h1_","_c1_"])
+    toggle_assets = handle_assets(
+        toggle_dir, 2, ["_i2_", "_h2_", "_c2_", "_i1_", "_h1_", "_c1_"]
+    )
     logging.info("Successfully loaded card menu toggles")
 
 
@@ -169,6 +171,7 @@ class TextBoxes:
     """
     A class to represent all textboxes in the game.
     """
+
     textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
     # TextBox 1
     textbox_1_path = textbox_dir + "textbox_1.png"
@@ -192,6 +195,11 @@ class CardAssets:
     else:
         card_sprites = handle_assets(
             os.path.join(utility.cwd_path, "Debug", "debug_cards"), 2, ["s_", "b_"]
+        )
+        card_sprites.update(
+            handle_assets(
+                os.path.join(graphics_path, "Cards", "misc_cards"), 1, ["s_", "b_"]
+            )
         )
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
