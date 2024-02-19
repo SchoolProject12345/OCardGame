@@ -1,7 +1,7 @@
 import pygame
 import os
 import Network.server as server
-import server.HandlerHandler as handle
+import Network.server.HandlerHandler as handle
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
