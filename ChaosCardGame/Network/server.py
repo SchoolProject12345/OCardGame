@@ -8,6 +8,32 @@ core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "deb
 core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
+class HandlerHandler:
+    handle: ReplayHandler = ReplayHandler()
+    @staticmethod
+    def donothing(*args, **kwargs) -> None:
+        pass
+    @classmethod
+    def init_handler(self: type, method: object, args: str, **kwargs):
+        "Setup connection and store the handle created as `self.handle`."
+        self.handle = method(*args, **kwargs)
+    @classmethod
+    def fetch_handler(self: type, method: object, *args: str, **kwargs):
+        "Setup connection on another thread and store the handle created as `self.handle`."
+        if method is replay:
+            kwargs["handle"] = super().__getattr__(self, "handle")
+        net.threading.Thread(
+            target=self.init_handler,
+            args=(method, args),
+            kwargs=kwargs,
+            daemon=True
+        )
+    @classmethod
+    def __getattr__(self: type, name: str):
+        if hasattr(self, "handle"):
+            return super().__getattr__(self, "handle").__getattr__(name)
+        return self.donothing # fallback for run_action
+
 class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
@@ -26,7 +52,8 @@ class ServerHandler(ReplayHandler):
             self.ongoing = False
             return False
         if '\n' in data:
-            return all([self(_data) for _data in data.split('\n')])
+            # short circuit if false: socket was closed and should not execute any more action
+            return all(self(_data) for _data in data.split('\n'))
         datas: list[str] = data.split('|')
         head = core.cleanstr(datas[0])
         if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
@@ -169,8 +196,7 @@ class ClientHandler(ReplayHandler):
             self.ongoing = False
             return False
         if '\n' in data:
-            return all([self(_data) for _data in data.split('\n')])
-        datas: list[str] = data.split('|')
+            return all(self(_data) for _data in data.split('\n'))
         try:
             devlog(self.play_log(data))
         except:
@@ -364,9 +390,10 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     return handle
 
 @static
-def replay(replayname: str, delay: float = 0.3) -> ReplayHandler:
+def replay(replayname: str, delay: float = 0.3, handle: None | ReplayHandler = None) -> ReplayHandler:
     "Counterpart to `join` and `host` to play a replay (contained in `./Replays/`) locally."
-    handle = ReplayHandler()
+    if handle is None:
+        handle = ReplayHandler()
     net.threading.Thread(target=handle.read_replay, args=(replayname, delay)).start()
     return handle
 
