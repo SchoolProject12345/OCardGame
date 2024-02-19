@@ -4,7 +4,12 @@ import os
 from Assets.menu_assets import CardAssets
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
-from UserInterface.OcgVision.vision_main import State, ImageButton, DualBarVerti, TextBox
+from UserInterface.OcgVision.vision_main import (
+    State,
+    ImageButton,
+    DualBarVerti,
+    TextBox,
+)
 from UserInterface.card_handler import CardHolder
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
@@ -21,7 +26,8 @@ class GameMenu(State):
         self.is_decked = False
         self.is_handed = False
         self.ger_font_path = os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
+        )
         self.player_max_energy = 5
         self.player_health = 500
         self.player_energy = 4
@@ -30,25 +36,27 @@ class GameMenu(State):
         self.enemy_energy = 2
 
         # Game Menu
-        self.bg_game_menu_image = MenuBackgrounds.bg_assets["game_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_game_menu_image = MenuBackgrounds.bg_assets["game_menu_empty"][
+            "processed_img"
+        ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
 
         # Buttons
         self.hand_button = ImageButton(
-                                        self.screen,
-                                        True,
-                                        image=alpha_converter(MenuButtons.button_assets["Hand"]["processed_img"]),
-                                        position_type="topleft",
-                                        position=(296, 706)
-                                        )
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Hand"]["processed_img"]),
+            position_type="topleft",
+            position=(296, 706),
+        )
 
         self.deck_button = ImageButton(
-                                        self.screen,
-                                        True,
-                                        image=alpha_converter(MenuButtons.button_assets["Deck"]["processed_img"]),
-                                        position_type="topleft",
-                                        position=(824, 706)
-                                        )
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Deck"]["processed_img"]),
+            position_type="topleft",
+            position=(824, 706),
+        )
 
         # Bars
         self.player_health_bar = DualBarVerti(
@@ -59,8 +67,8 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(255, 122, 122),
-            max_value=600
-            )
+            max_value=600,
+        )
 
         self.player_energy_bar = DualBarVerti(
             self.screen,
@@ -70,9 +78,9 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(122, 215, 255),
-            max_value=self.player_max_energy
-            )
-        
+            max_value=self.player_max_energy,
+        )
+
         self.enemy_health_bar = DualBarVerti(
             self.screen,
             position=(566, 0),
@@ -81,9 +89,9 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(255, 122, 122),
-            max_value=600
-            )
-        
+            max_value=600,
+        )
+
         self.enemy_energy_bar = DualBarVerti(
             self.screen,
             position=(683, 0),
@@ -92,9 +100,9 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(122, 215, 255),
-            max_value=self.enemy_max_energy
-            )
-        
+            max_value=self.enemy_max_energy,
+        )
+
         # Text Boxes
         self.player_health_bar_text = TextBox(
             self.screen,
@@ -105,9 +113,9 @@ class GameMenu(State):
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
-            text=""
-            )
-        
+            text="",
+        )
+
         self.player_energy_bar_text = TextBox(
             self.screen,
             position=(683, 706),
@@ -117,22 +125,21 @@ class GameMenu(State):
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
-            text=""
-            )
-        
+            text="",
+        )
+
         self.enemy_health_bar_text = TextBox(
             self.screen,
             position=(566, 0),
             width=96,
             height=52,
-            font=pygame.font.Font(
-            self.ger_font_path, 30),
+            font=pygame.font.Font(self.ger_font_path, 30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
-            text=""
-            )
-        
+            text="",
+        )
+
         self.enemy_energy_bar_text = TextBox(
             self.screen,
             position=(683, 0),
@@ -142,24 +149,28 @@ class GameMenu(State):
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
-            text=""
-            )
+            text="",
+        )
 
         self.player_username_text = TextBox(
             self.screen,
             position=(72, 726),
-            width=96,height=52,
+            width=96,
+            height=52,
             font=pygame.font.Font(self.ger_font_path, 18),
             color=(255, 255, 255),
             position_type="topleft",
             text_center="center",
-            text=""
-            )
+            text="",
+        )
 
         # Pause Menu
-        self.bg_pause_menu_image = MenuBackgrounds.bg_assets["pause_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_pause_menu_image = MenuBackgrounds.bg_assets["pause_menu_empty"][
+            "processed_img"
+        ].convert_alpha()
         self.bg_pause_menu_rect = self.bg_pause_menu_image.get_rect(
-            center=SCREEN_CENTER)
+            center=SCREEN_CENTER
+        )
 
         # Buttons
         self.pauseback_button = ImageButton(
@@ -167,29 +178,34 @@ class GameMenu(State):
             True,
             image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]),
             position_type="center",
-            position=(SCREEN_CENTER[0], 294)
-            )
+            position=(SCREEN_CENTER[0], 294),
+        )
 
         self.settings_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Settings"]["processed_img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["Settings"]["processed_img"]
+            ),
             position_type="center",
-            position=(SCREEN_CENTER[0], 392)
-            )
+            position=(SCREEN_CENTER[0], 392),
+        )
 
         self.surrender_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Surrender"]["processed_img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["Surrender"]["processed_img"]
+            ),
             postion_type="center",
-            position=(SCREEN_CENTER[0], 490)
-            )
+            position=(SCREEN_CENTER[0], 490),
+        )
 
         # Deck Menu
-        self.bg_deck_menu_image = MenuBackgrounds.bg_assets["deck_menu_empty"]["processed_img"].convert_alpha()
-        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
-            center=SCREEN_CENTER)
+        self.bg_deck_menu_image = MenuBackgrounds.bg_assets["deck_menu_empty"][
+            "processed_img"
+        ].convert_alpha()
+        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(center=SCREEN_CENTER)
 
         # Buttons
         self.deckback_button = ImageButton(
@@ -197,23 +213,24 @@ class GameMenu(State):
             True,
             image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]),
             position_type="center",
-            position=(SCREEN_CENTER[0], 555)
-            )
+            position=(SCREEN_CENTER[0], 555),
+        )
 
         # Hand Menu
-        self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"]["processed_img"].convert_alpha()
-        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
-            center=SCREEN_CENTER)
+        self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"][
+            "processed_img"
+        ].convert_alpha()
+        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(center=SCREEN_CENTER)
 
         # Buttons
         self.handback_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]), 
+            image=alpha_converter(MenuButtons.button_assets["Back"]["processed_img"]),
             position_type="center",
-            position=(SCREEN_CENTER[0], 555)
-            )
-    
+            position=(SCREEN_CENTER[0], 555),
+        )
+
         self.card_test = CardHolder(self.screen, ("remote", 0), "board")
 
     # Toggle State
