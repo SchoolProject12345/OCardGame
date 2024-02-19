@@ -10,6 +10,7 @@ from UserInterface.OcgVision.vision_main import (
     DualBarVerti,
     TextBox,
 )
+from utility import search_event
 from UserInterface.card_handler import CardHolder
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
@@ -36,7 +37,7 @@ class GameMenu(State):
         self.enemy_energy = 2
 
         # Game Menu
-        self.bg_game_menu_image = MenuBackgrounds.bg_assets["game_menu_empty"][
+        self.bg_game_menu_image = MenuBackgrounds.bg_assets["earth_arena"][
             "processed_img"
         ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
@@ -231,7 +232,16 @@ class GameMenu(State):
             position=(SCREEN_CENTER[0], 555),
         )
 
+        self.n_cards = 7
+        self.card_slots = {"local": [], "remote": []}
         self.card_test = CardHolder(self.screen, ("remote", 0), "board")
+        for n in range(self.n_cards):
+            self.card_slots["local"].append(
+                CardHolder(self.screen, ("local", n), "board")
+            )
+            self.card_slots["remote"].append(
+                CardHolder(self.screen, ("remote", n), "board")
+            )
 
     # Toggle State
     def is_paused_toggle(self):
@@ -255,7 +265,13 @@ class GameMenu(State):
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
-        self.card_test.render()
+
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_down = search_event(super().events, pygame.MOUSEBUTTONDOWN)
+
+        for card_list in [self.card_slots["local"], self.card_slots["remote"]]:
+            for card in card_list:
+                card.render(mouse_pos, mouse_down,active = not self.is_paused)
 
         # User buttons
         self.deck_button.render()
@@ -276,7 +292,7 @@ class GameMenu(State):
                 self.is_handed_toggle()
 
         # Toggles
-        if self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+        if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.is_paused_toggle()
         if self.is_paused:
             self.screen.blit(self.bg_pause_menu_image, self.bg_pause_menu_rect)

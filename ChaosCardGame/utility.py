@@ -1,6 +1,18 @@
 import os
+import pygame
 
 cwd_path = os.path.dirname(os.path.abspath(__file__))
+
+
+def search_event(events: list, event_type: pygame.event.Event) -> pygame.event.Event | None:
+    """
+    Search for a specific event in the list of events.
+    """
+    filtered_events = []
+    for event in events:
+        if event.type == event_type:
+            filtered_events.append(event)
+    return filtered_events
 
 
 def get_settings(settings: dict = {}) -> dict:
@@ -40,9 +52,10 @@ def get_settings(settings: dict = {}) -> dict:
 
         def isfloat(arg: str):
             for c in arg:
-                if not (c.isdigit() or c == '.'):
+                if not (c.isdigit() or c == "."):
                     return False
             return True
+
         if value[0] == value[-1] == '"':
             value = value[1:-1]  # no strip after as spaces may be intentional
         elif value == "true":
@@ -59,7 +72,8 @@ def get_settings(settings: dict = {}) -> dict:
     if "version" not in settings or ltsemver(settings["version"], version):
         # relevant even to non-dev users, so a print is fine.
         print(
-            "Detected outdated options, updating to new defaults. \033[1;31mNote\033[0m: this overrides all previous options.")
+            "Detected outdated options, updating to new defaults. \033[1;31mNote\033[0m: this overrides all previous options."
+        )
         with open(os.path.join(cwd_path, "options.txt"), "w") as io:
             io.write(default)
             io.close()
@@ -78,7 +92,7 @@ def ltsemver(ver1: str, ver2: str):
     """
     error = ValueError(f'Excepted a version string "x.y.z", got: {ver2}')
 
-    ver2 = ver2.split('.')
+    ver2 = ver2.split(".")
     if len(ver2) != 3:
         raise error
     try:
@@ -86,7 +100,7 @@ def ltsemver(ver1: str, ver2: str):
     except ValueError:
         raise error
 
-    ver1 = ver1.split('.')
+    ver1 = ver1.split(".")
     if len(ver1) != 3:
         return True
     try:
@@ -108,7 +122,7 @@ def parse_semver(ver: str) -> tuple[int, int, int]:
     Doesn't support prereleases/build flags.
     """
     error = ValueError(f'Excepted a version string "x.y.z", got: {ver}')
-    ver = ver.split('.')
+    ver = ver.split(".")
     # write explicit zeros
     if len(ver) != 3:
         raise error
@@ -131,7 +145,8 @@ def get_setting(key: str, default: bool | int | str):
     if not any(isinstance(default, type) for type in (bool, int, str)):
         # It should be at the beginning for safety, but that'd impact performances, so please just don't use invalid types fpr default.
         raise ValueError(
-            "`get_setting`'s default excepted either a `bool`, `int` or `str`")
+            "`get_setting`'s default excepted either a `bool`, `int` or `str`"
+        )
     settings[key] = default
     if isinstance(default, bool):
         if default:

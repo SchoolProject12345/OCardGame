@@ -5,7 +5,7 @@ from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox, State
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path
+from utility import cwd_path,search_event
 
 
 class JoinMenu(State):
@@ -77,14 +77,14 @@ class JoinMenu(State):
         self.joinmenu_join_button.render()
         self.joinmenu_exit_button.render()
 
-        keys = pygame.event.get(pygame.KEYDOWN)
+        keys = search_event(super().events, pygame.KEYDOWN)
         self.room_text = self.tb_ipaddress.render(keys)
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
             self.change_state("GameMenu")  # Needs fixing
             self.player_username = self.joinmenu_tb_username.text
-        if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
+        if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
 
     def state_manager_hook(self,app):

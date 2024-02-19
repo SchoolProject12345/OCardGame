@@ -5,7 +5,7 @@ from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.MenuStates.join_menu_ui import JoinMenu
 from UserInterface.MenuStates.host_menu_ui import HostMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
- 
+from utility import search_event 
 class PlayMenu(State):
     def __init__(self, screen):
         self.screen = screen
@@ -51,7 +51,7 @@ class PlayMenu(State):
             self.change_state("HostMenu")
         elif self.playmenu_join_button.answer():
             self.change_state("JoinMenu")
-        elif self.playmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+        elif self.playmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events,pygame.KEYUP)):
             self.revert_state()
 
     def state_manager_hook(self,app):

@@ -4,6 +4,7 @@ import logging
 import pygame
 import os
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from UserInterface.OcgVision.vision_main import State
 from UserInterface.MenuStates.play_menu_ui import PlayMenu
 from UserInterface.MenuStates.main_menu_ui import MainMenu
 from UserInterface.MenuStates.main_menu_ui import MainMenu
@@ -32,6 +33,8 @@ class OcgGame:
         """
 
         pygame.init()
+        blocked_events = [pygame.MOUSEMOTION]
+        pygame.event.set_blocked(blocked_events)
         self.logo = pygame.image.load(os.path.join(utility.cwd_path,
                                                    "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
@@ -60,11 +63,12 @@ class OcgGame:
         self.running = True
         sound_handle("ambientmenumusictest2", "ambient_play", 30)
         while self.running:
+            events = pygame.event.get()
+            State.events = events
             self.menu_instances["main_menu"].state_manager(self)
-            if pygame.event.get(eventtype=pygame.QUIT):
-                self.stop()
-            pygame.event.get()
-
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.stop()
             pygame.display.update()
             self.clock.tick(60)
 

@@ -48,6 +48,7 @@ class State:
     """
 
     state_tree = ["MainMenu"]
+    events = []
 
     def __init__(
         self, screen: pygame.surface.Surface, is_anchor: bool, local_options: list

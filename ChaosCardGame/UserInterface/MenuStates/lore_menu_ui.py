@@ -3,6 +3,7 @@ from UserInterface.ui_settings import SCREEN_CENTER
 from UserInterface.OcgVision.vision_main import State, ImageButton
 from UserInterface.OcgVision.vision_io import KeyRel
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
+from utility import search_event
 
 class LoreMenu(State):
     def __init__(self, screen):
@@ -45,7 +46,7 @@ class LoreMenu(State):
 
     def lore_menu(self):
         self.screen.blit(self.bg_lore_images[self.lore_index],self.bg_lore_menu_rect)
-        events = pygame.event.get(pygame.KEYUP)
+        events = search_event(super().events,pygame.KEYDOWN)
         if self.escp_rel.update([e for e in events if e.type == pygame.KEYUP]):
             self.lore_index = 0
             self.revert_state()

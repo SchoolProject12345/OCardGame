@@ -5,7 +5,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path
+from utility import cwd_path, search_event
 
 
 class HostMenu(State):
@@ -76,7 +76,7 @@ class HostMenu(State):
         self.hostmenu_host_button.render()
         self.hostmenu_exit_button.render()
 
-        keys = pygame.event.get(pygame.KEYDOWN)
+        keys = search_event(super().events, pygame.KEYDOWN)
         self.room_text = self.tb_roomname.render(keys)
         self.username_text = self.hostmenu_tb_username.render(keys)
 
@@ -84,7 +84,7 @@ class HostMenu(State):
             self.roomname = self.tb_roomname.text
             self.player_username = self.hostmenu_tb_username.text
             self.change_state("GameMenu")
-        if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+        if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state()
 
     def state_manager_hook(self, app):
