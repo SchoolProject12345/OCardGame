@@ -95,6 +95,7 @@ class GameMenu(State):
             "paused": False,
             "decked": False,
             "handed": False,
+            "popped":False
         }
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
@@ -105,6 +106,7 @@ class GameMenu(State):
         self.enemy_max_energy = 5
         self.enemy_health = 250
         self.enemy_energy = 2
+    
 
         # Game Menu
         self.bg_game_menu_image = MenuBackgrounds.bg_assets["earth_arena"][
@@ -313,6 +315,7 @@ class GameMenu(State):
 
     def is_handed_toggle(self):
         self.ui_state["handed"] = not self.ui_state["handed"]
+    
 
     def game_menu(self):
         # Background elements
@@ -326,10 +329,8 @@ class GameMenu(State):
         self.enemy_health_bar_text.render(str(self.enemy_health))
         self.enemy_energy_bar_text.render(str(self.enemy_energy))
 
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_down = search_event(super().events, pygame.MOUSEBUTTONDOWN)
 
-        self.card_manager.render(mouse_pos, mouse_down, self.ui_state, self.game_state)
+        self.card_manager.render(super().events, self.ui_state, self.game_state)
 
         # User buttons
         self.deck_button.render()

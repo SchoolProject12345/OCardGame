@@ -76,7 +76,7 @@ def handle_assets(
         directory_path (str): The path to the directory containing the assets.
         size (int): The size of the assets.
         prefixes (list): The list of prefixes to be applied to the assets.
-        per_file (bool, optional): Flag indicating whether to process assets per file or per directory. 
+        per_file (bool, optional): Flag indicating whether to process assets per file or per directory.
             Defaults to False.
 
     Returns:
@@ -154,6 +154,7 @@ class TextBoxes:
     logging.info("Successfully loaded textboxes")
 
 
+@dataclass
 class CardAssets:
     """
     A dataclass to handle and store card assets. The `card_sprites` attribute
