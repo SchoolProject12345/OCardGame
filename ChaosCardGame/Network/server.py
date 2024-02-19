@@ -9,29 +9,45 @@ core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
 class HandlerHandler:
-    handle: ReplayHandler = ReplayHandler()
+    _handle: ReplayHandler = ReplayHandler()
+    ip_address: str = net.get_ip()
+    intialized: bool = False
     @staticmethod
     def donothing(*args, **kwargs) -> None:
         pass
     @classmethod
-    def init_handler(self: type, method: object, args: str, **kwargs):
+    def init_handler(self, method: object, *args: str, **kwargs):
         "Setup connection and store the handle created as `self.handle`."
         self.handle = method(*args, **kwargs)
+        self.initialized = True
+    @static
     @classmethod
-    def fetch_handler(self: type, method: object, *args: str, **kwargs):
-        "Setup connection on another thread and store the handle created as `self.handle`."
-        if method is replay:
-            kwargs["handle"] = super().__getattr__(self, "handle")
+    def fetch_handler(self, method: object, *args: str, **kwargs) -> bool:
+        """
+        Setup connection on another thread and store the handle created as `self.handle`.
+        Return `True` if successful, `False` otherwise.
+        """
+        if method is ReplayHandler.read_replay:
+            args = (super().__getattr__(self, "_handle"), *args)
+        if method in [join, host]:
+            self.ip_adress = args[1]
+        elif method not in [ReplayHandler.read_replay]:
+            core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
+            return False
         net.threading.Thread(
             target=self.init_handler,
             args=(method, args),
             kwargs=kwargs,
             daemon=True
         )
+        return True
     @classmethod
-    def __getattr__(self: type, name: str):
-        if hasattr(self, "handle"):
-            return super().__getattr__(self, "handle").__getattr__(name)
+    def __getattr__(self, name: str):
+        if hasattr(self, name):
+            return super().__getattr__(self, name) # for ip_adress, methods or such
+        handle: ReplayHandler = super().__getattr__(self, "_handle")
+        if hasattr(handle):
+            return handle.__getattr__(name)
         return self.donothing # fallback for run_action
 
 class ServerHandler(ReplayHandler):
@@ -306,7 +322,7 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
     return socket.recv(size)
 
 @static
-def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
+def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) -> ServerHandler:
     """
     Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
     IP must either be localhost (usually "127.0.0.1") or `server.net.get_ip()`.
@@ -351,7 +367,7 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     return handle
 
 @static
-def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
+def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
     "Initialize connection with peer of IP `target_ip`, returning a `ClientHandler` and listening for logs on a separate thread."
     if len(username) > 64:
         username = username[:63]
@@ -390,11 +406,10 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     return handle
 
 @static
-def replay(replayname: str, delay: float = 0.3, handle: None | ReplayHandler = None) -> ReplayHandler:
+def replay(replayname: str, /, *, delay: float = 0.3) -> ReplayHandler:
     "Counterpart to `join` and `host` to play a replay (contained in `./Replays/`) locally."
-    if handle is None:
-        handle = ReplayHandler()
-    net.threading.Thread(target=handle.read_replay, args=(replayname, delay)).start()
+    handle = ReplayHandler()
+    net.threading.Thread(target=handle.read_replay, args=(replayname,), kwargs={"delay":delay}).start()
     return handle
 
 @static
