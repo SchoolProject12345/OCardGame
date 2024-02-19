@@ -15,9 +15,7 @@ class TutorialMenu(State):
 
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
-
         self.tutorial_index = 0
-
         self.bg_tutorial1_menu_image = MenuBackgrounds.bg_assets["tutorial1_empty"][
             "processed_img"
         ].convert_alpha()
@@ -46,7 +44,6 @@ class TutorialMenu(State):
             "processed_img"
         ].convert_alpha()
         self.bg_tutorial_menu_rect = self.bg_tutorial1_menu_image.get_rect()
-
         self.bg_tutorial_images = []
         self.bg_tutorial_images.append(self.bg_tutorial1_menu_image)
         self.bg_tutorial_images.append(self.bg_tutorial2_menu_image)
