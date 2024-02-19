@@ -1,6 +1,7 @@
 import pygame
 import os
 import Network.server as server
+import server.HandlerHandler as handle
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
@@ -19,7 +20,7 @@ class HostMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
-        self.ipaddress = server.net.get_ip()
+        self.ipaddress = handle.ip_address
 
         self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
