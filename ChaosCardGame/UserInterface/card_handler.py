@@ -43,9 +43,7 @@ class CardHolder:
         self, mouse_pos: tuple[int, int], mousebuttondown: pygame.MOUSEBUTTONDOWN
     ):
         if self.position.collidepoint(mouse_pos) and mousebuttondown:
-            pygame.event.post(
-                fetch_event("SLOT_CLICKED", {"slot": self.board_index})
-            )
+            pygame.event.post(fetch_event("SLOT_CLICKED", {"slot": self.board_index}))
 
 
 class CardManager:
@@ -76,17 +74,18 @@ class CardManager:
 
     def update_popup(self, SLOT_CLICKED):
 
-        if SLOT_CLICKED :
+        if SLOT_CLICKED:
             self.show_popup = True
-            self.displayed_card_info = SLOT_CLICKED
+            self.popup_info = SLOT_CLICKED[0].slot
             pygame.event.post(fetch_event("UI_STATE", {"popped": True}))
 
         if self.show_popup:
-            self.popup_bg = MenuBackgrounds.bg_assets["card_popup_empty"][
-                "processed_img"
-            ]
-            self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
-            self.screen.blit(self.popup_bg, self.popup_bg_rect)
+            self.render_popup(self.popup_info)
+
+    def render_popup(self, slot):
+        self.popup_bg = MenuBackgrounds.bg_assets["card_popup_empty"]["processed_img"]
+        self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
+        self.screen.blit(self.popup_bg, self.popup_bg_rect)
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):
