@@ -3,7 +3,7 @@ from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event
-from Assets.menu_assets import MenuBackgrounds
+from Assets.menu_assets import MenuBackgrounds, CardAssets,smoothscale_converter
 from UserInterface.event_library import fetch_event
 
 
@@ -85,6 +85,8 @@ class CardManager:
     def render_popup(self, slot):
         self.popup_bg = MenuBackgrounds.bg_assets["card_popup_empty"]["processed_img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
+        self.popup_card_img = smoothscale_converter([CardAssets.card_sprites[self.game_state[slot[0]][slot[1]][slot[2]]["name"]]["processed_img"][1]],2)
+        self.popup_bg.blit(self.popup_card_img[0], (0, 0))
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
 
     def update_board(self):
