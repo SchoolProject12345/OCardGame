@@ -56,17 +56,12 @@ class HostMenu(State):
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             get_settings()["is_hosting"] = False
             self.change_state("LobbyMenu")
-            server.net.threading.Thread(target=self.fetch_handler, args=(self.hostmenu_tb_username.text, self.ipaddress), daemon=True).start()
+            server.HandlerHandler.fetch_handler(server.host, self.hostmenu_tb_username.text, self.ipaddress)
 
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             self.revert_state()
-
-    def fetch_handler(self, username: str, ip_adress: str, port: int = 12345):
-        "To be run on a separate thread. Setup connection as host and store the handle created as `self.handle`."
-        self.handle = server.host(username, ip_adress, port=port)
-        # No handler yet, don't know what you want to use.
     
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
