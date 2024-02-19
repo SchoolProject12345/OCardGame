@@ -13,8 +13,8 @@ class EarthCards():
             os.path.join(utility.cwd_path, "Assets/Group 50.png")).convert_alpha()
         self.image_2 = pygame.image.load(
             os.path.join(utility.cwd_path, "Assets/Group 53.png")).convert_alpha()
-        self.total = [[self.image], [self.image_2]]
-        self.total_2 = [[self.image], [self.image_2]]
+        self.total = [self.image for i in range(6)]
+        self.total_2 = [self.image for i in range(6)]
         self.left_side = ToggleGridFour(
             self.screen, [self.total, self.total, self.total, self.total], 475, 450, (25, 145), 0.78, 0.8)
         self.right_side = ToggleGridFour(
@@ -37,7 +37,7 @@ class CardsMenu(State):
         self.exit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]), 
+            image=alpha_converter(MenuButtons.button_assets["ExitArrow"]["processed_img"]), 
             position_type="topleft",
             position=(25, 25)
             )

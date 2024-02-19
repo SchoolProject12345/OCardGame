@@ -49,7 +49,7 @@ class PlayMenu(State):
 
         if self.playmenu_host_button.answer():
             self.change_state("HostMenu")
-        elif self.join_button.answer():
+        elif self.playmenu_join_button.answer():
             self.change_state("JoinMenu")
         elif self.playmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             self.revert_state()

@@ -377,17 +377,14 @@ class ToggleGridFour:
         self.all_images = images
         self.toggles = []
         for i_1, toggle in enumerate(self.all_images):
-            for i_2, image_type in enumerate(toggle):
-                match i_2:
-                    case 0:
-                        local_factor = factor
-                    case 1:
-                        local_factor = factor_T
-                self.all_images[i_1][i_2] = smoothscale_converter(
-                    image_type, local_factor
-                )
-        self.card_width = self.all_images[0][0][0].get_width()
-        self.card_height = self.all_images[0][0][0].get_height()
+            if i_1 < 2:
+                self.all_images[i_1] = smoothscale_converter(toggle,factor)
+            else:
+                self.all_images[i_1] = smoothscale_converter(toggle,factor_T)
+
+                
+        self.card_width = self.all_images[0][0].get_width()
+        self.card_height = self.all_images[0][0].get_height()
         self.initial_pos = initial_pos
         self.top_left = self.initial_pos
         self.top_right = (

@@ -15,19 +15,18 @@ class LoreMenu(State):
         self.space_rel = KeyRel(pygame.K_SPACE)
 
         self.lore_index = 0
-
-        self.bg_lore1_menu_image = MenuBackgrounds.bg_assets["lore1_menu_empty"].convert_alpha()
-        self.bg_lore2_menu_image = MenuBackgrounds.bg_assets["lore2_menu_empty"].convert_alpha()
-        self.bg_lore3_menu_image = MenuBackgrounds.bg_assets["lore3_menu_empty"].convert_alpha()
-        self.bg_lore4_menu_image = MenuBackgrounds.bg_assets["lore4_menu_empty"].convert_alpha()
-        self.bg_lore5_menu_image = MenuBackgrounds.bg_assets["lore5_menu_empty"].convert_alpha()
-        self.bg_lore6_menu_image = MenuBackgrounds.bg_assets["lore6_menu_empty"].convert_alpha()
-        self.bg_lore7_menu_image = MenuBackgrounds.bg_assets["lore7_menu_empty"].convert_alpha()
-        self.bg_lore8_menu_image = MenuBackgrounds.bg_assets["lore8_menu_empty"].convert_alpha()
-        self.bg_lore9_menu_image = MenuBackgrounds.bg_assets["lore9_menu_empty"].convert_alpha()
-        self.bg_lore10_menu_image = MenuBackgrounds.bg_assets["lore10_menu_empty"].convert_alpha()
-        self.bg_lore11_menu_image = MenuBackgrounds.bg_assets["lore11_menu_empty"].convert_alpha()
-        self.bg_lore12_menu_image = MenuBackgrounds.bg_assets["lore12_menu_empty"].convert_alpha()
+        self.bg_lore1_menu_image = MenuBackgrounds.bg_assets["lore_1_empty"]["processed_img"].convert_alpha()
+        self.bg_lore2_menu_image = MenuBackgrounds.bg_assets["lore_2_empty"]["processed_img"].convert_alpha()
+        self.bg_lore3_menu_image = MenuBackgrounds.bg_assets["lore_3_empty"]["processed_img"].convert_alpha()
+        self.bg_lore4_menu_image = MenuBackgrounds.bg_assets["lore_4_empty"]["processed_img"].convert_alpha()
+        self.bg_lore5_menu_image = MenuBackgrounds.bg_assets["lore_5_empty"]["processed_img"].convert_alpha()
+        self.bg_lore6_menu_image = MenuBackgrounds.bg_assets["lore_6_empty"]["processed_img"].convert_alpha()
+        self.bg_lore7_menu_image = MenuBackgrounds.bg_assets["lore_7_empty"]["processed_img"].convert_alpha()
+        self.bg_lore8_menu_image = MenuBackgrounds.bg_assets["lore_8_empty"]["processed_img"].convert_alpha()
+        self.bg_lore9_menu_image = MenuBackgrounds.bg_assets["lore_9_empty"]["processed_img"].convert_alpha()
+        self.bg_lore10_menu_image = MenuBackgrounds.bg_assets["lore_10_empty"]["processed_img"].convert_alpha()
+        self.bg_lore11_menu_image = MenuBackgrounds.bg_assets["lore_11_empty"]["processed_img"].convert_alpha()
+        self.bg_lore12_menu_image = MenuBackgrounds.bg_assets["lore_12_empty"]["processed_img"].convert_alpha()
         self.bg_lore_menu_rect = self.bg_lore1_menu_image.get_rect()
         
         self.bg_lore_images = []

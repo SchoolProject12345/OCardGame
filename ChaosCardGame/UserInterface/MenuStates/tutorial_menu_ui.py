@@ -16,15 +16,15 @@ class TutorialMenu(State):
 
         self.tutorial_index = 0
 
-        self.bg_tutorial1_menu_image = MenuBackgrounds.bg_tutorial1_image.convert_alpha()
-        self.bg_tutorial2_menu_image = MenuBackgrounds.bg_tutorial2_image.convert_alpha()
-        self.bg_tutorial3_menu_image = MenuBackgrounds.bg_tutorial3_image.convert_alpha()
-        self.bg_tutorial4_menu_image = MenuBackgrounds.bg_tutorial4_image.convert_alpha()
-        self.bg_tutorial5_menu_image = MenuBackgrounds.bg_tutorial5_image.convert_alpha()
-        self.bg_tutorial6_menu_image = MenuBackgrounds.bg_tutorial6_image.convert_alpha()
-        self.bg_tutorial7_menu_image = MenuBackgrounds.bg_tutorial7_image.convert_alpha()
-        self.bg_tutorial8_menu_image = MenuBackgrounds.bg_tutorial8_image.convert_alpha()
-        self.bg_tutorial9_menu_image = MenuBackgrounds.bg_tutorial9_image.convert_alpha()
+        self.bg_tutorial1_menu_image = MenuBackgrounds.bg_assets["tutorial1_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial2_menu_image = MenuBackgrounds.bg_assets["tutorial2_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial3_menu_image = MenuBackgrounds.bg_assets["tutorial3_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial4_menu_image = MenuBackgrounds.bg_assets["tutorial4_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial5_menu_image =MenuBackgrounds.bg_assets["tutorial5_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial6_menu_image = MenuBackgrounds.bg_assets["tutorial6_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial7_menu_image = MenuBackgrounds.bg_assets["tutorial7_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial8_menu_image = MenuBackgrounds.bg_assets["tutorial8_empty"]["processed_img"].convert_alpha()
+        self.bg_tutorial9_menu_image = MenuBackgrounds.bg_assets["tutorial9_empty"]["processed_img"].convert_alpha()
         self.bg_tutorial_menu_rect = self.bg_tutorial1_menu_image.get_rect()
         
         self.bg_tutorial_images = []

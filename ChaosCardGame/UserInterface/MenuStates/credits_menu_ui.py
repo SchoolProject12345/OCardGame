@@ -23,7 +23,7 @@ class CreditsMenu(State):
         self.screen.blit(self.bg_credits_menu_image, self.bg_credits_menu_rect)
         self.creditsexit_button.render()
 
-        if self.button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        if self.creditsexit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.revert_state(1)
 
     def state_manager_hook(self,app):
