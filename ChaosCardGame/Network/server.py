@@ -8,28 +8,64 @@ core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "deb
 core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
-class Monad(type):
-    def __getattr__(self, name: str):
-        if hasattr(self, name):
-            return super().__getattr__(name) # for ip_adress, methods or such
-        handle: ReplayHandler = super().__getattr__("_handle")
-        if hasattr(handle):
-            return handle.__getattr__(name)
-        return self.donothing # fallback for run_action
+class SingletonMonad(type):
+    """
+    Setting this has a metaclas allow the class *itself* to be a wrapper around its field defined through `wrap`.
+    All the wrapped field's fields are also accessible from the class itself.
+    Instances of the class are typically not created.
+    All non-existing fields are returned as the `Void` value, which can then be infinitely accessed.
 
-class HandlerHandler(metaclass=Monad):
+    # Example
+    ```py
+    >>> class Foo:
+    ...     x: int
+    ...     y: int
+    ...     def __init__(self, x: int, y: int):
+    ...         self.x = x
+    ...         self.y = y
+    ...     def sum(self):
+    ...         return self.x + self.y
+    >>> class FooWrapper(metaclass=SingletonMonad):
+    ...     wrap: str = "foo" # name of the wrapped value
+    ...     foo: Foo = Foo(3, 2) # wrapped value
+    ...     @classmethod # methods need to be classmethod to take self.
+    ...     def prod(self): # other methods/field can be implemented as well for error handling
+    ...         return self.x * self.y # equivalent to `self.foo.x * self.foo.y`
+    >>> FooWrapper.sum()
+    5
+    >>> FooWrapper.prod()
+    6
+    >>> FooWrapper.field.that.doesnt.exist() is Void
+    True
+    ```
+    """
+    wrap: str
+    def __getattribute__(self, name: str): # different from __getattr__ obviously ( ͡° ͜ʖ ͡°)
+        try: # hasattr is just a try
+            return type.__getattribute__(self, name) # for other fields, methods or such
+        except AttributeError:
+            pass
+        try: # I hate Python so much
+            wrap: ReplayHandler = type.__getattribute__(self, type.__getattribute__(self, "wrap"))
+            return wrap.__getattribute__(name)
+        except AttributeError:
+            return Void # fallback method
+    def __call__(self, *_, **kwargs):
+        return self # avoid creating instances.
+
+class Void(metaclass=SingletonMonad):
+    pass
+
+class HandlerHandler(metaclass=SingletonMonad):
+    wrap: str = "_handle"
     _handle: ReplayHandler = ReplayHandler()
     ip_address: str = net.get_ip()
     intialized: bool = False
-    @staticmethod
-    def donothing(*args, **kwargs) -> None:
-        pass
     @classmethod
     def init_handler(self, method: object, *args: str, **kwargs):
         "Setup connection and store the handle created as `self.handle`."
         self.handle = method(*args, **kwargs)
         self.initialized = True
-    @static
     @classmethod
     def fetch_handler(self, method: object, *args: str, **kwargs) -> bool:
         """
@@ -37,7 +73,7 @@ class HandlerHandler(metaclass=Monad):
         Return `True` if successful, `False` otherwise.
         """
         if method is ReplayHandler.read_replay:
-            args = (Monad.__getattr__("_handle"), *args)
+            args = (SingletonMonad.__getattribute__("_handle"), *args)
         if method in [join, host]:
             self.ip_adress = args[1]
         elif method not in [ReplayHandler.read_replay]:
