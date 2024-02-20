@@ -86,6 +86,8 @@ def handle_assets(
     for dirpath, _, filename in os.walk(directory_path):
         if per_file:
             for file in filename:
+                if file[0] == ".":
+                    continue 
                 key = file.split(".")[0]
                 assets[key] = {
                     "path": dirpath,

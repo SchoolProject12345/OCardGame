@@ -83,11 +83,11 @@ class CardManager:
             self.render_popup(self.popup_info)
 
     def render_popup(self, slot):
-        self.popup_bg = MenuBackgrounds.bg_assets["card_popup_empty"]["processed_img"]
+        self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["processed_img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(slot)]["processed_img"][1]
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
-        self.screen.blit(self.popup_card_img, (332,268))
+        self.screen.blit(self.popup_card_img, (295,179))
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):
