@@ -17,31 +17,31 @@ class TutorialMenu(State):
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
         self.tutorial_index = 0
         self.bg_tutorial1_menu_image = MenuBackgrounds.bg_assets["tutorial1_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial2_menu_image = MenuBackgrounds.bg_assets["tutorial2_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial3_menu_image = MenuBackgrounds.bg_assets["tutorial3_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial4_menu_image = MenuBackgrounds.bg_assets["tutorial4_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial5_menu_image = MenuBackgrounds.bg_assets["tutorial5_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial6_menu_image = MenuBackgrounds.bg_assets["tutorial6_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial7_menu_image = MenuBackgrounds.bg_assets["tutorial7_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial8_menu_image = MenuBackgrounds.bg_assets["tutorial8_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial9_menu_image = MenuBackgrounds.bg_assets["tutorial9_empty"][
-            "processed_img"
+            "img"
         ].convert_alpha()
         self.bg_tutorial_menu_rect = self.bg_tutorial1_menu_image.get_rect()
         self.bg_tutorial_images = []
@@ -60,7 +60,7 @@ class TutorialMenu(State):
             self.screen,
             True,
             image=alpha_converter(
-                MenuButtons.button_assets["SkipTutorial"]["processed_img"]
+                MenuButtons.button_assets["SkipTutorial"]["img"]
             ),
             position_type="topleft",
             position=(1105, 632),
@@ -70,7 +70,7 @@ class TutorialMenu(State):
             self.screen,
             True,
             image=alpha_converter(
-                MenuButtons.button_assets["NextTutorial"]["processed_img"]
+                MenuButtons.button_assets["NextTutorial"]["img"]
             ),
             position_type="topleft",
             position=(1105, 691),
@@ -87,7 +87,8 @@ class TutorialMenu(State):
             if self.nexttutorial_button.answer():
                 self.tutorial_index += 1
                 # Play the corresponding TutorialSpeech sound
-                sound_handle(f"TutorialSpeech{self.tutorial_index + 1}", sfx_channel=7)
+                sound_handle(
+                    f"TutorialSpeech{self.tutorial_index + 1}", sfx_channel=7)
 
         if self.skiptutorial_button.answer() or self.escp_rel.update(
             search_event(super().events, pygame.KEYUP)

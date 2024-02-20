@@ -36,7 +36,7 @@ class CardHolder:
             self.card_id = "MiscEmpty"
         if active and self.card_id != "MiscEmpty":
             self.check_clicked(mouse_pos, mousebuttondown)
-        self.card_img = CardAssets.card_sprites[self.card_id]["processed_img"]
+        self.card_img = CardAssets.card_sprites[self.card_id]["img"]
         self.screen.blit(self.card_img[0], self.position)
 
     def check_clicked(
@@ -85,10 +85,10 @@ class CardManager:
             self.render_popup(self.popup_info)
 
     def render_popup(self, slot):
-        self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["processed_img"]
+        self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
-            slot)]["processed_img"][1]
+            slot)]["img"][1]
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
         self.screen.blit(self.popup_card_img, (295, 179))
 

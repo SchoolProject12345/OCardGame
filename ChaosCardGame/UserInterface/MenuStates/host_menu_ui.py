@@ -18,13 +18,15 @@ class HostMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
-        self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["img"].convert_alpha(
+        )
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
 
         # Select Text Boxes
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
         self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
-        self.hostmenu_username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
+        self.hostmenu_username_tb_rect = self.tb_image.get_rect(
+            topleft=(438, 429))
 
         self.tb_roomname = SelectTextBox(
             self.screen,
@@ -37,8 +39,8 @@ class HostMenu(State):
             position_type="center",
             text_center="center",
             default_text="Roomname"
-            )
-        
+        )
+
         self.hostmenu_tb_username = SelectTextBox(
             self.screen,
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
@@ -50,24 +52,24 @@ class HostMenu(State):
             position_type="center",
             text_center="center",
             default_text="Username"
-            )
+        )
 
         # Buttons
         self.hostmenu_host_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Host"]["processed_img"]),
+            image=alpha_converter(MenuButtons.button_assets["Host"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202)
-            )
+        )
 
         self.hostmenu_exit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]),
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302)
-            )
+        )
 
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)

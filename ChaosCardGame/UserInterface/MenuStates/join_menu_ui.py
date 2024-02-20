@@ -5,7 +5,7 @@ from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox, State
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path,search_event
+from utility import cwd_path, search_event
 
 
 class JoinMenu(State):
@@ -18,13 +18,15 @@ class JoinMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_key = KeyRel(pygame.K_ESCAPE)
 
-        self.bg_join_menu_image = MenuBackgrounds.bg_assets["join_menu_empty"]["processed_img"].convert_alpha()
+        self.bg_join_menu_image = MenuBackgrounds.bg_assets["join_menu_empty"]["img"].convert_alpha(
+        )
         self.bg_join_menu_rect = self.bg_join_menu_image.get_rect()
 
         # Select Text Boxes
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
         self.ipaddress_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
-        self.joinmenu_username_tb_rect = self.tb_image.get_rect(topleft=(438, 429))
+        self.joinmenu_username_tb_rect = self.tb_image.get_rect(
+            topleft=(438, 429))
 
         self.tb_ipaddress = SelectTextBox(
             self.screen,
@@ -37,8 +39,8 @@ class JoinMenu(State):
             position_type="center",
             text_center="center",
             default_text="IP Address"
-            )
-        
+        )
+
         self.joinmenu_tb_username = SelectTextBox(
             self.screen,
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
@@ -50,25 +52,25 @@ class JoinMenu(State):
             position_type="center",
             text_center="center",
             default_text="Username"
-            )
+        )
 
         # Buttons
         self.joinmenu_join_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Join"]["processed_img"]),
+            image=alpha_converter(MenuButtons.button_assets["Join"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202)
-            )
-        
+        )
+
         self.joinmenu_exit_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Exit"]["processed_img"]),
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0],
-            SCREEN_CENTER[1]+302)
-            )
+                      SCREEN_CENTER[1]+302)
+        )
 
     def join_menu(self):
         self.screen.blit(self.bg_join_menu_image, self.bg_join_menu_rect)
@@ -87,7 +89,7 @@ class JoinMenu(State):
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
 
-    def state_manager_hook(self,app):
+    def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:
                 app.menu_instances["game_menu"].state_manager(app)

@@ -43,65 +43,52 @@ def smoothscale_converter(objects: list[pygame.Surface] | list[list], factor: fl
     return objects
 
 
-def process_dir(path, prefixes: list):
-    """
-    Process the files in the given directory and load images based on the specified prefixes.
-
-    Args:
-        path (str): The path of the directory to process.
-        prefixes (list): A list of prefixes to filter the files.
-
-    Returns:
-        list: A curated list of loaded images based on the prefixes.
-    """
-    curated_list = ["placeholder" for _ in range(len(prefixes))]
-    for file in os.listdir(path):
-        filepath = os.path.join(path, file)
+def dir_sorter(dir_path: str, prefixes):
+    sorted_file_path = ["" for _ in range(len(os.listdir(dir_path)))]
+    for file in os.listdir(dir_path):
+        filepath = os.path.join(dir_path, file)
         for prefix in prefixes:
             if file.startswith(prefix):
-                curated_list[prefixes.index(
-                    prefix)] = pygame.image.load(filepath)
-            elif prefix == "any":
-                curated_list[prefixes.index(
-                    prefix)] = pygame.image.load(filepath)
-
-    return curated_list
+                sorted_file_path[prefixes.index(prefix)] = filepath
+    sorted_file_path = [item for item in sorted_file_path if item != ""]
+    return sorted_file_path
 
 
-def handle_assets(
-    directory_path: str, size: int, prefixes: list, per_file: bool = False
-):
-    """
-    Handle the assets in the specified directory.
-
-    Args:
-        directory_path (str): The path to the directory containing the assets.
-        size (int): The size of the assets.
-        prefixes (list): The list of prefixes to be applied to the assets.
-        per_file (bool, optional): Flag indicating whether to process assets per file or per directory.
-            Defaults to False.
-
-    Returns:
-        dict: A dictionary containing the processed assets.
-    """
-    assets = {}
-    for dirpath, _, filename in os.walk(directory_path):
-        if per_file:
-            for file in filename:
-                if file[0] == ".":
-                    continue
-                key = file.split(".")[0]
-                assets[key] = {
-                    "path": dirpath,
-                    "processed_img": pygame.image.load(os.path.join(dirpath, file)),
-                }
-        else:
-            key = os.path.basename(dirpath)
-            assets[key] = {
-                "path": dirpath,
-                "processed_img": process_dir(dirpath, prefixes),
+def dict_packager(dir_path_list: list, prefixes: list):
+    packaged_dict = {}
+    if os.path.isfile(dir_path_list[0]):
+        for file_path in dir_path_list:
+            packaged_dict[os.path.basename(file_path).split(".")[0]] = {
+                "path": file_path,
+                "img": pygame.image.load(file_path)
             }
-    return assets
+    elif os.path.isdir(dir_path_list[0]):
+        for dir_path in dir_path_list:
+            if len(prefixes) > 0:
+                packaged_dict[os.path.basename(dir_path).split(".")[0]] = {
+                    "path": dir_path,
+                    "img": [pygame.image.load(os.path.join(dir_path, image)) for image in dir_sorter(dir_path, prefixes)]
+                }
+            else:
+                packaged_dict[os.path.basename(dir_path).split(".")[0]] = {
+                    "path": dir_path,
+                    "img": [pygame.image.load(os.path.join(dir_path, image)) for image in os.listdir(dir_path) if os.path.basename(image)[0] != "."]
+                }
+    return packaged_dict
+
+
+def handle_assets(path: str, per_file=False, prefixes: list = []):
+    asset_queue = []
+    for dirpath, dirname, filename in os.walk(path):
+        if len(dirname) == 0:
+            if per_file:
+                for file in filename:
+                    asset_queue.append(os.path.join(dirpath, file))
+            else:
+                asset_queue.append(dirpath)
+    asset_queue = [
+        asset for asset in asset_queue if os.path.basename(asset)[0] != "."]
+    return dict_packager(asset_queue, prefixes)
 
 
 graphics_path = os.path.join(utility.cwd_path, "Assets", "Graphics", "")
@@ -116,7 +103,7 @@ class MenuBackgrounds:
 
     # Background Images
     bg_dir = os.path.join(graphics_path, "Backgrounds", "")
-    bg_assets = handle_assets(bg_dir, 1, ["any"], True)
+    bg_assets = handle_assets(bg_dir, True)
     logging.info("Successfully loaded backgrounds")
 
 
@@ -128,7 +115,7 @@ class MenuButtons:
     """
 
     button_dir = os.path.join(graphics_path, "Buttons", "")
-    button_assets = handle_assets(button_dir, 3, ["_i_", "_h_", "_c_"])
+    button_assets = handle_assets(button_dir, prefixes=["_i_", "_h_", "_c_"])
     logging.info("Successfully loaded buttons")
 
 
@@ -140,7 +127,7 @@ class CardsMenuToggles:
 
     toggle_dir = os.path.join(graphics_path, "Toggles", "")
     toggle_assets = handle_assets(
-        toggle_dir, 2, ["_i2_", "_h2_", "_c2_", "_i1_", "_h1_", "_c1_"]
+        toggle_dir, prefixes=["_i2_", "_h2_", "_c2_", "_i1_", "_h1_", "_c1_"]
     )
     logging.info("Successfully loaded card menu toggles")
 
@@ -169,18 +156,19 @@ class CardAssets:
 
     if load_cards:
         card_sprites = handle_assets(
-            os.path.join(graphics_path, "Cards"), 2, ["s_", "b_"]
+            os.path.join(graphics_path, "Cards"), prefixes=["s_", "b_"]
         )
 
+        print(card_sprites)
     else:
         card_sprites = handle_assets(
             os.path.join(utility.cwd_path, "Debug",
-                         "debug_cards"), 2, ["s_", "b_"]
+                         "debug_card"), prefixes=["s_", "b_"]
         )
         card_sprites.update(
             handle_assets(
                 os.path.join(graphics_path, "Cards",
-                             "Misc"), 2, ["s_", "b_"]
+                             "Misc"), prefixes=["s_", "b_"]
             )
         )
         logging.warning("Enabled debug cards")
