@@ -55,9 +55,6 @@ class LobbyMenu(State):
             #self.hostusername_text.render(self.hostusername_text_content)
             self.username_text.render(self.username_text_content)
 
-        # Wait, whose IP is that? Is that the host's?
-        # Don't the player enter the IP from join_menu?
-        # I don't really understand what this is for.
         self.ipaddress_text.render(handle.ip_address)
         self.roomname_text.render(self.roomname_text_content)
 
