@@ -4,13 +4,15 @@ import pygame
 cwd_path = os.path.dirname(os.path.abspath(__file__))
 
 
-def search_event(events: list, event_type: pygame.event.Event) -> pygame.event.Event | None:
+def search_event(events: list, event_type: list[pygame.event.Event]) -> pygame.event.Event | None:
     """
-    Search for a specific event in the list of events.
+    Search for a specific events in the list of events.
     """
+    if type(event_type) != list:
+        event_type = [event_type]
     filtered_events = []
     for event in events:
-        if event.type == event_type:
+        if event.type in event_type:
             filtered_events.append(event)
     return filtered_events
 

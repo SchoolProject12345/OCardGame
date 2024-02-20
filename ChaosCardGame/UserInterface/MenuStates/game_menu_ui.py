@@ -10,7 +10,7 @@ from UserInterface.OcgVision.vision_main import (
     DualBarVerti,
     TextBox,
 )
-from UserInterface.event_library import fetch_event
+from UserInterface.event_library import CustomEvents
 from utility import search_event
 from UserInterface.card_handler import CardManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
@@ -31,7 +31,13 @@ class GameMenu(State):
                         "name": "debug_card",
                         "state": "default",
                     },
-                    None,
+                    {
+                        "element": 2,
+                        "hp": 40,
+                        "max_hp": 40,
+                        "name": "debug_card",
+                        "state": "default",
+                    },
                     None,
                     None,
                     None,
@@ -312,7 +318,7 @@ class GameMenu(State):
 
     def handle_events(self, events):
         for event in events:
-            if event.type == fetch_event("UI_STATE", raw=True):
+            if event.type == CustomEvents.UI_STATE:
                 # Access the dictionary attribute using vars()
                 event_dict = vars(event)
                 for state in event_dict.keys():

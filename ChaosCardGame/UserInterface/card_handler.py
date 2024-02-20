@@ -3,8 +3,9 @@ from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event
-from Assets.menu_assets import MenuBackgrounds, CardAssets, smoothscale_converter
-from UserInterface.event_library import fetch_event
+from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons
+from UserInterface.OcgVision.vision_main import ImageButton
+from UserInterface.event_library import CustomEvents
 
 
 class CardHolder:
@@ -43,8 +44,8 @@ class CardHolder:
         self, mouse_pos: tuple[int, int], mousebuttondown: pygame.MOUSEBUTTONDOWN
     ):
         if self.position.collidepoint(mouse_pos) and mousebuttondown:
-            pygame.event.post(fetch_event(
-                "SLOT_CLICKED", {"slot": self.board_index}))
+            pygame.event.post(pygame.event.Event(
+                CustomEvents.SLOT_CLICKED, {"slot": self.board_index}))
 
 
 class CardManager:
@@ -72,25 +73,44 @@ class CardManager:
         self.check_active_slots()
         self.update_board()
         self.update_popup(search_event(
-            events, fetch_event("SLOT_CLICKED", raw=True)))
+            events, [CustomEvents.CLOSE_POPUP, CustomEvents.SLOT_CLICKED]))
 
-    def update_popup(self, SLOT_CLICKED):
-
-        if SLOT_CLICKED:
-            self.show_popup = True
-            self.popup_info = SLOT_CLICKED[0].slot
-            pygame.event.post(fetch_event("UI_STATE", {"popped": True}))
-
+    def update_popup(self, popup_event):
+        for event in popup_event:
+            if CustomEvents.SLOT_CLICKED == event.type:
+                self.popup_info = event.slot
+                self.generate_popup(self.popup_info)
+                pygame.event.post(pygame.event.Event(
+                    CustomEvents.UI_STATE, {"popped": True}))
+                self.show_popup = True
+            elif CustomEvents.CLOSE_POPUP == event.type:
+                self.show_popup = False
+                pygame.event.post(pygame.event.Event(
+                    CustomEvents.UI_STATE, {"popped": False}))
         if self.show_popup:
-            self.render_popup(self.popup_info)
+            self.render_popup()
 
-    def render_popup(self, slot):
+    def generate_popup(self, slot):
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
             slot)]["img"][1]
+        self.popup_btns = [
+            ImageButton(
+                self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 288)),
+            ImageButton(
+                self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 338)),
+            ImageButton(
+                self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)
+            )
+        ]
+
+    def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
         self.screen.blit(self.popup_card_img, (295, 179))
+        for btn in self.popup_btns:
+            btn.render()
+            btn.answer()
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):
@@ -104,7 +124,7 @@ class CardManager:
             slot.render(
                 self.mouse_pos,
                 self.mouse_down,
-                card_id=self.get_card(("local", "board", index)),
+                card_id=self.get_card(("remote", "board", index)),
                 active=self.board_active,
             )
 

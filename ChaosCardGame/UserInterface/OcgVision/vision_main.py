@@ -197,10 +197,10 @@ class ImageButton:
             self.previous_state == self.all_states[2]
             and self.state == self.all_states[1]
         ):
-            if inspect.isfunction(self.call_back):
-                return self.call_back()
-            elif type(self.call_back) == pygame.event.Event:
+            if isinstance(self.call_back, pygame.event.Event):
                 pygame.event.post(self.call_back)
+            elif inspect.isfunction(self.call_back):
+                return self.call_back()
             else:
                 return self.call_back
 
@@ -321,10 +321,10 @@ class ImageToggle:
         ):
             self.change_toggle()
         if self.is_toggled:
-            if inspect.isfunction(self.call_back):
-                return self.call_back()
-            elif type(self.call_back) == pygame.event.Event:
+            if isinstance(self.call_back, pygame.event.Event):
                 pygame.event.post(self.call_back)
+            elif inspect.isfunction(self.call_back):
+                return self.call_back()
             else:
                 return self.call_back
 
@@ -379,11 +379,10 @@ class ToggleGridFour:
         self.toggles = []
         for i_1, toggle in enumerate(self.all_images):
             if i_1 < 2:
-                self.all_images[i_1] = smoothscale_converter(toggle,factor)
+                self.all_images[i_1] = smoothscale_converter(toggle, factor)
             else:
-                self.all_images[i_1] = smoothscale_converter(toggle,factor_T)
+                self.all_images[i_1] = smoothscale_converter(toggle, factor_T)
 
-                
         self.card_width = self.all_images[0][0].get_width()
         self.card_height = self.all_images[0][0].get_height()
         self.initial_pos = initial_pos
