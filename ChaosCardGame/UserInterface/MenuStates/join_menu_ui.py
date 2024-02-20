@@ -1,6 +1,6 @@
 import os
 import pygame
-import Network.server as server
+from Network.server import HandlerHandler as handle, join as join_server # join might conflict
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
@@ -55,7 +55,7 @@ class JoinMenu(State):
             get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             get_settings()["is_hosting"] = False
             self.change_state("LobbyMenu")
-            server.HandlerHandler.fetch_handler(server.join, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
+            handle.fetch_handler(join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
 
         if self.joinmenu_exit_button.answer() or self.escp_key.update(pygame.event.get(pygame.KEYUP)):
             get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
