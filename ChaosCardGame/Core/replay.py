@@ -98,7 +98,7 @@ class ReplayHandler:
             replay += log + "\n"
         return replay.strip()
     @static
-    def read_replay(self, name: str, delay: float = 0.0):
+    def read_replay(self, name: str, /, *, delay: float = 0.3):
         """
         Try to read replay contained at `./Replays/{name}`,
         mutating `self`'s game state and printing logs to the terminal if in DEV()-mode.
@@ -172,10 +172,10 @@ class ReplayHandler:
     def default_state() -> dict:
         return {
          "p1":{
-          "name":"",
+          "name":"Loading...",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"state":"default","charges":0},
+          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -183,10 +183,10 @@ class ReplayHandler:
           "energy_per_turn":core.Constants.default_energy_per_turn
          },
          "p2":{
-          "name":"",
+          "name":"Loading...",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"","hp":600,"max_hp":600,"element":0,"state":"default","charges":0},
+          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -196,7 +196,7 @@ class ReplayHandler:
          "turn":0,
          "activep":"p1",
          "arena":core.Arena.själløssmängd,
-         "roomname":"",
+         "roomname":"Loading...",
          "pov":"p1" # used for replays.
         }
     @static
@@ -297,9 +297,9 @@ class ReplayHandler:
             case "spell":
                 target = self.get_target(args[1])["name"]
                 if int(args[3]) < 299:
-                    ret = f"{args[0]} has been launched on {core.TargetMode(int(args[2])).name}, specifically {target}."
+                    ret = f"{args[0]} has been launched on {target}."
                 else:
-                    ret = f"{args[0]} failed ({args[3]})"
+                    ret = f"{args[0]} failed ({args[3]})."
             case "attack":
                 user = self.get_target(args[0])["name"]
                 target = self.get_target(args[2])["name"]
@@ -378,7 +378,7 @@ class ReplayHandler:
                     self.state["activep"] = "p2"
                 else:
                     self.state["activep"] = "p1"
-                ret = f"{self.state[self.state['activep']]['name']}'s turn started."
+                ret = f"\nTurn {args[0]} -{self.state[self.state['activep']]['name']}'s- started."
             case "-ccharge":
                 player = self.state[args[0]]
                 pcharges = player["commander"]["charges"]

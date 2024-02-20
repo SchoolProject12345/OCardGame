@@ -1,7 +1,6 @@
 import pygame
 import os
-import Network.network as net
-import Network.server as server
+from Network.server import HandlerHandler as handle, host as host_server
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
@@ -20,7 +19,7 @@ class HostMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
-        self.ipaddress = server.net.get_ip()
+        self.ipaddress = handle.ip_address
 
         self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
@@ -57,13 +56,13 @@ class HostMenu(State):
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             get_settings()["is_hosting"] = False
             self.change_state("LobbyMenu")
-            net.threading.Thread(target=server.host, args=(self.hostmenu_tb_username.text, self.ipaddress), daemon=True).start()
+            handle.fetch_handler(host_server, self.hostmenu_tb_username.text, self.ipaddress)
 
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             self.revert_state()
-
+    
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:

@@ -8,6 +8,85 @@ core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "deb
 core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
 
+class SingletonMonad(type):
+    """
+    Setting this has a metaclas allow the class *itself* to be a wrapper around its field defined through `wrap`.
+    All the wrapped field's fields are also accessible from the class itself.
+    Instances of the class are typically not created.
+    All non-existing fields are returned as the `Void` value, which can then be infinitely accessed.
+
+    # Example
+    ```py
+    >>> class Foo:
+    ...     x: int
+    ...     y: int
+    ...     def __init__(self, x: int, y: int):
+    ...         self.x = x
+    ...         self.y = y
+    ...     def sum(self):
+    ...         return self.x + self.y
+    >>> class FooWrapper(metaclass=SingletonMonad):
+    ...     wrap: str = "foo" # name of the wrapped value
+    ...     foo: Foo = Foo(3, 2) # wrapped value
+    ...     @classmethod # methods need to be classmethod to take self.
+    ...     def prod(self): # other methods/field can be implemented as well for error handling
+    ...         return self.x * self.y # equivalent to `self.foo.x * self.foo.y`
+    >>> FooWrapper.sum()
+    5
+    >>> FooWrapper.prod()
+    6
+    >>> FooWrapper.field.that.doesnt.exist() is Void
+    True
+    ```
+    """
+    wrap: str
+    def __getattribute__(self, name: str): # different from __getattr__ obviously ( ͡° ͜ʖ ͡°)
+        try: # hasattr is just a try
+            return type.__getattribute__(self, name) # for other fields, methods or such
+        except AttributeError:
+            pass
+        try: # I hate Python so much
+            wrap: ReplayHandler = type.__getattribute__(self, type.__getattribute__(self, "wrap"))
+            return wrap.__getattribute__(name)
+        except AttributeError:
+            return Void # fallback method
+    def __call__(self, *_, **kwargs):
+        return self # avoid creating instances.
+
+class Void(metaclass=SingletonMonad):
+    pass
+
+class HandlerHandler(metaclass=SingletonMonad):
+    wrap: str = "_handle"
+    _handle: ReplayHandler = ReplayHandler()
+    ip_address: str = net.get_ip()
+    intialized: bool = False
+    @classmethod
+    def init_handler(self, method: object, *args: str, **kwargs):
+        "Setup connection and store the handle created as `self.handle`."
+        self.handle = method(*args, **kwargs)
+        self.initialized = True
+    @classmethod
+    def fetch_handler(self, method: object, *args: str, **kwargs) -> bool:
+        """
+        Setup connection on another thread and store the handle created as `self.handle`.
+        Return `True` if successful, `False` otherwise.
+        """
+        if method is ReplayHandler.read_replay:
+            args = (SingletonMonad.__getattribute__("_handle"), *args)
+        if method in [join, host]:
+            self.ip_adress = args[1]
+        elif method not in [ReplayHandler.read_replay]:
+            core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
+            return False
+        net.threading.Thread(
+            target=self.init_handler,
+            args=(method, args),
+            kwargs=kwargs,
+            daemon=True
+        )
+        return True
+
 class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
@@ -26,7 +105,8 @@ class ServerHandler(ReplayHandler):
             self.ongoing = False
             return False
         if '\n' in data:
-            return all([self(_data) for _data in data.split('\n')])
+            # short circuit if false: socket was closed and should not execute any more action
+            return all(self(_data) for _data in data.split('\n'))
         datas: list[str] = data.split('|')
         head = core.cleanstr(datas[0])
         if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
@@ -169,8 +249,7 @@ class ClientHandler(ReplayHandler):
             self.ongoing = False
             return False
         if '\n' in data:
-            return all([self(_data) for _data in data.split('\n')])
-        datas: list[str] = data.split('|')
+            return all(self(_data) for _data in data.split('\n'))
         try:
             devlog(self.play_log(data))
         except:
@@ -280,7 +359,7 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
     return socket.recv(size)
 
 @static
-def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
+def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) -> ServerHandler:
     """
     Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
     IP must either be localhost (usually "127.0.0.1") or `server.net.get_ip()`.
@@ -325,7 +404,7 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     return handle
 
 @static
-def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
+def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
     "Initialize connection with peer of IP `target_ip`, returning a `ClientHandler` and listening for logs on a separate thread."
     if len(username) > 64:
         username = username[:63]
@@ -364,10 +443,10 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
     return handle
 
 @static
-def replay(replayname: str, delay: float = 0.3) -> ReplayHandler:
+def replay(replayname: str, /, *, delay: float = 0.3) -> ReplayHandler:
     "Counterpart to `join` and `host` to play a replay (contained in `./Replays/`) locally."
     handle = ReplayHandler()
-    net.threading.Thread(target=handle.read_replay, args=(replayname, delay)).start()
+    net.threading.Thread(target=handle.read_replay, args=(replayname,), kwargs={"delay":delay}).start()
     return handle
 
 @static
