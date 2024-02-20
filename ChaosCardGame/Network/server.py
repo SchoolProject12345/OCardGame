@@ -59,12 +59,12 @@ class Void(metaclass=SingletonMonad):
 class HandlerHandler(metaclass=SingletonMonad):
     wrap: str = "_handle"
     _handle: ReplayHandler = ReplayHandler()
-    ip_address: str = net.get_ip()
-    intialized: bool = False
+    ip_address: str = "Loading..."
+    initialized: bool = False
     @classmethod
     def init_handler(self, method: object, *args: str, **kwargs):
         "Setup connection and store the handle created as `self.handle`."
-        self.handle = method(*args, **kwargs)
+        self._handle = method(*args, **kwargs)
         self.initialized = True
     @classmethod
     def fetch_handler(self, method: object, *args: str, **kwargs) -> bool:
@@ -81,11 +81,37 @@ class HandlerHandler(metaclass=SingletonMonad):
             return False
         net.threading.Thread(
             target=self.init_handler,
-            args=(method, args),
+            args=(method, *args),
             kwargs=kwargs,
             daemon=True
-        )
+        ).start()
         return True
+
+def get_ip():
+    "Return local IP or localhost if not found, and set it to HandlerHandler."
+    ip = HandlerHandler.ip_address # doesn't recompute IP
+    expr = re.compile(r"^\d+\.\d+\.\d+\.\d+$") # only IPv.4
+    localhost = re.compile(r"^127\.\d+\.\d+\.\d+") # only return localhost in case of error
+    if ip is Void or not re.match(expr, ip):
+        ip = "127.0.0.1"
+    else:
+        return ip
+    ips: list = net.socket.getaddrinfo(net.socket.gethostname(), None) # might not be 100% system independant
+    ips = [ip[4][0] for ip in ips]
+    ips = [ip for ip in ips if re.match(expr, ip) and not re.match(localhost, ip)]
+    ip = ip if len(ips) == 0 else ips[0]
+    if not re.match(localhost, ip):
+        HandlerHandler.ip_address = ip
+        return ip
+    sock = net.socket.socket(net.socket.AF_INET, net.socket.SOCK_DGRAM)
+    try:
+        sock.connect(("8.8.8.8", 80))
+        ip: str = sock.getsockname()[0] # most precise way to get IP
+    finally:
+        sock.close()
+        HandlerHandler.ip_address = ip
+        return ip
+get_ip() # initialize HandlerHandler's ip
 
 class ServerHandler(ReplayHandler):
     board: core.Board
@@ -362,7 +388,7 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
 def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) -> ServerHandler:
     """
     Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
-    IP must either be localhost (usually "127.0.0.1") or `server.net.get_ip()`.
+    IP must either be localhost (usually "127.0.0.1") or `server.get_ip()`.
     """
     if len(hostname) > 64:
         hostname = hostname[:63]
@@ -515,7 +541,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
-            with open(net.utility.os.path.join(net.utility.cwd_path, "Data/textsprites.json")) as io:
+            with open(core.utility.os.path.join(core.utility.cwd_path, "Data/textsprites.json")) as io:
                 try:
                     json = net.json.load(io)
                     if fname in json:
