@@ -183,6 +183,5 @@ class CardAssets:
                              "Misc"), 2, ["s_", "b_"]
             )
         )
-        print(card_sprites)
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
