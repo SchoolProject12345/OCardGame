@@ -1,7 +1,6 @@
 import pygame
 import os
-import Network.server as server
-from Network.server import HandlerHandler as handle
+from Network.server import HandlerHandler as handle, host as host_server
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
@@ -57,7 +56,7 @@ class HostMenu(State):
             get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
             get_settings()["is_hosting"] = False
             self.change_state("LobbyMenu")
-            server.HandlerHandler.fetch_handler(server.host, self.hostmenu_tb_username.text, self.ipaddress)
+            handle.fetch_handler(host_server, self.hostmenu_tb_username.text, self.ipaddress)
 
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
             get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
