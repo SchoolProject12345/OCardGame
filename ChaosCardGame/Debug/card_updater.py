@@ -15,7 +15,8 @@ def add_cards(target_dir, card_dir):
     for element in elements:
         if not os.path.exists(os.path.join(target_dir, element)):
             os.makedirs(os.path.join(target_dir, element.capitalize()))
-            print("Created directory: ", os.path.join(target_dir, element.capitalize()))
+            print("Created directory: ", os.path.join(
+                target_dir, element.capitalize()))
 
     for card in os.listdir(card_dir):
         card_list = re.split("_|\\.", card)
@@ -30,15 +31,16 @@ def add_cards(target_dir, card_dir):
                 card_element = "Air"
             case "cha":
                 card_element = "Chaos"
-        card_loc = ""
-        for word in card_list[2:-1]:
-            card_loc += word.capitalize()
-        card_loc = os.path.join(target_dir, card_element, card_loc)
+
+        card_loc = "_"
+        card_loc = card_loc.join(card_list[1:-1])
+        print(card_list[1:-1])
 
         if not os.path.exists(os.path.join(target_dir, card_element, card_loc)):
             os.makedirs(os.path.join(target_dir, card_element, card_loc))
             print(
-                "Created directory: ", os.path.join(target_dir, card_element, card_loc)
+                "Created directory: ", os.path.join(
+                    target_dir, card_element, card_loc)
             )
 
         card_name = "_"
@@ -47,6 +49,11 @@ def add_cards(target_dir, card_dir):
         print(
             shutil.move(
                 src=os.path.join(card_dir, card),
-                dst=os.path.join(target_dir, card_element, card_loc, card_name),
+                dst=os.path.join(target_dir, card_element,
+                                 card_loc, card_name),
             )
         )
+
+
+add_cards("/Users/etudiant/Documents/OCardGame/ChaosCardGame/Assets/Graphics/Cards",
+          "/Users/etudiant/Downloads/OCG Cards")
