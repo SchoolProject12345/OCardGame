@@ -1,7 +1,7 @@
 import os
 import pygame
 import Network.server as server
-import Network.server.HandlerHandler as handle
+from Network.server import HandlerHandler as handle
 from random import randint
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
