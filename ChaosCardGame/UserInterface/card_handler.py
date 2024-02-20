@@ -3,7 +3,7 @@ from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event
-from Assets.menu_assets import MenuBackgrounds, CardAssets,smoothscale_converter
+from Assets.menu_assets import MenuBackgrounds, CardAssets, smoothscale_converter
 from UserInterface.event_library import fetch_event
 
 
@@ -28,13 +28,13 @@ class CardHolder:
         self,
         mouse_pos: tuple[int, int],
         mousebuttondown: pygame.MOUSEBUTTONDOWN,
-        card_id: str = "misc_empty",
+        card_id: str = "MiscEmpty",
         active=True,
     ):
         self.card_id = card_id
         if self.card_id == None:
-            self.card_id = "misc_empty"
-        if active and self.card_id != "misc_empty":
+            self.card_id = "MiscEmpty"
+        if active and self.card_id != "MiscEmpty":
             self.check_clicked(mouse_pos, mousebuttondown)
         self.card_img = CardAssets.card_sprites[self.card_id]["processed_img"]
         self.screen.blit(self.card_img[0], self.position)
@@ -43,7 +43,8 @@ class CardHolder:
         self, mouse_pos: tuple[int, int], mousebuttondown: pygame.MOUSEBUTTONDOWN
     ):
         if self.position.collidepoint(mouse_pos) and mousebuttondown:
-            pygame.event.post(fetch_event("SLOT_CLICKED", {"slot": self.board_index}))
+            pygame.event.post(fetch_event(
+                "SLOT_CLICKED", {"slot": self.board_index}))
 
 
 class CardManager:
@@ -70,7 +71,8 @@ class CardManager:
         self.mouse_pos = pygame.mouse.get_pos()
         self.check_active_slots()
         self.update_board()
-        self.update_popup(search_event(events, fetch_event("SLOT_CLICKED", raw=True)))
+        self.update_popup(search_event(
+            events, fetch_event("SLOT_CLICKED", raw=True)))
 
     def update_popup(self, SLOT_CLICKED):
 
@@ -85,9 +87,10 @@ class CardManager:
     def render_popup(self, slot):
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["processed_img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
-        self.popup_card_img = CardAssets.card_sprites[self.get_card(slot)]["processed_img"][1]
+        self.popup_card_img = CardAssets.card_sprites[self.get_card(
+            slot)]["processed_img"][1]
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
-        self.screen.blit(self.popup_card_img, (295,179))
+        self.screen.blit(self.popup_card_img, (295, 179))
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):

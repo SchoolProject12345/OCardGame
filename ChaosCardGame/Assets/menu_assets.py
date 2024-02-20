@@ -59,9 +59,11 @@ def process_dir(path, prefixes: list):
         filepath = os.path.join(path, file)
         for prefix in prefixes:
             if file.startswith(prefix):
-                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)
+                curated_list[prefixes.index(
+                    prefix)] = pygame.image.load(filepath)
             elif prefix == "any":
-                curated_list[prefixes.index(prefix)] = pygame.image.load(filepath)
+                curated_list[prefixes.index(
+                    prefix)] = pygame.image.load(filepath)
 
     return curated_list
 
@@ -87,7 +89,7 @@ def handle_assets(
         if per_file:
             for file in filename:
                 if file[0] == ".":
-                    continue 
+                    continue
                 key = file.split(".")[0]
                 assets[key] = {
                     "path": dirpath,
@@ -172,12 +174,15 @@ class CardAssets:
 
     else:
         card_sprites = handle_assets(
-            os.path.join(utility.cwd_path, "Debug", "debug_cards"), 2, ["s_", "b_"]
+            os.path.join(utility.cwd_path, "Debug",
+                         "debug_cards"), 2, ["s_", "b_"]
         )
         card_sprites.update(
             handle_assets(
-                os.path.join(graphics_path, "Cards", "misc_cards"), 2, ["s_", "b_"]
+                os.path.join(graphics_path, "Cards",
+                             "Misc"), 2, ["s_", "b_"]
             )
         )
+        print(card_sprites)
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
