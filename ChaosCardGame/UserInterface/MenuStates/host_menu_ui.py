@@ -54,6 +54,7 @@ class HostMenu(State):
             text_center="center",
             default_text="Username"
         )
+        self.hostmenu_tb_username.text = get_setting("username", "")
 
         # Buttons
         self.hostmenu_host_button = ImageButton(
@@ -86,6 +87,7 @@ class HostMenu(State):
         if self.hostmenu_host_button.answer():
             self.roomname = self.tb_roomname.text
             self.player_username = self.hostmenu_tb_username.text
+            handle.fetch_handler(host_server, self.hostmenu_tb_username.text, handle.ip_address)
             self.change_state("LobbyMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state()
