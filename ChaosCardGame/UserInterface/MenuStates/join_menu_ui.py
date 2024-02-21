@@ -56,6 +56,7 @@ class JoinMenu(State):
             text_center="center",
             default_text="Username"
         )
+        self.joinmenu_tb_username.text = get_setting("username", "")
 
         # Buttons
         self.joinmenu_join_button = ImageButton(
@@ -87,8 +88,9 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
+            get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
+            handle.fetch_handler(join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
             self.change_state("LobbyMenu")  # Needs fixing
-            self.player_username = self.joinmenu_tb_username.text
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
 
