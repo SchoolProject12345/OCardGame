@@ -3,6 +3,7 @@
 .DS_Store
 .vscode
 options.txt
+.VSCodeCounter
 players.json
 .VsCodeCounter
 

@@ -6,23 +6,6 @@ from Assets.menu_assets import smoothscale_converter
 from SfxEngine.SoundEngine import sound_handle
 
 
-def coord_grid(position: tuple, position_type: str, dimensions: tuple, alignement: tuple) -> None:
-    x_div_factor = dimensions[0] / alignement[0]
-    y_div_factor = dimensions[1] / alignement[1]
-    adapted_position = coord_converter(
-        position_type, position, dimensions[0], dimensions[1])
-
-    x_grid_coord = [(x_div_factor * factor) + (x_div_factor / 2) +
-                    adapted_position[0] for factor in range(alignement[0])]
-    y_grid_coord = [(y_div_factor * factor) + (y_div_factor / 2) +
-                    adapted_position[1] for factor in range(alignement[1])]
-
-    assembled_grid_coord = [[x_layer, y_layer]
-                            for y_layer in y_grid_coord for x_layer in x_grid_coord]
-
-    return assembled_grid_coord
-
-
 class State:
     """
     A class to represent a state.
@@ -65,6 +48,7 @@ class State:
     """
 
     state_tree = ["MainMenu"]
+    events = []
 
     def __init__(
         self, screen: pygame.surface.Surface, is_anchor: bool, local_options: list
@@ -94,14 +78,14 @@ class State:
 
         State.new_menu = True
 
-    def state_manager_hook(self,app=0):
+    def state_manager_hook(self, app=0):
         """
         Placeholder method to be overridden by subclasses.
 
         """
         pass
 
-    def state_manager(self,app):
+    def state_manager(self, app):
         """
         Checks state ownership and runs the state_manager_hook.
 
@@ -213,10 +197,10 @@ class ImageButton:
             self.previous_state == self.all_states[2]
             and self.state == self.all_states[1]
         ):
-            if inspect.isfunction(self.call_back):
-                return self.call_back()
-            elif type(self.call_back) == pygame.event.Event:
+            if isinstance(self.call_back, pygame.event.Event):
                 pygame.event.post(self.call_back)
+            elif inspect.isfunction(self.call_back):
+                return self.call_back()
             else:
                 return self.call_back
 
@@ -268,12 +252,12 @@ class ImageToggle:
         self.factor = kwargs.get("factor", 1)
         self.all_image = kwargs.get("image", None)
         # Core Attributes for untoggled state
-        self.toggle_image = kwargs.get("toggle_image", self.all_image[0])
+        self.toggle_image = kwargs.get("toggle_image", self.all_image[0:3])
         self.position_type = kwargs.get("position_type", "center")
         self.position = kwargs.get("position", (0, 0))
 
         # Core Attributes for toggled state
-        self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[1])
+        self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[3:6])
         self.position_type_T = kwargs.get(
             "position_type_T", self.position_type)
         self.position_T = kwargs.get("position_T", self.position)
@@ -337,10 +321,10 @@ class ImageToggle:
         ):
             self.change_toggle()
         if self.is_toggled:
-            if inspect.isfunction(self.call_back):
-                return self.call_back()
-            elif type(self.call_back) == pygame.event.Event:
+            if isinstance(self.call_back, pygame.event.Event):
                 pygame.event.post(self.call_back)
+            elif inspect.isfunction(self.call_back):
+                return self.call_back()
             else:
                 return self.call_back
 
@@ -394,17 +378,13 @@ class ToggleGridFour:
         self.all_images = images
         self.toggles = []
         for i_1, toggle in enumerate(self.all_images):
-            for i_2, image_type in enumerate(toggle):
-                match i_2:
-                    case 0:
-                        local_factor = factor
-                    case 1:
-                        local_factor = factor_T
-                self.all_images[i_1][i_2] = smoothscale_converter(
-                    image_type, local_factor
-                )
-        self.card_width = self.all_images[0][0][0].get_width()
-        self.card_height = self.all_images[0][0][0].get_height()
+            if i_1 < 2:
+                self.all_images[i_1] = smoothscale_converter(toggle, factor)
+            else:
+                self.all_images[i_1] = smoothscale_converter(toggle, factor_T)
+
+        self.card_width = self.all_images[0][0].get_width()
+        self.card_height = self.all_images[0][0].get_height()
         self.initial_pos = initial_pos
         self.top_left = self.initial_pos
         self.top_right = (
@@ -731,8 +711,9 @@ class TextBox:
                       self.input_rect.y+(self.height//2))
         )
 
-    def render(self, new_text: str):
-        self.text = new_text
+    def render(self, new_text: str = None):
+        if new_text != None:
+            self.text = new_text
         self.text_surface = self.font.render(self.text, True, self.color)
         self.text_rect = self.text_surface.get_rect(
             **{self.position_type: self.position})

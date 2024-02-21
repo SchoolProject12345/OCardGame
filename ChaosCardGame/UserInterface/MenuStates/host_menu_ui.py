@@ -6,7 +6,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path, get_setting, get_settings
+from utility import cwd_path, search_event, get_setting
 
 
 class HostMenu(State):
@@ -19,26 +19,59 @@ class HostMenu(State):
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
-        self.ipaddress = handle.ip_address
-
-        self.bg_host_menu_image = MenuBackgrounds.bg_host_menu_image.convert_alpha()
+        self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["img"].convert_alpha(
+        )
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
 
+        # Select Text Boxes
         self.tb_image = TextBoxes.textbox_1_image.convert_alpha()
         self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
         self.hostmenu_username_tb_rect = self.tb_image.get_rect(
             topleft=(438, 429))
 
-        self.tb_roomname = SelectTextBox(self.screen, SCREEN_CENTER, 400, 50, pygame.font.Font(
-            self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Roomname")
-        self.hostmenu_tb_username = SelectTextBox(self.screen, (SCREEN_CENTER[0], SCREEN_CENTER[1]+97), 400, 50, pygame.font.Font(
-            self.ger_font_path, 53), (97, 97, 97), (255, 255, 255), position_type="center", text_center="center", default_text="Username")
+        self.tb_roomname = SelectTextBox(
+            self.screen,
+            position=SCREEN_CENTER,
+            width=400,
+            height=50,
+            font=pygame.font.Font(self.ger_font_path, 53),
+            default_color=(97, 97, 97),
+            color=(255, 255, 255),
+            position_type="center",
+            text_center="center",
+            default_text="Roomname"
+        )
+
+        self.hostmenu_tb_username = SelectTextBox(
+            self.screen,
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
+            width=400,
+            height=50,
+            font=pygame.font.Font(self.ger_font_path, 53),
+            default_color=(97, 97, 97),
+            color=(255, 255, 255),
+            position_type="center",
+            text_center="center",
+            default_text="Username"
+        )
         self.hostmenu_tb_username.text = get_setting("username", "")
 
-        self.hostmenu_host_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.host_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202))
-        self.hostmenu_exit_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.exit_button_image), position_type="center", position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302))
+        # Buttons
+        self.hostmenu_host_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Host"]["img"]),
+            position_type="center",
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1] + 202)
+        )
+
+        self.hostmenu_exit_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(MenuButtons.button_assets["Exit"]["img"]),
+            position_type="center",
+            position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+302)
+        )
 
     def host_menu(self):
         self.screen.blit(self.bg_host_menu_image, self.bg_host_menu_rect)
@@ -47,22 +80,19 @@ class HostMenu(State):
         self.hostmenu_host_button.render()
         self.hostmenu_exit_button.render()
 
-        keys = pygame.event.get(pygame.KEYDOWN)
+        keys = search_event(super().events, pygame.KEYDOWN)
         self.room_text = self.tb_roomname.render(keys)
         self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
-            get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
-            get_settings()["is_hosting"] = False
+            self.roomname = self.tb_roomname.text
+            self.player_username = self.hostmenu_tb_username.text
+            handle.fetch_handler(
+                host_server, self.hostmenu_tb_username.text, handle.ip_address)
             self.change_state("LobbyMenu")
-            handle.fetch_handler(host_server, self.hostmenu_tb_username.text, self.ipaddress)
-
-        if self.hostmenu_exit_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
-            get_settings()["username"] = self.hostmenu_tb_username.text # IMPLEMENT INVALID USERNAME
-            get_settings()["roomname"] = self.tb_roomname.text # IMPLEMENT INVALID ROOMANME
+        if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state()
-    
+
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:

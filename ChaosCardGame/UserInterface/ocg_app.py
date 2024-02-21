@@ -1,9 +1,11 @@
 from operator import is_
 import utility
 import sys
+import logging
 import pygame
 import os
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from UserInterface.OcgVision.vision_main import State
 from UserInterface.MenuStates.play_menu_ui import PlayMenu
 from UserInterface.MenuStates.main_menu_ui import MainMenu
 from UserInterface.MenuStates.main_menu_ui import MainMenu
@@ -32,9 +34,12 @@ class OcgGame:
             MainMenu: MainMenu object representing the main menu of the game.
 
         """
+
         pygame.init()
+        blocked_events = [pygame.MOUSEMOTION]
+        pygame.event.set_blocked(blocked_events)
         self.logo = pygame.image.load(os.path.join(utility.cwd_path,
-                                                    "Assets", "Graphics", "Icons", "app_icon.png",))
+                                                   "Assets", "Graphics", "Icons", "app_icon.png",))
         pygame.display.set_icon(self.logo)
         self.screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -62,25 +67,14 @@ class OcgGame:
 
         self.running = True
         while self.running:
-
+            events = pygame.event.get()
+            State.events = events
             self.menu_instances["main_menu"].state_manager(self)
-
-            if pygame.event.get(eventtype=pygame.QUIT):
-                self.stop()
-            for event in pygame.event.get():
-                if event.type == pygame.KEYUP and event.key == pygame.K_p:
-                    print("----------- P KEY PRESSED ------------")
-                    print(f"before it was {get_setting('mute', False)}")
-                    toggle_mute()
-                    print(f"now its {get_setting('mute', False)}")
-                    sound_handle(action_type = "mute/unmute", channel = 2)
-
-
-
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.stop()
             pygame.display.update()
             self.clock.tick(60)
-
-            # Event Handling
 
     def stop(self):
         """
@@ -88,6 +82,7 @@ class OcgGame:
         This also writes settings to `./options.txt` (save volume/mute changes).
         """
         write_settings(get_settings())
+        logging.info("Exiting app")
         self.running = False
         pygame.quit()
         sys.exit()
