@@ -86,7 +86,7 @@ class HostMenu(State):
         if self.hostmenu_host_button.answer():
             self.roomname = self.tb_roomname.text
             self.player_username = self.hostmenu_tb_username.text
-            self.change_state("GameMenu")
+            self.change_state("LobbyMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state()
 

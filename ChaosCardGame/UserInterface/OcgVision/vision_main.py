@@ -68,6 +68,7 @@ class State:
 
         """
         State.state_tree.append(new_state)
+        print(State.state_tree)
 
     def revert_state(self, n_revert: int = 1):
         """

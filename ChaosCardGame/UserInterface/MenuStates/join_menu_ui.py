@@ -87,7 +87,7 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            self.change_state("GameMenu")  # Needs fixing
+            self.change_state("LobbyMenu")  # Needs fixing
             self.player_username = self.joinmenu_tb_username.text
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
