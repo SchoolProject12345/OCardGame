@@ -6,7 +6,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path, search_event
+from utility import cwd_path, search_event, get_setting
 
 
 class HostMenu(State):
@@ -87,7 +87,8 @@ class HostMenu(State):
         if self.hostmenu_host_button.answer():
             self.roomname = self.tb_roomname.text
             self.player_username = self.hostmenu_tb_username.text
-            handle.fetch_handler(host_server, self.hostmenu_tb_username.text, handle.ip_address)
+            handle.fetch_handler(
+                host_server, self.hostmenu_tb_username.text, handle.ip_address)
             self.change_state("LobbyMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state()

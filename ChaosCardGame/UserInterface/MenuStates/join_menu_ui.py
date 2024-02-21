@@ -8,7 +8,7 @@ from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, SelectTextBox, State
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path, search_event
+from utility import cwd_path, search_event, get_settings, get_setting
 
 
 class JoinMenu(State):
@@ -88,8 +88,10 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            get_settings()["username"] = self.joinmenu_tb_username.text # IMPLEMENT INVALID USERNAME
-            handle.fetch_handler(join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
+            # IMPLEMENT INVALID USERNAME
+            get_settings()["username"] = self.joinmenu_tb_username.text
+            handle.fetch_handler(
+                join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
             self.change_state("LobbyMenu")  # Needs fixing
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
