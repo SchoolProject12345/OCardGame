@@ -70,7 +70,7 @@ class GameMenu(State):
                     "element": 2,
                     "hp": 40,
                     "max_hp": 40,
-                    "name": "air_mythical_pegasus",
+                    "name": "air_the_mythical_pegasus",
                     "state": "default",
                 }, None, None, None],
                 "commander": {

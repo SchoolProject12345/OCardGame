@@ -95,9 +95,7 @@ class CardManager:
             self.render_popup()
 
     def generate_popup(self, slot):
-        print(self.get_card(slot))
         self.card_info = AbstractCard.from_id(self.get_card(slot))
-        print(self.card_info)
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
@@ -111,10 +109,14 @@ class CardManager:
                 self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)
             )
         ]
-        self.energy_txt = TextBox(self.screen, (857, 309), 80, 29,
-                                  self.ger_font_path, (255, 255, 255), "center", "center", text="Test")
-        self.damage_txt = TextBox(self.screen, (857, 359), 80, 29,
-                                  self.ger_font_path, (255, 255, 255), "center", "center", text="Test")
+        self.popup_txt = [TextBox(self.screen, (857, 309), 80, 29,
+                                  self.ger_font_path, (255, 255, 255), "center", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
+                          TextBox(self.screen, (911, 294), 90, 29, self.ger_font_path, (
+                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
+                          TextBox(self.screen, (857, 359), 80, 29,
+                                  self.ger_font_path, (255, 255, 255), "center", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
+                          TextBox(self.screen, (911, 344), 90, 29, self.ger_font_path, (
+                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG")]
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
@@ -122,8 +124,8 @@ class CardManager:
         for btn in self.popup_btns:
             btn.render()
             btn.answer()
-        self.energy_txt.render()
-        self.damage_txt.render()
+        for txt in self.popup_txt:
+            txt.render()
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):

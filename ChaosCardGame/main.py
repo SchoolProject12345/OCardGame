@@ -1,3 +1,5 @@
+from icecream import ic, install
+install()
 #fmt: off
 import logging
 import traceback
@@ -6,10 +8,11 @@ setup_logger()
 from UserInterface.ocg_app import OcgGame
 #fmt: on
 
-# a function can be called by modules importing main (i.e. launcher.py)
-def main():
+if __name__ == "__main__":
+    # try:
+    logging.info("Launching app")
     app = OcgGame()
     app.start()
-
-if __name__ == "__main__":
-    main()
+    # except Exception as e:
+    #     logging.critical(f"Unhandeled exception: {e}")
+    #     traceback.print_exc()

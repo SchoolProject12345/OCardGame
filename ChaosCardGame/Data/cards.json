@@ -70,7 +70,7 @@
   ]
  },
  {
-  "name": "Rio o-colorido",
+  "name": "Rio o colorido",
   "element": "Air",
   "cost": 2,
   "hp": 97,
@@ -429,7 +429,7 @@
   ]
  },
  {
-  "name": "Fyyrönyr, the Dragon",
+  "name": "Fyyronyr the Dragon",
   "element": "fire",
   "cost": 2,
   "tag": "aoe",
@@ -986,7 +986,7 @@
   ]
  },
  {
-  "name": "Shiao, Master of Seas",
+  "name": "Shiao Master of Seas",
   "element": "Water",
   "cost": 5,
   "hp": 300,
@@ -1147,7 +1147,7 @@
   ]
  },
  {
-  "name": "The Thousand-Toothed",
+  "name": "The Thousand Toothed",
   "element": "water",
   "cost": 3,
   "hp": 160,
