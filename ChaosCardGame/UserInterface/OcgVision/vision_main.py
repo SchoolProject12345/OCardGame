@@ -47,7 +47,7 @@ class State:
 
     """
 
-    state_tree = ["MainMenu", "PlayMenu", "HostMenu", "LobbyMenu", "GameMenu"]
+    state_tree = ["MainMenu"]
     events = []
 
     def __init__(
