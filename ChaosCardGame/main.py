@@ -6,6 +6,10 @@ setup_logger()
 from UserInterface.ocg_app import OcgGame
 #fmt: on
 
-if __name__ == "__main__":
+# a function can be called by modules importing main (i.e. launcher.py)
+def main():
     app = OcgGame()
     app.start()
+
+if __name__ == "__main__":
+    main()
