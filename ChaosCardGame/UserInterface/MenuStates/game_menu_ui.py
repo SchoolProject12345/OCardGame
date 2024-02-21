@@ -7,7 +7,7 @@ from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.OcgVision.vision_main import (
     State,
     ImageButton,
-    DualBarVerti,
+    DualBar,
     TextBox,
 )
 from UserInterface.event_library import CustomEvents
@@ -26,7 +26,7 @@ class GameMenu(State):
                 "board": [
                     {
                         "element": 2,
-                        "hp": 40,
+                        "hp": 10,
                         "max_hp": 40,
                         "name": "wtr_hydra_of_the_seas",
                         "state": "default",
@@ -68,7 +68,7 @@ class GameMenu(State):
             "remote": {
                 "board": [None, None, None, {
                     "element": 2,
-                    "hp": 40,
+                    "hp": 20,
                     "max_hp": 40,
                     "name": "air_the_mythical_pegasus",
                     "state": "default",
@@ -145,7 +145,7 @@ class GameMenu(State):
         )
 
         # Bars
-        self.player_health_bar = DualBarVerti(
+        self.player_health_bar = DualBar(
             self.screen,
             position=(566, 706),
             position_type="topleft",
@@ -156,7 +156,7 @@ class GameMenu(State):
             max_value=600,
         )
 
-        self.player_energy_bar = DualBarVerti(
+        self.player_energy_bar = DualBar(
             self.screen,
             position=(683, 706),
             position_type="topleft",
@@ -167,7 +167,7 @@ class GameMenu(State):
             max_value=self.player_max_energy,
         )
 
-        self.enemy_health_bar = DualBarVerti(
+        self.enemy_health_bar = DualBar(
             self.screen,
             position=(566, 0),
             position_type="topleft",
@@ -176,9 +176,10 @@ class GameMenu(State):
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(255, 122, 122),
             max_value=600,
+            rotation=180
         )
 
-        self.enemy_energy_bar = DualBarVerti(
+        self.enemy_energy_bar = DualBar(
             self.screen,
             position=(683, 0),
             position_type="topleft",
@@ -187,6 +188,7 @@ class GameMenu(State):
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(122, 215, 255),
             max_value=self.enemy_max_energy,
+            rotation=180
         )
 
         # Text Boxes
@@ -343,10 +345,10 @@ class GameMenu(State):
     def game_menu(self):
         # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
-        self.player_health_bar.render(self.player_health, False)
-        self.player_energy_bar.render(self.player_energy, False)
-        self.enemy_health_bar.render(self.enemy_health, True)
-        self.enemy_energy_bar.render(self.enemy_energy, True)
+        self.player_health_bar.render(self.player_health)
+        self.player_energy_bar.render(self.player_energy)
+        self.enemy_health_bar.render(self.enemy_health)
+        self.enemy_energy_bar.render(self.enemy_energy)
         self.player_health_bar_text.render(str(self.player_health))
         self.player_energy_bar_text.render(str(self.player_energy))
         self.enemy_health_bar_text.render(str(self.enemy_health))

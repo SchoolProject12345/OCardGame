@@ -5,7 +5,7 @@ import pygame
 from utility import search_event, cwd_path
 import os
 from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons
-from UserInterface.OcgVision.vision_main import ImageButton, TextBox
+from UserInterface.OcgVision.vision_main import ImageButton, TextBox, DualBar
 from UserInterface.event_library import CustomEvents
 from Core.core_main import AbstractCard
 
@@ -31,15 +31,15 @@ class CardHolder:
         self,
         mouse_pos: tuple[int, int],
         mousebuttondown: pygame.MOUSEBUTTONDOWN,
-        card_id: str = "MiscEmpty",
+        card: str = "MiscEmpty",
         active=True,
     ):
-        self.card_id = card_id
-        if self.card_id == None:
-            self.card_id = "MiscEmpty"
-        if active and self.card_id != "MiscEmpty":
+        self.card = card
+        if self.card == None:
+            self.card = {"name": "MiscEmpty"}
+        if active and self.card["name"] != "MiscEmpty":
             self.check_clicked(mouse_pos, mousebuttondown)
-        self.card_img = CardAssets.card_sprites[self.card_id]["img"]
+        self.card_img = CardAssets.card_sprites[self.card["name"]]["img"]
         self.screen.blit(self.card_img[0], self.position)
 
     def check_clicked(
@@ -95,11 +95,11 @@ class CardManager:
             self.render_popup()
 
     def generate_popup(self, slot):
-        self.card_info = AbstractCard.from_id(self.get_card(slot))
+        self.card_info = AbstractCard.from_id(self.get_card(slot)["name"])
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
-            slot)]["img"][1]
+            slot)["name"]]["img"][1]
         self.popup_btns = [
             ImageButton(
                 self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 288)),
@@ -129,19 +129,34 @@ class CardManager:
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):
+            self.slot_card = self.get_card(("local", "board", index))
             slot.render(
                 self.mouse_pos,
                 self.mouse_down,
-                card_id=self.get_card(("local", "board", index)),
+                card=self.slot_card,
                 active=self.board_active,
             )
+            if self.slot_card != None:
+                health_bar = DualBar(self.screen,
+                                     (CardHolder.board_positions["local"]["board"][index][0]+5, CardHolder.board_positions["local"]
+                                      ["board"][index][1]+130), "topleft", 7, 117, (217, 217, 217), (255, 122, 122),
+                                     self.slot_card["max_hp"], -90)
+                health_bar.render(self.slot_card["hp"])
+
         for index, slot in enumerate(self.card_slots["remote"]["board"]):
+            self.slot_card = self.get_card(("remote", "board", index))
             slot.render(
                 self.mouse_pos,
                 self.mouse_down,
-                card_id=self.get_card(("remote", "board", index)),
+                card=self.slot_card,
                 active=self.board_active,
             )
+            if self.slot_card != None:
+                health_bar = DualBar(self.screen,
+                                     (CardHolder.board_positions["remote"]["board"][index][0]+5, CardHolder.board_positions["remote"]
+                                      ["board"][index][1]-13), "topleft", 7, 117, (217, 217, 217), (255, 122, 122),
+                                     self.slot_card["max_hp"], -90)
+                health_bar.render(self.slot_card["hp"])
 
     def check_active_slots(self):
         self.board_active = True
@@ -155,6 +170,6 @@ class CardManager:
 
     def get_card(self, index: tuple[str, str, int]):
         if self.game_state[index[0]][index[1]][index[2]] != None:
-            return self.game_state[index[0]][index[1]][index[2]]["name"]
+            return self.game_state[index[0]][index[1]][index[2]]
         else:
             return None
