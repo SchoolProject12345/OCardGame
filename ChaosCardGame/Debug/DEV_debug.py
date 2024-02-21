@@ -1,6 +1,6 @@
 import pygame
 # Debug Settings
-load_cards = False
+load_cards = True
 load_menus = True
 
 

@@ -28,14 +28,14 @@ class GameMenu(State):
                         "element": 2,
                         "hp": 40,
                         "max_hp": 40,
-                        "name": "debug_card",
+                        "name": "wtr_hydra_of_the_seas",
                         "state": "default",
                     },
                     {
                         "element": 2,
                         "hp": 40,
                         "max_hp": 40,
-                        "name": "debug_card",
+                        "name": "ert_vine_serpent",
                         "state": "default",
                     },
                     None,
@@ -66,7 +66,13 @@ class GameMenu(State):
                 "name": "Ånyks",
             },
             "remote": {
-                "board": [None, None, None, None, None, None, None],
+                "board": [None, None, None, {
+                    "element": 2,
+                    "hp": 40,
+                    "max_hp": 40,
+                    "name": "air_mythical_pegasus",
+                    "state": "default",
+                }, None, None, None],
                 "commander": {
                     "charges": 0,
                     "element": 1,
