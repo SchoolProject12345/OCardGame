@@ -42,22 +42,22 @@ class LobbyMenu(State):
     def lobby_menu(self):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
-        if self.local_is_hosting == True:
-            self.hostusername_text_content = get_setting("username", "")
-            # self.username_text_content
-        else:
-            # self.hostusername_text_content
-            self.username_text_content = get_setting("username", "")
+        # if self.local_is_hosting == True:
+        #     self.hostusername_text_content = get_setting("username", "")
+        #     # self.username_text_content
+        # else:
+        #     # self.hostusername_text_content
+        #     self.username_text_content = get_setting("username", "")
 
-        if self.local_is_hosting:
-            self.hostusername_text.render(self.hostusername_text_content)
-            # self.username_text.render(self.username_text_content)
-        else:
-            # self.hostusername_text.render(self.hostusername_text_content)
-            self.username_text.render(self.username_text_content)
+        # if self.local_is_hosting:
+        #     self.hostusername_text.render(self.hostusername_text_content)
+        #     # self.username_text.render(self.username_text_content)
+        # else:
+        #     # self.hostusername_text.render(self.hostusername_text_content)
+        #     self.username_text.render(self.username_text_content)
 
-        self.ipaddress_text.render(handle.ip_address)
-        self.roomname_text.render(self.roomname_text_content)
+        # self.ipaddress_text.render(handle.ip_address)
+        # self.roomname_text.render(self.roomname_text_content)
 
         self.ready_button.render()
 
