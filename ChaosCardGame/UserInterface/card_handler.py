@@ -2,10 +2,12 @@ from Assets.menu_assets import CardAssets
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
-from utility import search_event
+from utility import search_event, cwd_path
+import os
 from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons
-from UserInterface.OcgVision.vision_main import ImageButton
+from UserInterface.OcgVision.vision_main import ImageButton, TextBox
 from UserInterface.event_library import CustomEvents
+from Core.core_main import AbstractCard
 
 
 class CardHolder:
@@ -50,6 +52,8 @@ class CardHolder:
 
 class CardManager:
     def __init__(self, screen, n_cards):
+        self.ger_font_path = pygame.font.Font(os.path.join(
+            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"), 22)
         self.screen = screen
         self.n_cards = n_cards
         self.show_popup = False
@@ -91,6 +95,9 @@ class CardManager:
             self.render_popup()
 
     def generate_popup(self, slot):
+        print(self.get_card(slot))
+        self.card_info = AbstractCard.from_id(self.get_card(slot))
+        print(self.card_info)
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
@@ -104,6 +111,10 @@ class CardManager:
                 self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)
             )
         ]
+        self.energy_txt = TextBox(self.screen, (857, 309), 80, 29,
+                                  self.ger_font_path, (255, 255, 255), "center", "center", text="Test")
+        self.damage_txt = TextBox(self.screen, (857, 359), 80, 29,
+                                  self.ger_font_path, (255, 255, 255), "center", "center", text="Test")
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
@@ -111,6 +122,8 @@ class CardManager:
         for btn in self.popup_btns:
             btn.render()
             btn.answer()
+        self.energy_txt.render()
+        self.damage_txt.render()
 
     def update_board(self):
         for index, slot in enumerate(self.card_slots["local"]["board"]):

@@ -711,8 +711,9 @@ class TextBox:
                       self.input_rect.y+(self.height//2))
         )
 
-    def render(self, new_text: str):
-        self.text = new_text
+    def render(self, new_text: str = None):
+        if new_text != None:
+            self.text = new_text
         self.text_surface = self.font.render(self.text, True, self.color)
         self.text_rect = self.text_surface.get_rect(
             **{self.position_type: self.position})
