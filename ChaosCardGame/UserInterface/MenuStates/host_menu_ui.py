@@ -1,5 +1,6 @@
 import pygame
 import os
+from Network.server import HandlerHandler as handle, host as host_server
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
@@ -12,7 +13,7 @@ class HostMenu(State):
     def __init__(self, screen):
         self.screen = screen
         self.is_anchor = False
-        self.local_options = ["HostMenu", "GameMenu"]
+        self.local_options = ["HostMenu", "LobbyMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.ger_font_path = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
@@ -92,6 +93,6 @@ class HostMenu(State):
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 4:
             if State.state_tree[3] == self.local_options[1]:
-                app.menu_instances["game_menu"].state_manager(app)
+                app.menu_instances["lobby_menu"].state_manager(app)
         elif State.state_tree[2] == self.local_options[0]:
             self.host_menu()

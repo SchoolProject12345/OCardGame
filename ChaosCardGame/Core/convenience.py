@@ -1,6 +1,6 @@
 from utility import *
 
-if get_setting("dev_mode", True):
+if get_setting("dev_mode", False):
     def DEV() -> bool: return True
 else:
     def DEV() -> bool: return False
@@ -42,31 +42,11 @@ def getorset(d: dict, key, default):
         return default
     return d.get(key)
 
-
-def warn(*args, dev=DEV(), **kwargs) -> bool:
-    """
-    Print arguments in warning-style (if in DEV mode) and returns `True` to allow chaining.
-
-    # Examples
-    ```py
-    >>> warn("foobarbaz") and print("do something here")
-    ┌ Warning:
-    └  foobarbaz
-    do something here
-    ```
-    """
-    if dev:  # hard check to avoid mistakes
-        # might not work in every terminal, but should in VS Code
-        print("\x1b[1;33m┌ Warning:\n└ ", *args, "\x1b[0m", **kwargs)
-    return True  # this is definitevely not spaghetti code.
-
-
 def ifelse(cond: bool, a, b):
     "Return `a` if `cond` is `True`, return `b` otherwise. Used to replace the lack of expression in Python."
     if cond:
         return a
     return b
-
 
 def cleanstr(s: str) -> str:
     """
@@ -78,7 +58,7 @@ def cleanstr(s: str) -> str:
     "foobar73baz"
     ```
     """
-    return "".join(filter(str.isalnum, s)).lower().translate(str.maketrans({
+    return "".join(filter(str.isalnum, s.lower().translate(str.maketrans({
         'ø': 'o',
         'ö': 'o',
         'ó': 'o',
@@ -90,8 +70,9 @@ def cleanstr(s: str) -> str:
         "ü": 'u',
         'ú': 'u',
         'æ': "ae",
-        'þ': "th"
-    }))  # fix bugs with Fyyrönir
+        'þ': "th",
+        '@': "at",
+    }))))  # fix bugs with Fyyrönir
 
 
 def withfield(d: dict, key, value):
@@ -133,9 +114,21 @@ def show(arg):
     print(arg)
     return arg
 
-def clamp(x, a, b):
-    if x < a:
-        return a
-    if x > b:
-        return b
+def clamp(x, min, max):
+    if x < min:
+        return min
+    if x > max:
+        return max
     return x
+
+def nth(x: int) -> str:
+    x = str(x)
+    if len(x) > 1 and x[-2] == "1":
+        return x + "th"
+    if x[-1] == "1":
+        return x + "st"
+    if x[-1] == "2":
+        return x + "nd"
+    if x[-1] == "3":
+        return x + "rd"
+    return x + "th"

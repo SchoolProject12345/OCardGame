@@ -34,6 +34,8 @@ class MainMenu(State):
             topleft=(0, 0))
 
         self.quit_event = pygame.event.Event(pygame.QUIT)
+        sound_handle("MenuMusic", "play", 100, 2,loop= True)
+
 
         # Buttons
         self.play_button = ImageButton(
@@ -108,11 +110,10 @@ class MainMenu(State):
             self.change_state("CardsMenu")
         elif self.starttutorial_button.answer():
             self.change_state("TutorialMenu")
-            sound_handle("TutorialSpeech1", sfx_channel=7)
-            # je suis oblige de mettre ca ici, sinon si je met dans le file tuto menu ca loop a linfini et ca earrape
-            # cest chelou, cest que avec celui ci que ca fait ca mais bon c marche
+            sound_handle("TutorialSpeech1", channel=7)
         elif self.viewlore_button.answer():
             self.change_state("LoreMenu")
+            sound_handle("LoreSpeech1", channel=7)
         self.exit_button.answer()
 
     def state_manager_hook(self, app):

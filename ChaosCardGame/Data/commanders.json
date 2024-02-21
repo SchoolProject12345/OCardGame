@@ -5,7 +5,32 @@
  "hp":600,
  "element":"air",
  "commander":true,
- "cost":0
+ "cost":0,
+ "attacks":[{
+  "name":"Odin's Terror Tornado",
+  "cost":275,
+  "target_mode":"target",
+  "power":0,
+  "tag":"ultimate",
+  "effect":{"type":"boardresize","target":"unactive","delta":-1}
+ }],
+ "passives":[{
+  "name":"Electric scales",
+  "trigger":"whendamaged",
+  "effect":{
+   "type":"target_change",
+   "new_target":"foesc",
+   "effect":{
+    "type":"damage",
+    "amount":{
+     "type":"mul",
+     "num":12,
+     "den":100,
+     "times":{"type":"damage_taken"}
+    }
+   }
+  }
+ }]
 },
 {
  "name":"Vafisorg",
@@ -19,7 +44,7 @@
    "name":"Nidhogg Armageddon",
    "target_mode":"commander",
    "power":65535,
-   "cost":900,
+   "cost":999,
    "tag":"ultimate"
   }
  ],
@@ -44,7 +69,7 @@
    "name":"Jötunn's Earthquake",
    "target_mode":"foes",
    "power":50,
-   "cost":250,
+   "cost":275,
    "effect":{"type":"state_change","new_state":"block","for":1},
    "tag":"ultimate"
   }
@@ -75,14 +100,9 @@
  "attacks":[
   {
    "name":"Ragnarök Blaze",
-   "cost":100,
+   "cost":125,
    "power":70,
    "target_mode":"foes",
-   "effect":{
-    "type":"dot",
-    "damage":45,
-    "time":3
-   },
    "tag":"ultimate"
   }
  ]
@@ -94,6 +114,19 @@
  "element":"water",
  "commander":true,
  "cost":0,
+ "attacks":[
+  {
+   "name":"Niflheim Nova",
+   "cost":360,
+   "power":100,
+   "target_mode":"target",
+   "effect":{
+    "type":"state_change",
+    "new_state":"blocked",
+    "for":5
+   }
+  }
+ ],
  "passives":[
   {
    "name":"Never-Ending Fleet",
@@ -111,8 +144,7 @@
        "name":"Cannon Shot",
        "cost":1,
        "power":35,
-       "target_mode":"target",
-       "effect":{"type":"null"}
+       "target_mode":"target"
       }
      ]
     }

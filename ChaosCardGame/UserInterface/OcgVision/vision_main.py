@@ -161,11 +161,11 @@ class ImageButton:
 
         if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
             # On click sound handler
-            sound_handle("ClickSound1-2", "play", 40)
+            sound_handle("ClickSound1-2", "play", 40, channel=3)
 
         if self.state == self.all_states[1] and self.previous_state == self.all_states[2]:
             # On click sound handler
-            sound_handle("ClickSound2-1", "play", 40)
+            sound_handle("ClickSound2-1", "play", 40, channel=3)
 
     def check_state(self) -> None:
         """

@@ -362,7 +362,7 @@ class GameMenu(State):
         if self.ui_state["decked"]:
             self.screen.blit(self.bg_deck_menu_image, self.bg_deck_menu_rect)
             self.deckback_button.render()
-            if self.deckback_button.answer():
+            if self.deckback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
                 self.is_decked_toggle()
         self.hand_button.render()
         if self.hand_button.answer():
@@ -370,7 +370,7 @@ class GameMenu(State):
         if self.ui_state["handed"]:
             self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
             self.handback_button.render()
-            if self.handback_button.answer():
+            if self.handback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
                 self.is_handed_toggle()
 
         # Toggles
@@ -381,10 +381,14 @@ class GameMenu(State):
             self.pauseback_button.render()
             self.settings_button.render()
             self.surrender_button.render()
-            if self.pauseback_button.answer():
+            if self.pauseback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
                 self.is_paused_toggle()
+
             elif self.settings_button.answer():
-                pass
+                self.is_insettings_toggle()
+                self.is_handed = False
+                self.is_decked = False
+                self.is_paused = False
             elif self.surrender_button.answer():
                 self.is_paused_toggle()
                 self.revert_state(2)
@@ -392,7 +396,7 @@ class GameMenu(State):
         self.handle_events(super().events)
 
     def state_manager_hook(self, app):
-        if len(State.state_tree) >= 5:
+        if len(State.state_tree) >= 6:
             raise ValueError("Bro what?")
-        elif State.state_tree[3] == self.local_options[0]:
+        elif State.state_tree[4] == self.local_options[0]:
             self.game_menu()

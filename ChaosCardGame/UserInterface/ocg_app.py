@@ -1,3 +1,4 @@
+from operator import is_
 import utility
 import sys
 import logging
@@ -11,11 +12,13 @@ from UserInterface.MenuStates.main_menu_ui import MainMenu
 from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from UserInterface.MenuStates.join_menu_ui import JoinMenu
 from UserInterface.MenuStates.host_menu_ui import HostMenu
+from UserInterface.MenuStates.lobby_menu_ui import LobbyMenu
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.MenuStates.tutorial_menu_ui import TutorialMenu
 from UserInterface.MenuStates.credits_menu_ui import CreditsMenu
 from UserInterface.MenuStates.cards_menu_ui import CardsMenu
 from SfxEngine.SoundEngine import sound_handle
+from utility import toggle_mute, get_setting, get_settings, write_settings
 
 
 class OcgGame:
@@ -53,6 +56,7 @@ class OcgGame:
             'tutorial_menu': TutorialMenu(self.screen),
             'host_menu': HostMenu(self.screen),
             'join_menu': JoinMenu(self.screen),
+            'lobby_menu': LobbyMenu(self.screen),
             'game_menu': GameMenu(self.screen)
         }
 
@@ -60,8 +64,8 @@ class OcgGame:
         """
         Starts the game loop which continues running until the quit event is caught.
         """
+
         self.running = True
-        sound_handle("ambientmenumusictest2", "ambient_play", 30)
         while self.running:
             events = pygame.event.get()
             State.events = events
@@ -75,7 +79,9 @@ class OcgGame:
     def stop(self):
         """
         Stops the game loop by quitting pygame and exiting the system.
+        This also writes settings to `./options.txt` (save volume/mute changes).
         """
+        write_settings(get_settings())
         logging.info("Exiting app")
         self.running = False
         pygame.quit()

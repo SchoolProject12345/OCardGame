@@ -109,6 +109,25 @@ class MenuBackgrounds:
     bg_assets = handle_assets(bg_dir, True)
     logging.info("Successfully loaded backgrounds")
 
+    # Lobby
+    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
+    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
+
+    bg_ert_lobby_path = bg_dir + "ert_lobby_empty.png"
+    bg_ert_lobby_image = pygame.image.load(bg_ert_lobby_path)
+
+    bg_fire_lobby_path = bg_dir + "fire_lobby_empty.png"
+    bg_fire_lobby_image = pygame.image.load(bg_fire_lobby_path)
+
+    bg_wtr_lobby_path = bg_dir + "wtr_lobby_empty.png"
+    bg_wtr_lobby_image = pygame.image.load(bg_wtr_lobby_path)
+
+    bg_cha_lobby_path = bg_dir + "cha_lobby_empty.png"
+    bg_cha_lobby_image = pygame.image.load(bg_cha_lobby_path)
+
+    bg_lobby_images = [bg_air_lobby_image, bg_ert_lobby_image,
+                       bg_wtr_lobby_image, bg_fire_lobby_image, bg_cha_lobby_image]
+
 
 @dataclass
 class MenuButtons:
@@ -123,7 +142,7 @@ class MenuButtons:
 
 
 @dataclass
-class CardsMenuToggles:
+class MenuToggles:
     """
     A class to represent all toggles in the game.
     """

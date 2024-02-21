@@ -1,66 +1,129 @@
 import Network.network as net
-import re
-import Core.core_main as core
 from time import time_ns
+from Core.replay import * # includes core
+import re
 core.os.system("") # Python somehow requires that to enable ANSI on most terminal.
 
-core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard"]
-core.Constants.anytime_actions = ["chat", "forfeit", "sync"] # can be used even if not their turn.
+core.Constants.clientside_actions = ["help", "doc", "dochand", "showboard", "debug"] # debug prints gamestate.
+core.Constants.anytime_actions = ["chat", "forfeit", "ready"] # can be used even if not their turn.
 core.Constants.serverside_actions = ["attack", "spell", "place", "discard", "endturn"] + core.Constants.anytime_actions
-core.Constants.progressbar_sytle = 1
 
-def gradient(x: float):
-    x = 5.0*x
-    r = int(255 * (core.clamp(2.0 - x, 0.0, 1.0) + core.clamp(x - 4.0, 0.0, 1.0)))
-    g = int(255 * (core.clamp(x, 0.0, 1.0) - core.clamp(x - 3.0, 0.0, 1.0)))
-    b = int(255 * core.clamp(x - 2.0, 0.0, 1.0))
-    return f"\033[38;2;{r};{g};{b}m"
-def progressbar(total: int, on: int, size: int = 15, style = 0):
-    total = min(total, on)
-    if total == on:
-        if style == 0:
-            return "[" + gradient(1.0) + "=" * size + "\033[0m]"
-        elif style == 1:
-            bar = "["
-            for i in range(size):
-                bar += gradient(i/size) + "="
-            return bar + "\033[0m]"
-        elif style == 2:
-            return "[" + "="*size + "]"
-    complete = total * size // on
-    bar = "["
-    if style != 2:
-        bar += gradient(total/on)
-    bar += "="*complete + ">" + " "*(size - complete - 1)
-    if style != 2:
-        bar += "\033[0m"
-    return bar + "]"
-def stringclr(string: str):
-    "Used for username color in chat."
-    t = sum([ord(c) for c in string])
-    # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
-    # But I'm not 100% sure.
-    r = t % 255
-    g = 2*t % 255
-    b = 7*t % 255
-    return f"\033[38;2;{r};{g};{b}m"
-def ansi_elementcolor(element: core.Element) -> str:
-    match element:
-        case core.Element.water: return "\033[38;2;0;122;247m"
-        case core.Element.fire: return "\033[38;2;205;94;1m"
-        case core.Element.earth: return "\033[38;2;32;153;13m"
-        case core.Element.air: return "\033[38;2;223;1;209m"
-        case _: return ""
-def ansi_card(card: dict | None, trailing="") -> str:
-    if card is None:
-        return "____"
-    return ansi_elementcolor(core.Element(card["element"])) + card["name"] + trailing + f"\033[0m ({card['hp']}/{card['max_hp']})"
+class SingletonMonad(type):
+    """
+    Setting this has a metaclas allow the class *itself* to be a wrapper around its field defined through `wrap`.
+    All the wrapped field's fields are also accessible from the class itself.
+    Instances of the class are typically not created.
+    All non-existing fields are returned as the `Void` value, which can then be infinitely accessed.
 
-@core.dataclass
-class ServerHandler:
+    # Example
+    ```py
+    >>> class Foo:
+    ...     x: int
+    ...     y: int
+    ...     def __init__(self, x: int, y: int):
+    ...         self.x = x
+    ...         self.y = y
+    ...     def sum(self):
+    ...         return self.x + self.y
+    >>> class FooWrapper(metaclass=SingletonMonad):
+    ...     wrap: str = "foo" # name of the wrapped value
+    ...     foo: Foo = Foo(3, 2) # wrapped value
+    ...     @classmethod # methods need to be classmethod to take self.
+    ...     def prod(self): # other methods/field can be implemented as well for error handling
+    ...         return self.x * self.y # equivalent to `self.foo.x * self.foo.y`
+    >>> FooWrapper.sum()
+    5
+    >>> FooWrapper.prod()
+    6
+    >>> FooWrapper.field.that.doesnt.exist() is Void
+    True
+    ```
+    """
+    wrap: str
+    def __getattribute__(self, name: str): # different from __getattr__ obviously ( ͡° ͜ʖ ͡°)
+        try: # hasattr is just a try
+            return type.__getattribute__(self, name) # for other fields, methods or such
+        except AttributeError:
+            pass
+        try: # I hate Python so much
+            wrap: ReplayHandler = type.__getattribute__(self, type.__getattribute__(self, "wrap"))
+            return wrap.__getattribute__(name)
+        except AttributeError:
+            return Void # fallback method
+    def __call__(self, *_, **kwargs):
+        return self # avoid creating instances.
+
+class Void(metaclass=SingletonMonad):
+    pass
+
+class HandlerHandler(metaclass=SingletonMonad):
+    wrap: str = "_handle"
+    _handle: ReplayHandler = ReplayHandler()
+    ip_address: str = "Loading..."
+    initialized: bool = False
+    @classmethod
+    def init_handler(self, method: object, *args: str, **kwargs):
+        "Setup connection and store the handle created as `self.handle`."
+        self._handle = method(*args, **kwargs)
+        self.initialized = True
+    @classmethod
+    def fetch_handler(self, method: object, *args: str, **kwargs) -> bool:
+        """
+        Setup connection on another thread and store the handle created as `self.handle`.
+        Return `True` if successful, `False` otherwise.
+        """
+        if method is ReplayHandler.read_replay:
+            args = (SingletonMonad.__getattribute__("_handle"), *args)
+        if method in [join, host]:
+            self.ip_adress = args[1]
+        elif method not in [ReplayHandler.read_replay]:
+            core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
+            return False
+        net.threading.Thread(
+            target=self.init_handler,
+            args=(method, *args),
+            kwargs=kwargs,
+            daemon=True
+        ).start()
+        return True
+
+def get_ip():
+    "Return local IP or localhost if not found, and set it to HandlerHandler."
+    ip = HandlerHandler.ip_address # doesn't recompute IP
+    expr = re.compile(r"^\d+\.\d+\.\d+\.\d+$") # only IPv.4
+    localhost = re.compile(r"^127\.\d+\.\d+\.\d+") # only return localhost in case of error
+    if ip is Void or not re.match(expr, ip):
+        ip = "127.0.0.1"
+    else:
+        return ip
+    ips: list = net.socket.getaddrinfo(net.socket.gethostname(), None) # might not be 100% system independant
+    ips = [ip[4][0] for ip in ips]
+    ips = [ip for ip in ips if re.match(expr, ip) and not re.match(localhost, ip)]
+    ip = ip if len(ips) == 0 else ips[0]
+    if not re.match(localhost, ip):
+        HandlerHandler.ip_address = ip
+        return ip
+    sock = net.socket.socket(net.socket.AF_INET, net.socket.SOCK_DGRAM)
+    try:
+        sock.connect(("8.8.8.8", 80))
+        ip: str = sock.getsockname()[0] # most precise way to get IP
+    finally:
+        sock.close()
+        HandlerHandler.ip_address = ip
+        return ip
+get_ip() # initialize HandlerHandler's ip
+
+class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
-    ongoing = True
+    closed: bool = False
+    @static
+    def __init__(self, board: core.Board, client_socket: net.socket.socket):
+        ReplayHandler.__init__(self)
+        self.board = board
+        self.client_socket = client_socket
+        self.closed = False
+    @static # Just realized I destroy duck typing everywhere, while literally using it one line lower.
     def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
         if not self.ongoing:
             return False
@@ -68,20 +131,29 @@ class ServerHandler:
             self.ongoing = False
             return False
         if '\n' in data:
-            return core.np.all([self(_data) for _data in data.split('\n')])
+            # short circuit if false: socket was closed and should not execute any more action
+            return all(self(_data) for _data in data.split('\n'))
         datas: list[str] = data.split('|')
         head = core.cleanstr(datas[0])
-        if head == "sync":
-            self.sync()
-            return True
         if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
             self.client_socket.send(b"error|Wrong turn.")
             return True
         if head in core.Constants.serverside_actions:
             self.ongoing = run_action(self.board, self.client_socket, head, *datas[1:], source=True)
+            self.log_sync()
             return self.ongoing
         self.client_socket.send(b"error|Unrecognized action.")
         return True
+    def endgame(self):
+        if core.get_setting("automatically_save_replay", True):
+            self.save_replay()
+        def endgame(handle: ServerHandler):
+            sleep(3.0)
+            handle.ongoing = False # avoids closing before seding the last informations
+        net.threading.Thread(target=endgame, args=(self,))
+        return self
+    def isp1(self) -> bool: return True
+    @static
     def run_action(self, action: str) -> bool:
         args = action.split('|')
         head = args[0]
@@ -94,8 +166,31 @@ class ServerHandler:
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        return run_action(self.board, self.client_socket, *args, source=False)
-    def showboard(self):
+        ongoing = run_action(self.board, self.client_socket, *args, source=False)
+        self.log_sync()
+        return ongoing
+    def log_sync(self):
+        "Read `self.board`'s logs and send them to the client."
+        logs = ""
+        while len(self.board.logs) != 0: # explicit is better than implicit
+            log = self.board.logs.pop(0).strip()
+            head, *args, kwargs = kwargssplit(log)
+            try:
+                msg = self.play_log(log, head, *args, **kwargs) # TODO: don't log to the terminal when remote draw a card.
+                if head == "draw" and args[0] == "p2":
+                    devlog(f"{self.state['p2']['name']} drew a card.")
+                else:
+                    devlog(msg)
+            except:
+                print("Error with:", log)
+            if head == "draw" and args[0] == "p1":
+                log = f"draw|p1|card" # "{name} drew a card."
+            logs += log + "\n"
+        logs = logs.strip()
+        if len(logs) != 0:
+            self.client_socket.send(logs.encode()) # logs are split by line uppon reception.
+        return self
+    def showboard_debug(self):
         board = self.board
         print(f"Turn {board.turn} ", end="")
         player1 = self.board.player1
@@ -107,7 +202,7 @@ class ServerHandler:
         print(f"\n\n\033[1;4m{player2.name}'s Side\033[0m")
         print(f"Energy: \033[1m{player2.energy}\033[22m/\033[1m{player2.max_energy}\033[22m (\033[1m+{player2.energy_per_turn}/turn\033[22m)")
         if len(player2.commander.card.attacks) > 1:
-            print(progressbar(player2.commander_charges, player2.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+            print(progressbar(player2.commander_charges, player2.commander.card.attacks[1].cost, style=core.Constants.progressbar_style))
         print("\033[4m" + ansi_card({
             "name":player2.commander.card.name,
             "hp":player2.commander.hp,
@@ -128,7 +223,7 @@ class ServerHandler:
         print(f"\n\n\033[1;4m{player1.name}'s Side\033[0m")
         print(f"Energy: \033[1m{player1.energy}\033[22m/\033[1m{player1.max_energy}\033[22m (\033[1m+{player1.energy_per_turn}/turn\033[22m)")
         if len(player1.commander.card.attacks) > 1:
-            print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_sytle))
+            print(progressbar(player1.commander_charges, player1.commander.card.attacks[1].cost, style=core.Constants.progressbar_style))
         print("\033[4m" + ansi_card({
             "name":player1.commander.card.name,
             "hp":player1.commander.hp,
@@ -153,74 +248,49 @@ class ServerHandler:
             print("∅  ", end="")
         print("\033[2D ")
 
+        print("Their hand: ", end="")
+        for card in player2.hand:
+            print(card.name.replace(",", " -"), end=", ")
+        if len(player1.hand) == 0:
+            print("∅  ", end="")
+        print("\033[2D ")
+
         return self # to chain
-    def sync(self):
-        "Update `network.get_data()` to prepare to send"
-        data = net.get_data()
 
-        player = self.board.player1
-        server = data["server"]
-        # name is constant, no need to update
-        server["deck_length"] = len(player.deck)
-        server["hand"] = len(player.hand)
-
-        server["commander"]["hp"] = player.commander.hp
-        server["commander"]["max_hp"] = player.commander.card.max_hp
-        server["commander"]["element"] = player.commander.element.value
-        server["commander"]["charges"] = player.commander_charges
-
-        server["board"] = player.get_actives_json()
-        server["discard"] = [card.name for card in player.discard]
-        server["energy"] = player.energy
-        server["max_energy"] = player.max_energy
-        server["energy_per_turn"] = player.energy_per_turn
-
-        data["turn"] = self.board.turn
-        data["server_turn"] = self.board.active_player is player
-        data["arena"] = self.board.arena.value
-
-        player = self.board.player2
-        client = data["client"]
-        # name is constant, no need to update
-        client["deck_length"] = len(player.deck)
-        client["hand"] = [card.name for card in player.hand]
-
-        client["commander"]["hp"] = player.commander.hp
-        client["commander"]["max_hp"] = player.commander.card.max_hp
-        client["commander"]["element"] = player.commander.element.value
-        client["commander"]["charges"] = player.commander_charges
-
-        client["board"] = player.get_actives_json()
-        client["discard"] = [card.name for card in player.discard]
-        client["energy"] = player.energy
-        client["max_energy"] = player.max_energy
-        client["energy_per_turn"] = player.energy_per_turn
-
-        self.client_socket.send(("sync|" + net.json.dumps(data, separators=(',', ':'))).encode())
-        return self
-    def get_state(self):
-        return net.get_data()
-@core.dataclass
-class ClientHandler:
+class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
-    ongoing: bool = True
-    synced: bool = False
     waiting: bool = False
+    closed: bool = False
+    @static
+    def __init__(self, server_socket: net.socket.socket, waiting: bool = False):
+        ReplayHandler.__init__(self)
+        self.server_socket = server_socket
+        self.waiting = False
+        self.state["pov"] = "p2"
+        self.closed = False
+    @static
     def __call__(self, data: str) -> bool:
         self.waiting = False
         if data == "":
             self.ongoing = False
             return False
         if '\n' in data:
-            return core.np.all([self(_data) for _data in data.split('\n')])
-        datas: list[str] = data.split('|')
-        head = core.cleanstr(datas[0])
-        if head == "sync":
-            net.get_data().update(net.json.loads(datas[1]))
-            self.synced = True
-            return True
-        logplay(self, data)
+            return all(self(_data) for _data in data.split('\n'))
+        try:
+            devlog(self.play_log(data))
+        except:
+            print("Error with:", data)
         return True
+    def endgame(self):
+        if core.get_setting("automatically_save_replay", True):
+            self.save_replay() # TODO ask to server
+        def endgame(handle: ServerHandler):
+            sleep(3.0)
+            handle.ongoing = False # avoid closing before fetching last informations from server
+        net.threading.Thread(target=endgame, args=(self,)).start()
+        return self
+    @static
+    def isp1(self) -> bool: return False
     def sendblock(self, *args, max_wait: int = 100_000_000):
         self.waiting = True
         start = time_ns()
@@ -233,6 +303,7 @@ class ClientHandler:
     def send(self, *args):
         self.server_socket.send(*args)
         return self
+    @static
     def run_action(self, action: str):
         "Request server to run action, returning `True` if sucessfully sent and `False` if clientside check failed."
         args = action.split('|')
@@ -243,25 +314,17 @@ class ClientHandler:
         if head not in core.Constants.serverside_actions:
             devlog("Invalid action. Write `help` to get a list of valid actions.")
             return False
-        if net.get_data()["server_turn"] and head not in core.Constants.anytime_actions:
+        if self.state["activep"] == "p1" and head not in core.Constants.anytime_actions:
             core.warn("Wrong turn.")
             return False
         if head == "chat":
             if len(args) < 2:
                 devlog("Missing message in `chat` request.")
                 return False
-            action = f"chat|{self.get_state()['client']['name']}|{args[1]}"
-        self.sendblock(action.encode(), max_wait=300_000_000).sync()
+            action = f"chat|{self.get_state()['local']['name']}|{args[1]}"
+        self.sendblock(action.encode(), max_wait=300_000_000)
         return True
-    def get_required_charges(commander: str):
-        commander: str = core.cleanstr(commander)
-        if commander not in core.getCOMMANDERS():
-            return 250
-        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
-        if len(commander.attacks) > 1:
-            return commander.attacks[1].cost
-        return 65535
-    def showboard(self):
+    def showboard_debug(self):
         data: dict = net.get_data()
 
         print(f"Turn {data['turn']} ", end="")
@@ -276,7 +339,7 @@ class ClientHandler:
         print(progressbar(
             server["commander"]["charges"],
             ClientHandler.get_required_charges(server["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(server["commander"], '⋆'))
         for card in server["board"]:
@@ -288,7 +351,7 @@ class ClientHandler:
         print(progressbar(
             client["commander"]["charges"],
             ClientHandler.get_required_charges(client["commander"]["name"]),
-            style = core.Constants.progressbar_sytle
+            style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(client["commander"], '⋆'))
         for card in client["board"]:
@@ -302,37 +365,31 @@ class ClientHandler:
         print("\033[2D ")
 
         return self
-    def sync(self, wait: bool = True, max_wait: int = 100_000_000):
-        "Ask `self`'s sever for a synchronization, waiting its sucess for up to `max_wait` nanoseconds if `wait` is set to `True`."
-        start = time_ns()
-        self.synced = False
-        self.server_socket.send(b"sync")
-        # result is automatically obtained through listen(server_socket, self) running on separate thread
-        while wait and not self.synced: # wait until update is done, ugly but it works ¯\_(ツ)_/¯
-            if time_ns() - start > max_wait:
-                core.warn(f"Synchronization undetected after {max_wait/1_000_000_000:.4}s. Continuing thread anyway.")
-                self.sync(False)
-                return self
-        return self
-    def get_state(self):
-        return net.get_data()
 
+@static
 def sendblock(socket: net.socket.socket, *args):
     "Send and block until receiving 'ok' or any two-byte message."
     size = socket.send(*args)
     socket.recv(2)
     return size
+@static
 def recvok(socket: net.socket.socket, *args):
     "Send 'ok' after receiving to release `sendblock`."
     data = socket.recv(*args)
     socket.send(b"ok")
     return data
+@static
 def sendrecv(socket: net.socket.socket, size: int, *args):
     "Send `*args` to `socket` then wait until a message with up to `size` size is received, returning it as `bytes`."
     socket.send(*args)
     return socket.recv(size)
 
-def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> ServerHandler:
+@static
+def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) -> ServerHandler:
+    """
+    Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
+    IP must either be localhost (usually "127.0.0.1") or `server.get_ip()`.
+    """
     if len(hostname) > 64:
         hostname = hostname[:63]
     net.get_data()["server"]["name"] = hostname
@@ -353,14 +410,28 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", port: int = 12345) -> Se
     net.get_data()["server"]["commander"]["name"] = host.commander.card.name
     board = core.Board(host, client)
     handle = ServerHandler(board, client_socket)
-    handle.sync()
-    net.threading.Thread(target=net.listen, args=(client_socket, handle)).start()
-    while core.DEV() and handle.ongoing:
-        handle.run_action(input())
-    devlog("Returning handle.")
+    def listen(handler: ServerHandler):
+        while handler.ongoing and not handler.closed:
+            # The client shouldn't have to send more than 1024 bytes at once
+            # Please don't chat too much
+            if not handler(handler.client_socket.recv(1024).decode()) and not handler.closed:
+                handler.client_socket.close()
+                handler.ongoing = False
+                handler.closed = True
+    net.threading.Thread(target=listen, args=(handle,)).start()
+    handle.log_sync()
+    if core.DEV():
+        def dev_read_for_actions(handle: ServerHandler):
+            while handle.ongoing:
+                action = input()
+                if handle.ongoing and not handle.closed:
+                    handle.run_action(action)
+        net.threading.Thread(target=dev_read_for_actions, args=(handle,)).start()
     return handle
 
-def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
+@static
+def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
+    "Initialize connection with peer of IP `target_ip`, returning a `ClientHandler` and listening for logs on a separate thread."
     if len(username) > 64:
         username = username[:63]
     server_socket: net.socket.socket = net.join_connection(target_ip, port)
@@ -377,15 +448,34 @@ def join(username: str, target_ip: str, port: int = 12345) -> ClientHandler:
         }
     if len(user["deck"]) != core.Constants.default_deck_size:
         core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
-        user["deck"] = core.Player.get_deck()
+        user["deck"] = [card.name for card in core.Player.get_deck()]
     sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
     handle = ClientHandler(server_socket)
-    net.threading.Thread(target=net.listen, args=(server_socket, handle)).start()
-    while core.DEV() and handle.ongoing:
-        handle.run_action(input())
-    devlog("Returning handle.")
+    def listen(handler: ClientHandler):
+        while handler.ongoing:
+            # Logs may be quite big so 4096 bytes buffer to be sure
+            if not handler(handler.server_socket.recv(4096).decode()) and not handler.closed:
+                handler.server_socket.close()
+                handler.ongoing = False
+                handler.closed = True
+    net.threading.Thread(target=listen, args=(handle,)).start()
+    if core.DEV():
+        def dev_read_for_actions(handle: ClientHandler):
+            while handle.ongoing:
+                action = input()
+                if handle.ongoing and not handle.closed:
+                    handle.run_action(action)
+        net.threading.Thread(target=dev_read_for_actions, args=(handle,)).start()
     return handle
 
+@static
+def replay(replayname: str, /, *, delay: float = 0.3) -> ReplayHandler:
+    "Counterpart to `join` and `host` to play a replay (contained in `./Replays/`) locally."
+    handle = ReplayHandler()
+    net.threading.Thread(target=handle.read_replay, args=(replayname,), kwargs={"delay":delay}).start()
+    return handle
+
+@static
 def str2target_client(index: str) -> core.ActiveCard | None:
     data = net.get_data()
     foes, foec, allies, allyc = core.ifelse(data["server_turn"],
@@ -406,11 +496,15 @@ def str2target_client(index: str) -> core.ActiveCard | None:
         return allies[i]
     match core.cleanstr(index):
         case "allycommander": return allyc
+        case "allyat": return allyc
         case "alliedcommander": return allyc
         case "enemycommander": return foec
         case "foecommander": return foec
+        case "foeat": return foec
         case "commander": return foec
         case _: return None
+
+@static
 def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
     m = re.match("foe(\d+)", index)
     if m:
@@ -427,16 +521,19 @@ def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
     match core.cleanstr(index):
         case "allycommander": return board.active_player.commander
         case "alliedcommander": return board.active_player.commander
+        case "allyat": return board.active_player.commander
         case "enemycommander": return board.unactive_player.commander
         case "foecommander": return board.unactive_player.commander
+        case "foeat": return board.unactive_player.commander
         case "commander": return board.unactive_player.commander
         case _: return None
 
-def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args):
+@static
+def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args) -> ClientHandler | ServerHandler:
     if action == "doc":
         if len(args) == 0:
             devlog("Missing `card name` argument.")
-            return
+            return handle
         cardname = core.cleanstr(args[0])
         if cardname in core.getCOMMANDERS():
             card: core.AbstractCard = core.getCOMMANDERS()[cardname]
@@ -444,7 +541,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
-            with open(net.utility.os.path.join(net.utility.cwd_path, "Data/textsprites.json")) as io:
+            with open(core.utility.os.path.join(core.utility.cwd_path, "Data/textsprites.json")) as io:
                 try:
                     json = net.json.load(io)
                     if fname in json:
@@ -454,7 +551,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
                 finally:
                     io.close()
         devlog(card.__str__())
-        return
+        return handle
     if action == "dochand":
         if isinstance(handle, ServerHandler):
             for card in handle.board.player1.hand:
@@ -462,7 +559,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
         else:
             for card in net.get_data()["client"]["hand"]:
                 clientside_action(handle, "doc", card)
-        return
+        return handle
     if action == "help":
         devlog(
 """
@@ -488,11 +585,18 @@ Indices marked with * can be any of the following:
 Other indices are regular integer, starting from 0.
 """
         )
-        return
+        return handle
     if action == "showboard":
-        return handle.sync().showboard() # that's not clientside then
+        handle.showboard() # syncronizations is normally flawless, no need to ask for it
+        return handle
+    if action == "debug":
+        print("\n\033[1m# Game State\033[0m\n", handle.state, "\n\n\033[1m# UI Formatted\033[0m\n", handle.get_state(), "\n", sep="")
+        handle.showboard_debug()
+        return handle
     devlog("Unrecognized action.")
+    return handle
 
+@static
 def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *args: str, source: bool) -> bool:
     """
     Run the following actions on the server, sending logs to the client.
@@ -508,28 +612,17 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
     if head == "endturn":
         result = board.endturn()
         if result[4] is not None:
-            sendblock(client_socket, log_win(None, result[4].name).encode())
-            client_socket.close()
-            return False
-        logs = ""
-        for card in result[2]:
-            if isclientturn:
-                logs += log_draw(None, card.name) + "\n"
-            else:
-                devlog(f"You have drawn a {card.name}.")
-        logs += log_endturn(None, board.unactive_player.name,
-                    board.unactive_player.energy, board.unactive_player.max_energy, board.unactive_player.energy_per_turn)
-        client_socket.send(logs.encode())
+            return True # socket must be closed *after* logs are sent.
         return True
     if head == "attack":
         if len(args) < 3:
             if isclientturn:
-                client_socket.send("error|Missing arguments in attack request.".encode())
+                client_socket.send(b"error|Missing arguments in attack request.")
             return devlog("Warning: Missing arguments in attack request.")
         user = str2target(board, args[0])
         if (user is None) or (user.owner == board.unactive_player):
             if isclientturn:
-                client_socket.send("error|Wrong user in attack request.".encode())
+                client_socket.send(b"error|Wrong user in attack request.")
             return devlog("Warning: Wrong user target in attack request.")
         try:
             attack = user.card.attacks[int(args[1])]
@@ -540,24 +633,22 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
         target = str2target(board, args[2])
         if target is None:
             if isclientturn:
-                client_socket.send("error|Invalid target.".encode())
+                client_socket.send(b"error|Invalid target.")
             return devlog("Warning: Invalid target.")
         survey = user.attack(attack, target)
-        logs = log_attack(None, user.card.name, target.card.name,
-                          attack.name, str(attack.cost),
-                          str(survey.return_code.value),
-                          str(survey.damage), str(survey.heal))
-        client_socket.send(logs.encode())
+        if survey.return_code.value > 299:
+            if isclientturn:
+                client_socket.send(f"error|Attack failed ({survey.return_code.value}: {survey.return_code.name})".encode())
+            core.warn(f"Attack failed ({survey.return_code.value}: {survey.return_code.name})")
         return True
     if head == "chat":
         if len(args) == 0:
-            return devlog("Warning: message not found.")
+            return devlog("Warning: Message not found.")
         if len(args) == 1:
-            client_socket.send(f"chat|{board.player1.name}|{args[0]}".encode())
-            showchat(board.player1.name, args[0])
-            return True
-        client_socket.send(f"chat|{args[0]}|{args[1]}".encode())
-        showchat(args[0], args[1])
+            log = f"chat|{core.ifelse(source, board.player2.name, board.player1.name)}|{args[0]}"
+        else:
+            log = f"chat|{args[0]}|{args[1]}"
+        board.logs.append(log) # are sent through `handle.log_sync()`
         return True
     if head == "place":
         if len(args) < 2:
@@ -576,7 +667,6 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|Invalid index (out of bound, wrong card or no card can be placed here).".encode())
             return devlog("Warning: Invalid index (out of bound, wrong card or no card can be placed here).")
         card: core.ActiveCard = board.active_player.active[j]
-        client_socket.send(log_place(None, card.card.name, str(j), str(card.card.cost)).encode())
         return True
     if head == "discard":
         if len(args) < 1:
@@ -594,7 +684,6 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
                 client_socket.send("error|out of bound discard.".encode())
             return devlog("Warning: out of bound discard.")
         card: core.AbstractCard = board.active_player.handdiscard(i)
-        client_socket.send(log_discard(None, card.name).encode())
         return True
     if head == "spell":
         if len(args) < 2:
@@ -616,79 +705,23 @@ def run_action(board: core.Board, client_socket: net.socket.socket, head: str, *
             if isclientturn:
                 client_socket.send("error|Invalid target.".encode())
             return devlog("Warning: Invalid target.")
-        survey = spell.use(target, board)
-        logs = log_attack(None, spell.name, target.card.name,
-                          spell.on_use.name, str(spell.on_use.cost),
-                          str(survey.return_code.value),
-                          str(survey.damage), str(survey.heal))
-        client_socket.send(logs.encode())
+        survey = spell.use(target)
+        if survey.return_code.value > 299:
+            if isclientturn:
+                client_socket.send(f"error|Spell {spell.name} returned with code {survey.return_code.value} ({survey.return_code.name}).".encode())
+            devlog(f"Warning: spell {spell.name} retruned with code {survey.return_code.value} ({survey.return_code.name}).")
         return True
     if head == "forfeit":
-        client_socket.send("win|???".encode())
-        client_socket.close()
-        return False
+        if source:
+            player = board.player2
+        else:
+            player = board.player1
+        player.forfeit()
+        return True
     core.warn("Tried to run unrecognized action.")
     return True
 
-def logplay(handle: ClientHandler, log: str):
-    if not bool(log):
-        return
-    if "\n" in log:
-        for _log in log.split("\n"):
-            logplay(handle, _log)
-    log: list[str] = log.split('|')
-    args = [handle] + log[1:]
-    match core.cleanstr(log[0]):
-        case "attack": log_attack(*args)
-#       case "damage": log_damage(*args)
-#       case "heal": log_heal(*args)
-        case "defeat": log_defeat(*args)
-        case "win": log_win(*args)
-        case "endturn": log_endturn(*args)
-        case "draw": log_draw(*args)
-        case "discard": log_discard(*args)
-        case "place": log_place(*args)
-        case "error": devlog(f"Error: {args[1]}")
-        case "chat": showchat(log[1], log[2])
-        case _: devlog(f"Unown logging ({log[0]}):", *log[1:])
-
+@static
 def showchat(name: str, msg: str):
     name = "\033[1m" + stringclr(name) + name + "\033[0m"
     devlog(name + ":", msg)
-
-def log_attack(game: None, user: str,
-               target: str, attackname: str, cost: str,
-               return_code: str, damage_dealt: str, healing_done: str):
-    if int(return_code) != core.ReturnCode.ok:
-        devlog(f"Attack {attackname} of {user} failed ({return_code}).")
-    else:
-        devlog(f"{user} successfully used {attackname} against {target} dealing {damage_dealt} and healing {healing_done} damages")
-    return f"attack|{user}|{target}|{attackname}|{cost}|{return_code}|{damage_dealt}|{healing_done}"
-
-def log_endturn(game: None, player_name: str, energy: str, max_energy: str, energy_per_turn: str):
-    devlog(f"{player_name} ends their turn. Their current energy is {energy}/{max_energy} after they gained {energy_per_turn}.")
-    return f"endturn|{player_name}|{energy}|{max_energy}|{energy_per_turn}"
-
-def log_place(game: None, cardname: str, index: str, cardcost: str):
-    devlog(f"A {cardname} has been placed at the {index}th index.") # 1th > 1st
-    return f"place|{cardname}|{index}|{cardcost}"
-
-def log_draw(handle: ServerHandler | ClientHandler, card_drawn: str):
-    if isinstance(handle, ClientHandler):
-        devlog(f"You have drawn a {card_drawn}.")
-    return f"draw|{card_drawn}"
-def log_discard(game: None, card_discarded: str):
-    devlog(f"The active player discarded {card_discarded}")
-    return f"discard|{card_discarded}"
-
-def log_win(game: None, winner: str):
-    devlog(f"The winner is {winner}.")
-    return f"win|{winner}"
-
-def log_defeat(game: None, index: str):
-    devlog(f"Creature at index {index} has been defeated.")
-    return f"defeat|{index}"
-
-def devlog(*args):
-    core.DEV() and print(*args)
-    return True
