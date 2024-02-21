@@ -33,7 +33,7 @@ class LobbyMenu(State):
             self.ger_font_path, 30), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
-            MenuButtons.button_assets["Ready"]), position_type="topleft", position=(508, 606))
+            MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(508, 606))
 
         # self.roomname_text_content = get_setting("roomname", "Default")
         # self.local_is_hosting = get_setting("is_hosting", None)
