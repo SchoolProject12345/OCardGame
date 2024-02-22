@@ -1,10 +1,10 @@
-from Core.convenience import *  # makes code cleaner, includes utility.py, hence os
+from Core.convenience import *     # makes code cleaner, includes utility.py, hence os
 from dataclasses import dataclass  # easier class declaration
-from enum import IntEnum  # for clear, lightweight (int) elements/state.
-from json import loads, dumps
-from numpy import random as rng  # for shuffle function/rng effects
-from typing import Generator
-import numpy as np  # for gcd for Kratos card
+from enum import IntEnum           # for clear, lightweight (int) elements/state.
+from json import loads, dumps      # to load `./Data/`
+from math import gcd               # kratos
+from typing import Callable
+import random as rng               # for shuffle function/rng effects
 import re
 
 class Constants:  # to change variables quickly, easily and buglessly.
@@ -140,7 +140,7 @@ class GCDNumeric(Numeric):
     sample: NumericList
     def eval(self, **kwargs) -> int:
         # please save me from Python
-        return np.gcd.reduce(self.sample.eval(**kwargs))
+        return gcd.reduce(self.sample.eval(**kwargs))
     def __str__(self):
         return f"the greatest common divisor of {str(self.sample)}"
 
@@ -148,7 +148,7 @@ class GCDNumeric(Numeric):
 class NumericSum(Numeric):
     sample: NumericList
     def eval(self, **kwargs) -> int:
-        return np.sum(self.sample.eval(**kwargs))
+        return sum(self.sample.eval(**kwargs))
     def __str__(self):
         return f"the sum of {self.sample}"
 
@@ -233,16 +233,23 @@ class AddNumeric(Numeric):
 
 @dataclass
 class FuncNumeric(Numeric):
-    f: object
+    f: Callable[[int], int]
     numeric: Numeric
     def eval(self, **kwargs) -> int:
-        return int(self.f(self.numeric.eval(**kwargs)))
+        return self.f(self.numeric.eval(**kwargs))
     def from_json(json: dict):
-        def square(x: int): return x*x
+        def square(x: int) -> int: return x*x
+        def log2(x: int) -> int:
+            l = 0
+            while x > 1:
+                l += 1
+                x >>= 1
+            return l
+        def exp2(x: int) -> int:
+            return 1 << x # much faster than numpy + floor
         match cleanstr(json["f"]):
-            case "log2": f = np.log2
-            case "exp": f = np.exp
-            case "exp2": f = np.exp2
+            case "log2": f = log2
+            case "exp2": f = exp2
             case "square": f = square
         return FuncNumeric(
             f,
@@ -252,7 +259,6 @@ class FuncNumeric(Numeric):
         match self.f.__name__:
             case "log2": return f"the base 2 logarithm of {self.numeric}"
             case "exp2": return f"the 2 to the power of {self.numeric}"
-            case "exp": return f"the natural exponential of {self.numeric}"
             case "square": return f"the square of {self.numeric}"
             case name: return f"{name}({self.numeric})"
 
@@ -581,7 +587,7 @@ class AbstractEffect:
                     kwargs["board"].unactive_player.commander,
                     kwargs["board"].active_player.commander
                 ]
-            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(12))))
+            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(0, 11))))
             case TargetMode.alliesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allies)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allied_commander))
             case TargetMode.foesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.commander))
             # matches both target & nocommander
@@ -731,7 +737,7 @@ class DiscardEffect(AbstractEffect):
         new_length = max((L := len(player.hand)) - self.delta.eval(), 0)
         has_worked = L > new_length
         while (L := len(player.hand)) > new_length:
-            player.handdiscard(rng.randint(L))  # shuffle cause bugs.
+            player.handdiscard(rng.randint(0, L-1))  # shuffle cause bugs.
         return has_worked
     def from_json(json: dict):
         player = getordef(json, "player", "opponent")
@@ -1030,7 +1036,7 @@ class WithProbability(AbstractEffect):
     effect1: AbstractEffect
     effect2: AbstractEffect = NullEffect()
     def execute(self, **kwargs) -> bool:
-        if rng.rand() < self.probability:
+        if rng.random() < self.probability:
             return self.effect1.execute(**kwargs)
         return self.effect2.execute(**kwargs)
     def from_json(json: dict):
@@ -1724,7 +1730,7 @@ class Arena(IntEnum):
             case Arena.smigruv: return "Smigruv"
             case Arena.själløssmängd: return "Själløssmängd"
     def random():
-        return Arena(rng.randint(5)) # no Själløssmängd
+        return Arena(rng.randint(0,4)) # no Själløssmängd
 
 class Player:
     name: str
@@ -1823,7 +1829,7 @@ class Player:
                 return card.id
         # I'm way to lazy to check whether the returned value is valid, so I just return a valid value in case the card doesn't exist.
         # don't use this method though, use AbstractCard.get_card or AbstractCard.from_id
-        return np.sum([ord(c) for c in cleanstr(name)]) % len(getCARDS())
+        return sum(ord(c) for c in cleanstr(name)) % len(getCARDS())
     @static
     def get_save_json(name: str) -> dict[str, str | list[str] | int] | None:
         "Try to fetch & return a player witht he same name from `Data/player.json` as a `dict`, returning None if it isn't found."
@@ -2002,7 +2008,7 @@ def rps2int(rpc: str):
         case "p": return 1
         case "scissor": return 2
         case "s": return 2
-        case _: return rng.randint(0, 3)
+        case _: return rng.randint(0,2)
 
 @dataclass
 class Board:
@@ -2040,7 +2046,9 @@ class Board:
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(
-            Constants.min_board_size, Constants.max_board_size + 1) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
+            Constants.min_board_size,
+            Constants.max_board_size
+        ) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1 # To compensate disadvantage
@@ -2221,7 +2229,7 @@ class NaiveAI(AIPlayer):
             return
         self.iddiscard(rng.choice(valids).id)
     def auto_play(self, board: Board):
-        self.goal = rng.randint(0, self.max_energy + 1)
+        self.goal = rng.randint(0, self.max_energy)
         i: int = 0
         while self.can_play() and self.energy > self.goal:
             i += 1
