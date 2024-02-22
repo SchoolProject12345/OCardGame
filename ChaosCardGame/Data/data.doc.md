@@ -34,7 +34,7 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
    "name":"Indiscrimante (Neutral) Draining Attack That Destroy This Cat Mental Health™",
    "cost":2,
    "power":30,
-   "target_mode":"self",
+   "target_mode":"user",
    "effect":{
     "type":"union",
     "effect1":{
@@ -70,12 +70,12 @@ With possible values for field `"element"` being: `"water"`, `"fire"`, `"air"`, 
      "probability":0.4,
      "effect1":{ // has 40% chance of happening
       "type":"target_change",
-      "new_target":"self",
+      "new_target":"user",
       "effect":{"type":"damage","amount":70}
      },
      "effect2":{ // has 60% chance of happening
       "type":"damage",
-      "amount":100 // is this card balanced?
+      "amount":100
      }
     },
     "effect2":{
@@ -136,20 +136,33 @@ An attack object is formed as follow:
  "effect":{/*effect object*/}
 }
 ```
-With possible values for field `"target_mode"` being:
-- `"self"`: the user of the move.
-- `"foes"`: all of the opponent's cards.
-- `"foes"`: foes + commander
-- `"allies"`: all of your cards.
-- `"alliesc"`: allies + allied_commander
-- `"target"`: the card targeted by the attack.
-- `"nocommander"`: same as target but commander can't be selected.
-- `"commander"`: your opponent's commander.
-- `"allied_commander"`: your commander.
-- `"all_commanders"`, `"both_commanders"` or `"commanders"`: both commanders
-- `"all"`: every card but the user.
-- `"massivedestruction"` or `"guarenteedchaos"`: EVERY card.
-- `"random_chaos"` or `"random_target_mode"`: change the targetting mode to random. Yes.
+### TargetMode
+A TargetMode is either a `str`ing or a `list` of strings.
+Strings represent elementary targets or flags, whereas list of strings allow to create **Target Union**.\
+Here are the different elementary target that can be placed inside a list:
+- `"target"`: the target targeted by the player attacking.
+- `"foes"`: all foes but commander.
+- `"allies"`: all allies but commander.
+- `"user"`: the attack user.
+- `"commander"`: the opponent's commander
+- `"allied_commander"`: the owner's commander.
+
+Additionaly, the following can be set as **flags**, flags do not change the targets themselves but the behavior of the targetting:
+- `"can_self"`: allow this attack to be used on user.
+- `"nocommander"`: prevent this attack to be used on a commander.
+
+Finally, the following can be used as alliases:
+- `"all"` <=> `["allies", "foes"]`
+- `"massivedestruction"` <=> `["all", "commander", "allied_commander"]`
+
+Example of complex `TargetMode`s:
+```js
+["foes", "nocommander"]  // prevent from targetting the commander with a foes target, useful in case of redirect which would deal way to much damages.
+["foes", "commander"]  // target commander in addition of foes.
+["target", "canself"]  // allow to damage/buff self if necessary.
+["foes", "commander", "user"]  // damage all foes but user as a drawback.
+```
+
 To select a (or multiple) random target among the target distribution, use the following effect:
 ```js
 {
