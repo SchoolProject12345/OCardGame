@@ -1960,35 +1960,43 @@ class Board:
         if (player1 - 1) % 3 == player2:
             return 1
         return -1
-    def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
+    def __init__(self, player1: Player, player2: Player, /, *, autoplay: bool = True, arena: Arena = Arena.själløssmängd):
+        if arena is Arena.själløssmängd:
+            arena = Arena.random()
         self.logs = []
+
         self.active_player, self.unactive_player = player1, player2
         if DEV() and rng.random() < 0.5:  # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
             self.active_player, self.unactive_player = self.unactive_player, self.active_player
         player1.commander.board = self
         player2.commander.board = self
-        self.arena = Arena.random()
+        self.arena = arena
+
         if self.arena.has_effect(Arena.smigruv):
             player1.max_energy += 1
             player2.max_energy += 1
             player1.energy_per_turn += 1
             player2.energy_per_turn += 1
+
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(
             Constants.min_board_size,
             Constants.max_board_size
         ) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
+
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1 # To compensate disadvantage
         self.turn = 0
+
         if len(player1.deck) != Constants.default_deck_size:
             warn(f"player1 ({player1.name})'s deck is not valid, giving random one instead.")
             player1.deck = Player.get_deck()
         if len(player2.deck) != Constants.default_deck_size:
             warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
             player2.deck = Player.get_deck()
+
         self.log(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
         self.log(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
         self.log(f"arena|{self.arena.value}")
@@ -1997,6 +2005,7 @@ class Board:
         self.log(ifelse(self.active_player is self.player1, "-firstp|p1", "-firstp|p2"))
         self.player1.add_energy(0) # to log energy
         self.player2.add_energy(0)
+
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
