@@ -95,28 +95,32 @@ class CardManager:
             self.render_popup()
 
     def generate_popup(self, slot):
-        self.card_info = AbstractCard.from_id(self.get_card(slot)["name"])
+        self.card_state = self.get_card(slot)
+        self.card_info = AbstractCard.from_id(self.card_state["name"])
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
             slot)["name"]]["img"][1]
         self.popup_btns = [
             ImageButton(
-                self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 288)),
+                self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
             ImageButton(
-                self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 338)),
+                self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403)),
             ImageButton(
-                self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)
+                self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)),
+            ImageButton(
+                self.screen, True, image=MenuButtons.button_assets["CardHealth"]["img"], position=(641, 259), position_type="topleft"
             )
         ]
-        self.popup_txt = [TextBox(self.screen, (857, 309), 80, 29,
-                                  self.ger_font_path, (255, 255, 255), "center", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
-                          TextBox(self.screen, (911, 294), 90, 29, self.ger_font_path, (
+        self.popup_txt = [TextBox(self.screen, (812, 359), 90, 29,
+                                  self.ger_font_path, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
+                          TextBox(self.screen, (911, 359), 90, 29, self.ger_font_path, (
                               255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
-                          TextBox(self.screen, (857, 359), 80, 29,
-                                  self.ger_font_path, (255, 255, 255), "center", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
-                          TextBox(self.screen, (911, 344), 90, 29, self.ger_font_path, (
-                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG")]
+                          TextBox(self.screen, (812, 409), 90, 29,
+                                  self.ger_font_path, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
+                          TextBox(self.screen, (911, 409), 90, 29, self.ger_font_path, (
+                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
+                          TextBox(self.screen, (837, 265), 132, 29, self.ger_font_path, (255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
