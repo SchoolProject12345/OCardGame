@@ -200,3 +200,10 @@ class Fonts:
     pygame.font.init()
     ger_font = pygame.font.Font(os.path.join(
         utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"))
+
+
+@dataclass
+class States:
+    states_assets = handle_assets(
+        os.path.join(graphics_path, "Sprites", "States"),
+        True)
