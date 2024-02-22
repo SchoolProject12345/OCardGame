@@ -3,7 +3,7 @@ import os
 from Network.server import HandlerHandler as handle, host as host_server
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBox
-from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, alpha_converter
+from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, Fonts, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
 from utility import cwd_path, search_event, get_setting
@@ -15,7 +15,7 @@ class HostMenu(State):
         self.is_anchor = False
         self.local_options = ["HostMenu", "LobbyMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
-        self.ger_font_path = os.path.join(
+        Fonts.ger_font = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
@@ -34,7 +34,7 @@ class HostMenu(State):
             position=SCREEN_CENTER,
             width=400,
             height=50,
-            font=pygame.font.Font(self.ger_font_path, 53),
+            font=pygame.font.Font(Fonts.ger_font, 53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",
@@ -47,7 +47,7 @@ class HostMenu(State):
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
             width=400,
             height=50,
-            font=pygame.font.Font(self.ger_font_path, 53),
+            font=pygame.font.Font(Fonts.ger_font, 53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",

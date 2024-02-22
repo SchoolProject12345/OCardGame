@@ -1,20 +1,15 @@
 import pygame
-from utility import cwd_path
 import os
-from Assets.menu_assets import CardAssets
+from utility import search_event
+from utility import cwd_path
+from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
+from UserInterface.OcgVision.vision_main import State, ImageButton, DualBar, TextBox
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
-from UserInterface.OcgVision.vision_main import (
-    State,
-    ImageButton,
-    DualBar,
-    TextBox,
-)
 from UserInterface.event_library import CustomEvents
-from utility import search_event
 from UserInterface.card_handler import CardManager
-from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
-from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
+from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
+from Assets.menu_assets import CardAssets
 
 
 class GameMenu(State):
@@ -110,7 +105,7 @@ class GameMenu(State):
             "handed": False,
             "popped": False,
         }
-        self.ger_font_path = os.path.join(
+        Fonts.ger_font = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
         )
         self.player_max_energy = 5
@@ -197,7 +192,7 @@ class GameMenu(State):
             position=(566, 706),
             width=96,
             height=52,
-            font=pygame.font.Font(self.ger_font_path, 30),
+            font=pygame.font.Font(Fonts.ger_font, 30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -209,7 +204,7 @@ class GameMenu(State):
             position=(683, 706),
             width=96,
             height=52,
-            font=pygame.font.Font(self.ger_font_path, 30),
+            font=pygame.font.Font(Fonts.ger_font, 30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -221,7 +216,7 @@ class GameMenu(State):
             position=(566, 0),
             width=96,
             height=52,
-            font=pygame.font.Font(self.ger_font_path, 30),
+            font=pygame.font.Font(Fonts.ger_font, 30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -233,7 +228,7 @@ class GameMenu(State):
             position=(683, 0),
             width=96,
             height=52,
-            font=pygame.font.Font(self.ger_font_path, 30),
+            font=pygame.font.Font(Fonts.ger_font, 30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -245,7 +240,7 @@ class GameMenu(State):
             position=(72, 726),
             width=96,
             height=52,
-            font=pygame.font.Font(self.ger_font_path, 18),
+            font=pygame.font.Font(Fonts.ger_font, 18),
             color=(255, 255, 255),
             position_type="topleft",
             text_center="center",

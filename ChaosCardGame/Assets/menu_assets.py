@@ -193,3 +193,10 @@ class CardAssets:
         )
         logging.warning("Enabled debug cards")
     logging.info("Successfully loaded cards")
+
+
+@dataclass
+class Fonts:
+    pygame.font.init()
+    ger_font = pygame.font.Font(os.path.join(
+        utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"))

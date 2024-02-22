@@ -4,7 +4,7 @@ from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event, cwd_path
 import os
-from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons
+from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons, Fonts
 from UserInterface.OcgVision.vision_main import ImageButton, TextBox, DualBar
 from UserInterface.event_library import CustomEvents
 from Core.core_main import AbstractCard
@@ -52,7 +52,7 @@ class CardHolder:
 
 class CardManager:
     def __init__(self, screen, n_cards):
-        self.ger_font_path = pygame.font.Font(os.path.join(
+        Fonts.ger_font = pygame.font.Font(os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"), 22)
         self.screen = screen
         self.n_cards = n_cards
@@ -113,14 +113,14 @@ class CardManager:
             )
         ]
         self.popup_txt = [TextBox(self.screen, (812, 359), 90, 29,
-                                  self.ger_font_path, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
-                          TextBox(self.screen, (911, 359), 90, 29, self.ger_font_path, (
+                                  Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
+                          TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font, (
                               255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
                           TextBox(self.screen, (812, 409), 90, 29,
-                                  self.ger_font_path, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
-                          TextBox(self.screen, (911, 409), 90, 29, self.ger_font_path, (
+                                  Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
+                          TextBox(self.screen, (911, 409), 90, 29, Fonts.ger_font, (
                               255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
-                          TextBox(self.screen, (837, 265), 132, 29, self.ger_font_path, (255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
+                          TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font, (255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
