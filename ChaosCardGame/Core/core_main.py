@@ -429,17 +429,19 @@ class TargetMode(IntEnum):
     foesc = 10
     alliesc = 11
     def cancommander(self) -> bool:
-        if self in [
+        return not self in [
             TargetMode.foes,
             TargetMode.nocommander,
             TargetMode.allies
-        ]:
-            return False
-        return True
+        ]
     def canself(self) -> bool:
-        if self in [TargetMode.self, TargetMode.allies, TargetMode.all, TargetMode.alliesc]:
-            return True
-        return False
+        return self in [
+            TargetMode.self,
+            TargetMode.allies,
+            TargetMode.all,
+            TargetMode.alliesc,
+            TargetMode.massivedestruction
+        ]
     def from_str(name: str):
         match cleanstr(name):
             case "randomchaos": return TargetMode.random_chaos
@@ -1488,8 +1490,12 @@ class ActiveCard:
         if not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
+        # we don't want Everstone Symbiote to make itself damageless before supporting
+        if not kwargs["target_mode"].canself() and kwargs["main_target"] is self:
+            kwargs["survey"].return_code = ReturnCode.wrong_target
+            return kwargs["survey"]
         if self.state == State.cloudy:  # overrides taunt
-            if kwargs["target_mode"].targetallies():
+            if kwargs["target_mode"].canself():  # canself are (usually) positive
                 kwargs["target_mode"] = TargetMode.self  # self always exists
                 kwargs["main_target"] = self
             # elif target foes but there are none
