@@ -3,6 +3,7 @@ from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum  # for clear, lightweight (int) elements/state.
 from json import loads, dumps
 from numpy import random as rng  # for shuffle function/rng effects
+from typing import Generator
 import numpy as np  # for gcd for Kratos card
 import re
 
@@ -420,7 +421,7 @@ class State(IntEnum):
         match self:
             case State.discarded: return ""
             case State.default: return ""
-            case State.damageless: return "immune"
+            case State.damageless: return "damageless"
             case State.blocked: return "blocked"
             case State.invisible: return "invisible" 
             case State.unattacked: return "extra_attack"
