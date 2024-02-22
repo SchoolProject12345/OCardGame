@@ -347,14 +347,16 @@ def isinstancepar(val: object, cls: type):
       - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
       - E.g. `set[int]`, `list[str]`, ...
     """
+    if isinstance(cls, str):
+        return any(_cls.__name__ == cls.__name__ for _cls in type(val).__mro__)
     if not hasattr(cls, "__args__"):
         # Non-paramatric
         return isinstance(val, cls)
     if not hasattr(cls, "__origin__"):
         # Unions
         # Or something else that shouldn't be used.
-        for type in cls.__args__:
-            if isinstancepar(val, type):
+        for type_ in cls.__args__:
+            if isinstancepar(val, type_):
                 return True
         return False
     origin = cls.__origin__
@@ -386,17 +388,7 @@ def isinstancepar(val: object, cls: type):
     return True  # isinstance of origin but parameters cannot be inferred
 
 
-# Aliases
-# Yes, they are global variables as Python doesn't have constants,
-# But they should be used outside of annotations, which are evaluated only once,
-# so this is fine.
-Real: type = int | float | bool  # Booleans supports real operations.
-Number: type = Real | complex
-Any: type = object
-# they work but Pylance put a warning because Pylance doesn't understand.
-
 # Functions that need static must be left at the end as they need to be defined after static
-
 
 def static(f):
     """
