@@ -111,7 +111,7 @@ def hasany(A: list, B: list) -> bool:
 
 def show(arg):
     "Debug function returning its argument after printing it on the terminal."
-    print(arg)
+    print(repr(arg))
     return arg
 
 def clamp(x, min, max):
