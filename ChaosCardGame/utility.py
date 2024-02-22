@@ -348,7 +348,7 @@ def isinstancepar(val: object, cls: type):
       - E.g. `set[int]`, `list[str]`, ...
     """
     if isinstance(cls, str):
-        return any(_cls.__name__ == cls.__name__ for _cls in type(val).__mro__)
+        return any(_cls.__name__ == cls for _cls in type(val).__mro__)
     if not hasattr(cls, "__args__"):
         # Non-paramatric
         return isinstance(val, cls)
