@@ -4,6 +4,7 @@ from enum import IntEnum           # for clear, lightweight (int) elements/state
 from json import loads, dumps      # to load `./Data/`
 from math import gcd               # kratos
 from typing import Callable
+from Core.target import TargetMode # moved for clarity
 import random as rng               # for shuffle function/rng effects
 import re
 
@@ -48,6 +49,9 @@ class Numeric:
             case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
+    def subeffects(self) -> tuple[("AbstractEffect", "Numeric"), ...]:
+        warn(f"Numeric {typename(type(self))} doesn't have a subeffects method.")
+        return ()
 
 @dataclass
 class TurnNumeric(Numeric):
@@ -94,15 +98,13 @@ class NumericList(Numeric):
     def eval(self, **_) -> list[int]:
         return warn(f"Numeric values of type {type(self)} cannot be acessed.") and [0]
 
-@dataclass
-# To get HP from a single target, use `NumericSum(HPList(TargetMode.target))`
+# To get HP from a single target, use CardProperty
 class HPList(NumericList):
-    target_mode: object  # slightly spagehtti but this will do for now
     @static
     def eval(self, **kwargs) -> list[int]:
-        return [card.hp for card in AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", self.target_mode))]
+        return [card.hp for card in AbstractEffect.targeted_objects(**kwargs)]
     def __str__(self):
-        return f"the HP from {self.target_mode.to_str()}"
+        return f"the targets' HPs"
 
 @dataclass
 # why didn't I do that before? It makes everything 100x easier.
@@ -433,79 +435,6 @@ class State(IntEnum):
             case State.cloudy: return "cloudy"
             case State.no_multi: return "no_multi"
 
-class TargetMode(IntEnum):
-    random_chaos = -1
-    foes = 0
-    target = 1
-    allies = 2
-    self = 3  # it can't possibly cause a bug, right? ( ͡° ͜ʖ ͡°)
-    commander = 4
-    allied_commander = 5
-    all_commanders = 6
-    massivedestruction = 7
-    all = 8
-    nocommander = 9
-    foesc = 10
-    alliesc = 11
-    def cancommander(self) -> bool:
-        return not self in [
-            TargetMode.foes,
-            TargetMode.nocommander,
-            TargetMode.allies
-        ]
-    def canself(self) -> bool:
-        return self in [
-            TargetMode.self,
-            TargetMode.allies,
-            TargetMode.all,
-            TargetMode.alliesc,
-            TargetMode.massivedestruction
-        ]
-    def from_str(name: str):
-        match cleanstr(name):
-            case "randomchaos": return TargetMode.random_chaos
-            case "randomtargetmode": return TargetMode.random_chaos
-            case "randomlyselectedrandomtargets": return TargetMode.random_chaos
-            case "foes": return TargetMode.foes
-            case "target": return TargetMode.target
-            case "allies": return TargetMode.allies
-            case "self": return TargetMode.self
-            case "user": return TargetMode.self
-            case "commander": return TargetMode.commander
-            case "foecommander": return TargetMode.commander
-            case "enemycommander": return TargetMode.commander
-            case "alliedcommander": return TargetMode.allied_commander
-            case "allycommander": return TargetMode.allied_commander
-            case "allcommanders": return TargetMode.all_commanders
-            case "bothcommanders": return TargetMode.all_commanders
-            case "commanders": return TargetMode.all_commanders
-            case "all": return TargetMode.all
-            case "massivedestruction": return TargetMode.massivedestruction
-            case "guaranteedchaos": return TargetMode.massivedestruction
-            case "nocommander": return TargetMode.nocommander
-            case "anytargetbutcommanders": return TargetMode.nocommander
-            case "foesc": return TargetMode.foesc
-            case "alliesc": return TargetMode.alliesc
-            case "foescommander": return TargetMode.foesc
-            case "foesandtheircommander": return TargetMode.foesc
-            case "alliescommander": return TargetMode.alliesc
-            case "alliesandtheircommander": return TargetMode.allies
-            case "everycreaturethathaseversetfootinthisarena": return TargetMode.massivedestruction
-            case _: return warn(f"Invalid TargetMode {name}: returning TargetMode.target") and TargetMode.target
-    @static
-    def to_str(self) -> str:
-        match self:
-            case TargetMode.self: return "user"
-            case TargetMode.commander: return "enemy Commander"
-            case TargetMode.allied_commander: return "allied Commander"
-            case TargetMode.all_commanders: return "both Commanders"
-            case TargetMode.massivedestruction: return "every creature that has ever set foot in this Arena"
-            case TargetMode.random_chaos: return "randomly selected random targets"
-            case TargetMode.nocommander: return "any target but commanders"
-            case TargetMode.foesc: return "foes and their commander"
-            case TargetMode.foesc: return "allies and their commander"
-            case target: return target.name
-
 class DamageMode(IntEnum):
     direct = 0
     indirect = 1
@@ -561,36 +490,29 @@ class AbstractEffect:
     def endturn(self, target) -> bool:
         "AbstractEffect.endturn is a method that is applied at the end of each turn to the creature affected by it, returning False if the effect ends on this turn."
         return warn(f"Creature with name {target.card.name} was affected by effect of type {type(self)} which doesn't support endturn method.") and False
-    def targeted_objects(**kwargs):
-        match kwargs["target_mode"]:
-            # TODO clean that absolute mess using bits as keys for easy composition.
-            case TargetMode.foes: return kwargs["user"].owner.opponent.get_actives()
-            case TargetMode.allies: return kwargs["user"].owner.get_actives()
-            case TargetMode.self: return [kwargs["user"]]
-            case TargetMode.commander: return [kwargs["user"].owner.opponent.commander]
-            case TargetMode.allied_commander: return [kwargs["user"].owner.commander]
-            case TargetMode.all_commanders: return [kwargs["board"].unactive_player.commander, kwargs["board"].active_player.commander]
-            case TargetMode.all:
-                return [
-                    *filter((lambda x: x != None),
-                            kwargs["board"].unactive_player.active),
-                    *filter((lambda x: x != None and x !=
-                            kwargs["user"]), kwargs["board"].active_player.active),
-                ]
-            case TargetMode.massivedestruction:
-                return [
-                    *filter((lambda x: x != None),
-                            kwargs["board"].unactive_player.active),
-                    *filter((lambda x: x != None),
-                            kwargs["board"].active_player.active),
-                    kwargs["board"].unactive_player.commander,
-                    kwargs["board"].active_player.commander
-                ]
-            case TargetMode.random_chaos: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode(rng.randint(0, 11))))
-            case TargetMode.alliesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allies)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.allied_commander))
-            case TargetMode.foesc: return AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes)) + AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.commander))
-            # matches both target & nocommander
-            case _: return [kwargs["main_target"]]
+    def targeted_objects(**kwargs) -> list["ActiveCard"]:
+        if not "target_mode" in kwargs:
+            warn("No target_mode found in kwargs: " + repr(kwargs))
+            kwargs["target_mode"] = TargetMode(0)
+        target_mode: int | TargetMode = kwargs["target_mode"]
+        if isinstance(target_mode, int):
+            target_mode: TargetMode = TargetMode(target_mode)
+        targets: list[ActiveCard] = []
+        if target_mode.has_target(TargetMode.TARGET):
+            targets.append(kwargs["main_target"])
+        if target_mode.has_target(TargetMode.FOES):
+            targets.extend(kwargs["user"].owner.opponent.get_actives())
+        if target_mode.has_target(TargetMode.ALLIES):
+            targets.extend(kwargs["user"].owner.get_actives())
+        # Ignore CAN_SELF
+        if target_mode.has_target(TargetMode.USER):
+            targets.append(kwargs["user"])
+        # NOCOMMANDER doesn't prevent from hitting COMMANDER, only from targeting it.
+        if target_mode.has_target(TargetMode.COMMANDER):
+            targets.append(kwargs["user"].owner.opponent.commander)
+        if target_mode.has_target(TargetMode.ALLIED_COMMANDER):
+            targets.append(kwargs["user"].owner.commander)
+        return targets
     def get_tags(self):
         return warn(f"Tried to get tags from a {type(self)}") and ()
     def from_json(json: dict):
@@ -637,6 +559,10 @@ class AbstractEffect:
             case "noeffect": return NullEffect()
             case None: return NullEffect()
             case _: return warn(f"Tried to parse an effect with type {type} in {json}. Returning NullEffect instead.") and NullEffect()
+    def subeffects(self) -> tuple[("AbstractEffect", Numeric), ...]:
+        # debug-only, leaf doesn't implement it
+        warn(f"{typename(type(self))} doesn't have a subeffects method.")
+        return ()
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
@@ -825,7 +751,7 @@ class ChangeTarget(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
         if kwargs["user"].state is State.cloudy:
-            if self.new_target in [TargetMode.allies, TargetMode.self, TargetMode.allied_commander]:
+            if self.new_target.canself():
                 kwargs["target_mode"] = TargetMode.self
             else:
                 kwargs["target_mode"] = TargetMode.target
@@ -1308,9 +1234,9 @@ class Attack:
         return attack
     def log(self, **kwargs):
         if "spell" in self.tags:
-            log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
+            log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode}|{kwargs['survey'].return_code.value}"
         else:
-            log = f"attack|{kwargs['user'].namecode()}|{self.name}|{kwargs['main_target'].namecode()}|{self.target_mode.value}|{kwargs['survey'].return_code.value}"
+            log = f"attack|{kwargs['user'].namecode()}|{self.name}|{kwargs['main_target'].namecode()}|{self.target_mode}|{kwargs['survey'].return_code.value}"
         kwargs["board"].log(log)
         return kwargs["survey"]
     def __str__(self) -> str:
@@ -1323,7 +1249,9 @@ class Attack:
             s += f"dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
         return s
-
+    def has_target(self):
+        pass # TODO: to that
+        
 
 @dataclass
 class AbstractCard:
@@ -1392,7 +1320,7 @@ class CreatureCard(AbstractCard):
             args[7] = (*args[7], json["tag"])
         if cleanstr(json["name"]) == "bobtheblobfish":
             args[4][0] = Attack("Splish-Splosh", 0,
-                                TargetMode.self, 0, NullEffect(), ("useless",))
+                                TargetMode.user, 0, NullEffect(), ("useless",))
         # so we don't need to define "commander":false for every card (might be changed later to "type":"commander" though).
         if getordef(json, "commander", False):
             return CommanderCard(*args)
@@ -1515,7 +1443,7 @@ class ActiveCard:
             return kwargs["survey"]
         if self.state == State.cloudy:  # overrides taunt
             if kwargs["target_mode"].canself():  # canself are (usually) positive
-                kwargs["target_mode"] = TargetMode.self  # self always exists
+                kwargs["target_mode"] = TargetMode.user  # user always exists
                 kwargs["main_target"] = self
             # elif target foes but there are none
             elif len(AbstractEffect.targeted_objects(**withfield(kwargs, "target_mode", TargetMode.foes))) == 0:
@@ -1530,7 +1458,10 @@ class ActiveCard:
                     AbstractEffect.targeted_objects(**withfield(
                         kwargs,
                         "target_mode",
-                        TargetMode.foesc if kwargs["target_mode"].cancommander() else TargetMode.foes
+                        TargetMode(
+                            TargetMode.FOES,
+                            (TargetMode.COMMANDER if kwargs["target_mode"].cancommander() else 0)
+                        )
                     ))
                 )
         #= Gravitational Lensing - start =#
@@ -1664,7 +1595,7 @@ class ActiveCard:
             "board": self.board,
             "main_target": self,
             "damage_mode": DamageMode.indirect,
-            "target_mode": TargetMode.self,
+            "target_mode": TargetMode.user,
             }
         )
         if not self.attacked:
@@ -1800,7 +1731,7 @@ class Player:
         # yes, it's ugly, it's Python
         return rng.choice(list(getCOMMANDERS().values()))
     def get_deck(*_) -> list[AbstractCard]:
-        return [*rng.choice([card for card in getCARDS() if not isinstance(card, CreatureCard) or not hasany(card.tags, ("secret", "forme", "summon", *ifelse(DEV(), (), ("debug",))))], Constants.default_deck_size)]
+        return rng.sample([card for card in getCARDS() if not isinstance(card, CreatureCard) or not hasany(card.tags, ("secret", "forme", "summon", *ifelse(DEV(), (), ("debug",))))], Constants.default_deck_size)
     def get_actives(self) -> list[ActiveCard]:
         return [card for card in self.active if card is not None]
     @property
@@ -1970,7 +1901,7 @@ class Player:
             "board": board,
             "main_target": self.active[j],
             "damage_mode": DamageMode.indirect,
-            "target_mode": TargetMode.self,
+            "target_mode": TargetMode.user,
             "user": self.active[j],
             "survey": EffectSurvey()
         }
@@ -2114,7 +2045,7 @@ class Board:
                           RandomTargets(DamageEffect(RawNumeric(35), DamageMode.ignore_resist), RawNumeric(3)), ("divine", "spell"))),
                 # What's better than random in random? Random in random randomness.
                 SpellCard("Kortgudomlighet's Unfair Summoning", 1+2j, Element.chaos,
-                          Attack("( ͡° ͜ʖ ͡°)", 0, TargetMode.self, 0, # I could think of no better name
+                          Attack("( ͡° ͜ʖ ͡°)", 0, TargetMode.user, 0, # I could think of no better name
                           EffectUnion(SummonEffect(1, rng.choice(_all_creature_cards), "active"), SummonEffect(1, rng.choice(_all_creature_cards), "unactive")), ("divine", "spell"))),
                 # Why doesn't this work?
                 SpellCard("Kortgudomlighet's Quantum Physics Experiment", 1+2j, Element.chaos,
