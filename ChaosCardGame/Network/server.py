@@ -181,8 +181,9 @@ class ServerHandler(ReplayHandler):
                     devlog(f"{self.state['p2']['name']} drew a card.")
                 else:
                     devlog(msg)
-            except:
+            except Exception as e:
                 print("Error with:", log)
+                print(repr(e))
             if head == "draw" and args[0] == "p1":
                 log = f"draw|p1|card" # "{name} drew a card."
             logs += log + "\n"
@@ -278,8 +279,9 @@ class ClientHandler(ReplayHandler):
             return all(self(_data) for _data in data.split('\n'))
         try:
             devlog(self.play_log(data))
-        except:
+        except Exception as e:
             print("Error with:", data)
+            print(repr(e))
         return True
     def endgame(self):
         if core.get_setting("automatically_save_replay", True):
