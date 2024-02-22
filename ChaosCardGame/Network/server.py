@@ -476,21 +476,21 @@ def replay(replayname: str, /, *, delay: float = 0.3) -> ReplayHandler:
     return handle
 
 @static
-def str2target_client(index: str) -> core.ActiveCard | None:
+def str2target_client(index: str) -> object:
     data = net.get_data()
     foes, foec, allies, allyc = core.ifelse(data["server_turn"],
         (data["client"]["board"], data["client"]["commander"], data["server"]["board"], data["server"]["commander"]),
         (data["server"]["board"], data["server"]["commander"], data["client"]["board"], data["client"]["commander"])
     )
-    m = re.match("foe(\d+)", index)
+    m = re.match("(remote|foe)(\d+)", index)
     if m:
-        i = int(m[1])
+        i = int(m[2])
         if i >= len(foes):
             return None
         return foes[i]
-    m = re.match("ally(\d+)", index)
+    m = re.match("(local|ally)(\d+)", index)
     if m:
-        i = int(m[1])
+        i = int(m[2])
         if i >= len(allies):
             return None
         return allies[i]
@@ -498,23 +498,25 @@ def str2target_client(index: str) -> core.ActiveCard | None:
         case "allycommander": return allyc
         case "allyat": return allyc
         case "alliedcommander": return allyc
+        case "localat": return allyc
         case "enemycommander": return foec
         case "foecommander": return foec
         case "foeat": return foec
         case "commander": return foec
+        case "remoteat": return foec
         case _: return None
 
 @static
 def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
-    m = re.match("foe(\d+)", index)
+    m = re.match("(foe|remote)(\d+)", index)
     if m:
-        i = int(m[1])
+        i = int(m[2])
         if i >= len(board.unactive_player.active):
             return None
         return board.unactive_player.active[i]
-    m = re.match("ally(\d+)", index)
+    m = re.match("(ally|local)(\d+)", index)
     if m:
-        i = int(m[1])
+        i = int(m[2])
         if i >= len(board.active_player.active):
             return None
         return board.active_player.active[i]
@@ -522,10 +524,12 @@ def str2target(board: core.Board, index: str) -> core.ActiveCard | None:
         case "allycommander": return board.active_player.commander
         case "alliedcommander": return board.active_player.commander
         case "allyat": return board.active_player.commander
+        case "localat": return board.active_player.commander
         case "enemycommander": return board.unactive_player.commander
         case "foecommander": return board.unactive_player.commander
         case "foeat": return board.unactive_player.commander
         case "commander": return board.unactive_player.commander
+        case "remoteat": return board.unactive_player.commander
         case _: return None
 
 @static
@@ -541,7 +545,7 @@ def clientside_action(handle: ClientHandler | ServerHandler, action: str, *args)
             card: core.AbstractCard = core.getCARDS()[core.Player.card_id(cardname)]
         if len(args) < 2:
             fname = card.element.to_str() + "-" + cardname
-            with open(core.utility.os.path.join(core.utility.cwd_path, "Data/textsprites.json")) as io:
+            with open(core.os.path.join(core.Constants.path, "Data/textsprites.json")) as io:
                 try:
                     json = net.json.load(io)
                     if fname in json:
