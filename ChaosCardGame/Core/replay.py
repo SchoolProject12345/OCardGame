@@ -1,20 +1,93 @@
 import Core.core_main as core
 from datetime import datetime # ???
-from utility import static
+from utility import static, typename
 from time import sleep
+from typing import Callable
 
 class ReplayHandler:
-    "A game state handler which as everything necessary for replaying a game, i.e. a log player and a data retriever."
+    """
+    A game state handler which as everything necessary for replaying a game, i.e. a log player and a data retriever.
+    Public API (for `ReplayHandler` & subclasses):
+    - `handle.get_state() -> dict[str, Any]` return a dict representing the game state. See `log.doc.md` for strucutre.
+    - `handle.run_action(action: str) -> None` try to run an action, sending to peer if necessary. See `log.doc.md` for valid actions.
+    - `handle.add_log_player(player: function, head: str = "")`
+    """
     state: dict[str, any]
     replay: list[str]
     ongoing: bool
+    __log_players: dict[str, "function"]
     def __init__(self):
         self.state = ReplayHandler.default_state()
         self.replay = []
         self.ongoing = True
-        self.state["pov"] = ("p1" if self.isp1() else "p2") # for inheritance
+        self.state["pov"] = ("p1" if self.isp1() else "p2")  # for inheritance
+    @classmethod
+    @static
+    def add_log_player(self, player: Callable[[str, tuple[str, ...], dict[str, str]], None], /, head: str | list[str] = ""):
+        """
+        Add log player to *all* handlers. A log player mustn't mutate the game state, this is automatically handled.
+        The head kwarg defaults to the `player`'s name without leading "log_"
+        (e.g. if player is defined through `def log_attack(head, *args, **kwargs):` then the head field is unnecessary)
+        and with `dash_` replaced by `-` (e.g. function "log_dash_damage" doesn't require head field).
+        It represents the logs that this player can read. If a list is given, the player is assumed to be able to read multiple logs.
+        Additionally, `head` can be set to `FALLBACK` to serve as a fallback player, being used whenever no player is found for the log,
+        but it *must never throw*, i.e. it must have a fallback itself.
+        `player` must be a Callable of that form: `player(head: str, *args: str, **kwargs: str)` where:
+        - `head` is the "head" of the log, the type of log (e.g. "-damage").
+        This is typically a constant (hence can be set to `_`),
+        but is important for a player able to read multiple logs.
+        - `*args` are the field of the log, see `log.doc.md` for each case (e.g. log "-damage|p1a|50/60" gives `*args=("p1a", "50/60")`)
+        - `**kwargs` are the *optional* context arguments (e.g. "-damage|p1a|50/60|[from] Default Attack" would set `from="Default Attack"`)
+
+        Note: argument are unpreprocessed as of now, but that may change.
+
+        # Example
+        ```py
+        >>> def log_dash_damage(
+        ...     _: str,       # thrown as constant
+        ...     target: str,
+        ...     ratio: str,   # can accept multiple argument instead of *args
+        ...     **kwargs: str # kwargs must always be double-splatted
+        ... ) -> None:
+        ...     print(f"{target}'s HP dropped to " + ratio.split('/')[0] + '!') # assertion can be made from log.doc.md
+        ...     if "from" in kwargs.keys():  # error handling necessary as uncertain
+        ...         print(f"It was from {kwargs['from']}!")
+        >>> ReplayHandler.add_log_player(  # (it doesn't matter whether it is an instance or a subclass)
+        ...     log_dash_damage  # head kwarg inferred from function name
+        ... )
+        >>> ReplayHandler.add_log_player(
+        ...     lambda x, *y, **z: print(  # lambdas work as well
+        ...         x + '|' + '|'.join(y) + ''.join(f"|[{pair[0]}] {pair[1]}" for pair in z.items())
+        ...     ),
+        ...     head="FALLBACK"  # head cannot be inferred and "FALLBACK" needs to be explicit
+        ... )
+        >>> handle = ReplayHandler()
+        >>> handle.play_log(  # play_log shouldn't be used directly, it is only for the example
+        ...     "place|p2c|Hand of Ashes|40|2|[kwarg] Foobar"  # has no player
+        ... ); None
+        -place|p2c|Hand of Ahses|40|2|[kwarg] Foobar
+        >>> handle.play_log("-damage|p2c|30/40")  # has player
+        p2c's HP dropped to 30!
+        ```
+        """
+        if head == "":
+            # function name (defaults to __str__ if no __name__ exists)
+            head = typename(player)
+            # remove leading log_
+            m = core.re.match("log_(.*)", head)
+            if m is None:
+                # probably forgot `head` kwarg
+                raise NameError(f"Tried to infer log player's `head` from {head}, maybe you forgot to set `head` kwarg. If not, please rename `{head}` to `log_{head}.`")
+            # replace "dash_" to allow minor logs
+            head = m[1].replace("dash_", '-')
+            del m
+        if isinstance(head, str):
+            head: list[str] = [head]
+        for log in head:
+            self.__log_players[log] = player
+    def run_action(self, action: str): return core.warn("Tried to run action on a ReplayHandler.") and None  # fallback method
     def isp1(self) -> bool: return self.state["pov"] == "p1" # POV can be used to change replay POV
-    def get_state(self) -> dict:
+    def get_state(self) -> dict[str, object]:
         """
         Return `self`'s state as a dict (see `./Core/log.doc.md`).\n
         This is different from `self.state`, whcih returns raw data,
