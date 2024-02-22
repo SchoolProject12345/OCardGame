@@ -399,7 +399,7 @@ class State(IntEnum):
     blocked = 4     # can't attack
     cloudy = 3      # single targeted only, -20% dmg, random targeted.
     invisible = 2   # can't attack; can't be targeted
-    monotonous = 1  # no SE multiplier
+    no_multi = 1    # no SE multiplier
     unattacked = 0  # set target.attacked to False without affecting self.state
     default = -128  # placeholder
     def from_str(name: str):
@@ -411,7 +411,9 @@ class State(IntEnum):
             case "damageless": return State.damageless
             case "unattacked": return State.unattacked
             case "cloudy": return State.cloudy
-            case "monotonous": return State.monotonous
+            case "monotonous": return State.no_multi
+            case "nosupereffectivemultiplier": return State.no_multi
+            case "nomulti": return State.no_multi
             case _: return (warn(f"Tried to form State from an non-recognized string ({name}); returing State.default instead.") and State.default)
 
 class TargetMode(IntEnum):
@@ -861,7 +863,7 @@ class DamageEffect(AbstractEffect):
     damage_mode: DamageMode = DamageMode.direct
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
-        if kwargs["user"].state != State.monotonous:
+        if kwargs["user"].state != State.no_multi:
             kwargs["damage_mode"] = self.damage_mode
         for card in AbstractEffect.targeted_objects(**kwargs):
             # nobody answered so I'll consider it a feature.
@@ -965,7 +967,7 @@ class CleanseEffect(AbstractEffect):
         for target in AbstractEffect.targeted_objects(**kwargs):
             if "+" in self.by_tags and target.state in [State.damageless]:
                 target.change_state(State.default)
-            if "-" in self.by_tags and target.state in [State.blocked, State.cloudy, State.monotonous]:
+            if "-" in self.by_tags and target.state in [State.blocked, State.cloudy, State.no_multi]:
                 target.change_state(State.default)
             if "+-" in self.by_tags and target.state in [State.invisible]:
                 target.change_state(State.default)
@@ -1478,7 +1480,7 @@ class ActiveCard:
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "target_mode", attack.target_mode)
-        getorset(kwargs, "damage_mode", ifelse(self.state == State.monotonous, DamageMode.ignore_se, DamageMode.direct))
+        getorset(kwargs, "damage_mode", ifelse(self.state == State.no_multi, DamageMode.ignore_se, DamageMode.direct))
         if self.taunt is not None:
             if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
