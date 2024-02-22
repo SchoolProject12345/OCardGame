@@ -31,7 +31,8 @@ class ReplayHandler:
         and with `dash_` replaced by `-` (e.g. function "log_dash_damage" doesn't require head field).
         It represents the logs that this player can read. If a list is given, the player is assumed to be able to read multiple logs.
         Additionally, `head` can be set to `FALLBACK` to serve as a fallback player, being used whenever no player is found for the log,
-        but it *must never throw*, i.e. it must have a fallback itself.
+        but it *must never throw*, i.e. it must have a fallback itself. `head` can also be set to "ALWAYS" to always read the log,
+        whether another player can read it or not.
         `player` must be a Callable of that form: `player(head: str, *args: str, **kwargs: str)` where:
         - `head` is the "head" of the log, the type of log (e.g. "-damage").
         This is typically a constant (hence can be set to `_`),
@@ -288,8 +289,6 @@ class ReplayHandler:
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
         Note: `log` is considered to be a correctly formed log, if not there is no guarantee that it will return without crash/bug.
         """
-        if head is None:
-            head, *args, kwargs = kwargssplit(log)
         match head:
             case "player":
                 ind = args[0]
@@ -479,6 +478,14 @@ class ReplayHandler:
                 ret = ""
         # isn't appended if an error is thrown, so that the replay is always valid.
         self.replay.append(log)
+        if head is None:
+            head, *args, kwargs = kwargssplit(log)
+        if head in self.__log_players:
+            self.__log_players[head](head, *args, **kwargs)
+        elif "FALLBACK" in self.__log_players:
+            self.__log_players["FALLBACK"](head, *args, **kwargs)
+        if "ALWAYS" in self.__log_players:
+            self.__log_players["ALWAYS"](head, *args, **kwargs)
         return ret
 
 @static
