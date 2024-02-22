@@ -2,7 +2,6 @@ import Core.core_main as core
 from datetime import datetime # ???
 from utility import static, typename
 from time import sleep
-from typing import Callable
 
 class ReplayHandler:
     """
@@ -15,7 +14,7 @@ class ReplayHandler:
     state: dict[str, any]
     replay: list[str]
     ongoing: bool
-    __log_players: dict[str, "function"]
+    __log_players: dict[str, "function"] = {}
     def __init__(self):
         self.state = ReplayHandler.default_state()
         self.replay = []
@@ -23,9 +22,9 @@ class ReplayHandler:
         self.state["pov"] = ("p1" if self.isp1() else "p2")  # for inheritance
     @classmethod
     @static
-    def add_log_player(self, player: Callable[[str, tuple[str, ...], dict[str, str]], None], /, head: str | list[str] = ""):
+    def add_log_player(self, player: core.Callable[[str, tuple[str, ...], dict[str, str]], None], /, head: str | list[str] = ""):
         """
-        Add log player to *all* handlers. A log player mustn't mutate the game state, this is automatically handled.
+        Add log player to *all* handlers. A log player mustn't mutate the game state, this is automatically done.
         The head kwarg defaults to the `player`'s name without leading "log_"
         (e.g. if player is defined through `def log_attack(head, *args, **kwargs):` then the head field is unnecessary)
         and with `dash_` replaced by `-` (e.g. function "log_dash_damage" doesn't require head field).
@@ -289,6 +288,8 @@ class ReplayHandler:
         Play a log updating `self.state` and returning a string to be or not logged to the terminal for text-based.
         Note: `log` is considered to be a correctly formed log, if not there is no guarantee that it will return without crash/bug.
         """
+        if head is None:
+            head, *args, kwargs = kwargssplit(log)
         match head:
             case "player":
                 ind = args[0]
@@ -476,16 +477,16 @@ class ReplayHandler:
                 ret = ""
             case "": # allows to put empty lines in `.log`'s for clarity/time spacing.
                 ret = ""
+            case _:
+                raise NameError(f"{head} is not a valid log head.")
         # isn't appended if an error is thrown, so that the replay is always valid.
         self.replay.append(log)
-        if head is None:
-            head, *args, kwargs = kwargssplit(log)
         if head in self.__log_players:
-            self.__log_players[head](head, *args, **kwargs)
+            self.__log_players[head](head, *args, **kwargs, text = ret)
         elif "FALLBACK" in self.__log_players:
-            self.__log_players["FALLBACK"](head, *args, **kwargs)
+            self.__log_players["FALLBACK"](head, *args, **kwargs, text = ret)
         if "ALWAYS" in self.__log_players:
-            self.__log_players["ALWAYS"](head, *args, **kwargs)
+            self.__log_players["ALWAYS"](head, *args, **kwargs, text = ret)
         return ret
 
 @static
