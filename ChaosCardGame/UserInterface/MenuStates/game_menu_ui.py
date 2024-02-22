@@ -370,7 +370,7 @@ class GameMenu(State):
             if attack.target_mode.canself():
                 return True
             else:
-                logging.info(
+                logging.warn(
                     "Trying to inflict illegal attack on self. Cancelling attack.")
                 return False
         return True
