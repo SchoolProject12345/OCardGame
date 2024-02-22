@@ -39,7 +39,7 @@
     "name": "Root Pierce",
     "cost": 1,
     "target_mode": "target",
-    "power": 55,
+    "power": 0,
     "target": "target",
     "effect": {
      "den": 30,
@@ -70,7 +70,7 @@
   ]
  },
  {
-  "name": "Rio o colorido",
+  "name": "Rio o-colorido",
   "element": "Air",
   "cost": 2,
   "hp": 97,
@@ -254,7 +254,8 @@
     "target": "foes",
     "effect": {
      "new_state": "block",
-     "type": "state_change"
+     "type": "state_change",
+     "for":0
     }
    }
   ]
@@ -429,7 +430,7 @@
   ]
  },
  {
-  "name": "Fyyronyr the Dragon",
+  "name": "Fyyrönyr, the Dragon",
   "element": "fire",
   "cost": 2,
   "tag": "aoe",
@@ -644,7 +645,7 @@
    "name": "Fireball",
    "cost": 2,
    "target_mode": "target",
-   "power": 0
+   "power": 70
   },
   "type": "spell"
  },
@@ -659,7 +660,7 @@
     "name": "Tentacle Torrent",
     "cost": 1,
     "target_mode": "foesc",
-    "power": 25,
+    "power": 0,
     "target": "foes",
     "effect": {
      "effect": {
@@ -674,7 +675,7 @@
   ]
  },
  {
-  "name": "Kratos",
+  "name": "Kratos of Fire",
   "element": "Fire",
   "cost": 3,
   "hp": 120,
@@ -850,7 +851,7 @@
     "name": "Geyser",
     "cost": 2,
     "target_mode": "target",
-    "power": 100,
+    "power": 0,
     "target": "target",
     "effect": {
      "amount": 100,
@@ -963,7 +964,7 @@
   ]
  },
  {
-  "name": "Sky Monkey",
+  "name": "Monkey of the Skies",
   "element": "air",
   "cost": 1,
   "tag": "support",
@@ -986,7 +987,7 @@
   ]
  },
  {
-  "name": "Shiao Master of Seas",
+  "name": "Shiao, Master of Seas",
   "element": "Water",
   "cost": 5,
   "hp": 300,
@@ -1147,7 +1148,7 @@
   ]
  },
  {
-  "name": "The Thousand Toothed",
+  "name": "The Thousand-Toothed",
   "element": "water",
   "cost": 3,
   "hp": 160,
@@ -1585,7 +1586,7 @@
     "effect": {
      "new_target": "foesc",
      "effect": {
-      "amount": 100,
+      "amount": 0,
       "from": "alliesc",
       "type": "redirect"
      },
@@ -1610,7 +1611,7 @@
       "damage_mode": "direct"
      },
      "value": {
-      "meta": "taunted",
+      "meta": ["taunted"],
       "target_mode": "self",
       "type": "count"
      },
@@ -1646,7 +1647,7 @@
     "name": "Temple OS' Choice",
     "cost": 1,
     "target_mode": "randomchaos",
-    "power": 0,
+    "power": 65535,
     "target": "randomtargetmode"
    }
   ]
@@ -1662,7 +1663,7 @@
     "name": "Instant Dash",
     "cost": 2,
     "target_mode": "target",
-    "power": 80,
+    "power": 0,
     "target": "target",
     "effect": {
      "amount": 80,
