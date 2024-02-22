@@ -1633,10 +1633,10 @@ class SpellCard(AbstractCard):
         return self.on_use.cost
 
 class Arena(IntEnum):
-    smigruv = 0       # +1 max energy & energy per turn
-    himinnsokva = 1   # random endofturn events
-    jordros = 2       # +1 board size
-    watorvarg = 3     # +1 hand size
+    smigruv = 3       # +1 max energy & energy per turn
+    himinnsokva = 0   # random endofturn events
+    jordros = 1       # +1 board size
+    watorvarg = 2     # +1 hand size
     chaos = 4         # *all* effects
     själløssmängd = 5 # no effect whatsoever; placeholder
     # used by Omy, gotta redo
