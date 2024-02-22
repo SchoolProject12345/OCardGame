@@ -172,7 +172,7 @@ def join_connection(target_ip: str, port: int):
         print(f"Error connecting to {target_ip}:{port}: {str(e)}")
         return
 
-def start_peer_to_peer(action, target_ip: str = get_ip(), port: int = 12345, handler = default_handler): # You can choose any available port
+def start_peer_to_peer(action, target_ip: str, port: int = 12345, handler = default_handler): # You can choose any available port
     """
     `start_peer_to_peer(action, target_ip)` is the starting point of the network program.
     The user will choose to join or to host a party.
