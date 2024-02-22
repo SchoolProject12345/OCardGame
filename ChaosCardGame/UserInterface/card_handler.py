@@ -4,7 +4,7 @@ from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event, cwd_path
 import os
-from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons, Fonts
+from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons, Fonts, States
 from UserInterface.OcgVision.vision_main import ImageButton, TextBox, DualBar
 from UserInterface.event_library import CustomEvents
 from Core.core_main import AbstractCard
@@ -31,7 +31,7 @@ class CardHolder:
         self,
         mouse_pos: tuple[int, int],
         mousebuttondown: pygame.MOUSEBUTTONDOWN,
-        card: str = "MiscEmpty",
+        card: str,
         active=True,
     ):
         self.card = card
@@ -95,36 +95,49 @@ class CardManager:
             self.render_popup()
 
     def generate_popup(self, slot):
-        self.card_state = self.get_card(slot)
+        self.popup_slot = slot
+        self.card_state = self.get_card(self.popup_slot)
         self.card_info = AbstractCard.from_id(self.card_state["name"])
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
         self.popup_card_img = CardAssets.card_sprites[self.get_card(
-            slot)["name"]]["img"][1]
+            self.popup_slot)["name"]]["img"][1]
+
         self.popup_btns = [
-            ImageButton(
-                self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
-            ImageButton(
-                self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403)),
             ImageButton(
                 self.screen, pygame.event.Event(CustomEvents.CLOSE_POPUP), image=MenuButtons.button_assets["CloseMenu"]["img"], position_type="topleft", position=(641, 502)),
             ImageButton(
                 self.screen, True, image=MenuButtons.button_assets["CardHealth"]["img"], position=(641, 259), position_type="topleft"
             )
         ]
-        self.popup_txt = [TextBox(self.screen, (812, 359), 90, 29,
+        self.popup_txt = [TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font, (
+            255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
+
+        if self.popup_slot[0] == "local":
+            self.popup_btns.extend([
+                ImageButton(
+                    self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
+                ImageButton(
+                    self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403))])
+            self.popup_txt.extend([TextBox(self.screen, (812, 359), 90, 29,
                                   Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
-                          TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font, (
-                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
-                          TextBox(self.screen, (812, 409), 90, 29,
-                                  Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
-                          TextBox(self.screen, (911, 409), 90, 29, Fonts.ger_font, (
-                              255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
-                          TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font, (255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
+                                   TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font, (
+                                       255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
+                                   TextBox(self.screen, (812, 409), 90, 29,
+                                           Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
+                                   TextBox(self.screen, (911, 409), 90, 29, Fonts.ger_font, (
+                                       255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].power} DMG")])
+
+        if self.card_state["state"] != "default":
+            self.state_icon = States.states_assets[self.card_state["state"]]["img"]
+            self.state_icon_rect = self.state_icon.get_rect(
+                topright=(1017, 184))
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
         self.screen.blit(self.popup_card_img, (295, 179))
+        if self.card_state["state"] != "default":
+            self.screen.blit(self.state_icon, self.state_icon_rect)
         for btn in self.popup_btns:
             btn.render()
             btn.answer()
