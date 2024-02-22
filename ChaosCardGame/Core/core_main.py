@@ -415,6 +415,17 @@ class State(IntEnum):
             case "nosupereffectivemultiplier": return State.no_multi
             case "nomulti": return State.no_multi
             case _: return (warn(f"Tried to form State from an non-recognized string ({name}); returing State.default instead.") and State.default)
+    @property
+    def name(self) -> str:
+        match self:
+            case State.discarded: return ""
+            case State.default: return ""
+            case State.damageless: return "immune"
+            case State.blocked: return "blocked"
+            case State.invisible: return "invisible" 
+            case State.unattacked: return "extra_attack"
+            case State.cloudy: return "cloudy"
+            case State.no_multi: return "no_multi"
 
 class TargetMode(IntEnum):
     random_chaos = -1
