@@ -104,7 +104,9 @@ class GameMenu(State):
             "decked": False,
             "handed": False,
             "popped": False,
+            "selecting": False
         }
+        self.pending_actions = []
         Fonts.ger_font = os.path.join(
             cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
         )
@@ -326,8 +328,22 @@ class GameMenu(State):
                 event_dict = vars(event)
                 for state in event_dict.keys():
                     self.ui_state[state] = event_dict[state]
+            if event.type == CustomEvents.CARD_ATTACK:
+                self.pending_actions.extend([event.slot,"CARD_ATTACK"])
+                pygame.event.post(pygame.event.Event(
+                    CustomEvents.UI_STATE, {"selecting": True}))
+                pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
+            if event.type == CustomEvents.DEF_ATTACK:
+                self.pending_actions.extend([event.slot,"DEF_ATTACK"])
+                pygame.event.post(pygame.event.Event(
+                    CustomEvents.UI_STATE, {"selecting": True}))
+                pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
+            if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
+                self.pending_actions.append(event.slot)
+                ic(self.pending_actions)
 
     # Toggle State
+
     def is_paused_toggle(self):
         self.ui_state["paused"] = not self.ui_state["paused"]
 

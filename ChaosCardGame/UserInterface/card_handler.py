@@ -77,11 +77,11 @@ class CardManager:
         self.check_active_slots()
         self.update_board()
         self.update_popup(search_event(
-            events, [CustomEvents.CLOSE_POPUP, CustomEvents.SLOT_CLICKED]))
+                events, [CustomEvents.CLOSE_POPUP, CustomEvents.SLOT_CLICKED]))
 
     def update_popup(self, popup_event):
         for event in popup_event:
-            if CustomEvents.SLOT_CLICKED == event.type:
+            if CustomEvents.SLOT_CLICKED == event.type and not self.ui_gamestate["selecting"]:
                 self.popup_info = event.slot
                 self.generate_popup(self.popup_info)
                 pygame.event.post(pygame.event.Event(
@@ -116,9 +116,9 @@ class CardManager:
         if self.popup_slot[0] == "local":
             self.popup_btns.extend([
                 ImageButton(
-                    self.screen, True, image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
+                    self.screen, pygame.event.Event(CustomEvents.DEF_ATTACK, {"slot": self.popup_slot}), image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
                 ImageButton(
-                    self.screen, True, image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403))])
+                    self.screen, pygame.event.Event(CustomEvents.CARD_ATTACK, {"slot": self.popup_slot}), image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403))])
             self.popup_txt.extend([TextBox(self.screen, (812, 359), 90, 29,
                                   Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
                                    TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font, (
