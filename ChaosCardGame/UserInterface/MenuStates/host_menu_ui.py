@@ -15,8 +15,6 @@ class HostMenu(State):
         self.is_anchor = False
         self.local_options = ["HostMenu", "LobbyMenu"]
         super().__init__(self.screen, self.is_anchor, self.local_options)
-        Fonts.ger_font = os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
         self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["img"].convert_alpha(
@@ -28,13 +26,12 @@ class HostMenu(State):
         self.roomname_tb_rect = self.tb_image.get_rect(topleft=(438, 332))
         self.hostmenu_username_tb_rect = self.tb_image.get_rect(
             topleft=(438, 429))
-
         self.tb_roomname = SelectTextBox(
             self.screen,
             position=SCREEN_CENTER,
             width=400,
             height=50,
-            font=pygame.font.Font(Fonts.ger_font, 53),
+            font=Fonts.ger_font(size=53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",
@@ -47,7 +44,7 @@ class HostMenu(State):
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
             width=400,
             height=50,
-            font=pygame.font.Font(Fonts.ger_font, 53),
+            font=Fonts.ger_font(53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",

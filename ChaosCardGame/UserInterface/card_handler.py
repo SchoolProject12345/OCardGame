@@ -52,8 +52,6 @@ class CardHolder:
 
 class CardManager:
     def __init__(self, screen, n_cards):
-        Fonts.ger_font = pygame.font.Font(os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"), 22)
         self.screen = screen
         self.n_cards = n_cards
         self.show_popup = False
@@ -110,22 +108,22 @@ class CardManager:
                 self.screen, True, image=MenuButtons.button_assets["CardHealth"]["img"], position=(641, 259), position_type="topleft"
             )
         ]
-        self.popup_txt = [TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font, (
+        self.popup_txt = [TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font(22), (
             255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
 
         if self.popup_slot[0] == "local":
             self.popup_btns.extend([
                 ImageButton(
-                    self.screen, pygame.event.Event(CustomEvents.DEF_ATTACK, {"slot": self.popup_slot}), image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
+                    self.screen, pygame.event.Event(CustomEvents.DEF_ATTACK, {"slot": self.popup_slot,"attack":self.card_info.attacks[0]}), image=MenuButtons.button_assets["DefCardAttack"]["img"], position_type="topleft", position=(641, 353)),
                 ImageButton(
-                    self.screen, pygame.event.Event(CustomEvents.CARD_ATTACK, {"slot": self.popup_slot}), image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403))])
+                    self.screen, pygame.event.Event(CustomEvents.CARD_ATTACK, {"slot": self.popup_slot,"attack":self.card_info.attacks[1]}), image=MenuButtons.button_assets["CardAttack"]["img"], position_type="topleft", position=(641, 403))])
             self.popup_txt.extend([TextBox(self.screen, (812, 359), 90, 29,
-                                  Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
-                                   TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font, (
+                                  Fonts.ger_font(22), (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].cost} NRG"),
+                                   TextBox(self.screen, (911, 359), 90, 29, Fonts.ger_font(22), (
                                        255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[0].power} DMG"),
                                    TextBox(self.screen, (812, 409), 90, 29,
-                                           Fonts.ger_font, (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
-                                   TextBox(self.screen, (911, 409), 90, 29, Fonts.ger_font, (
+                                           Fonts.ger_font(22), (255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].cost} NRG"),
+                                   TextBox(self.screen, (911, 409), 90, 29, Fonts.ger_font(22), (
                                        255, 255, 255), "topleft", "center", text=f"{self.card_info.attacks[1].power} DMG")])
 
         if self.card_state["state"] != "default":

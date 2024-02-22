@@ -16,21 +16,19 @@ class LobbyMenu(State):
         self.is_anchor = False
         self.local_options = ["LobbyMenu", "GameMenu"]
         super().__init__(screen, self.is_anchor, self.local_options)
-        Fonts.ger_font = os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
 
         self.bg_lobby_image = MenuBackgrounds.bg_lobby_images[randint(
             0, 4)].convert_alpha()
         self.bg_lobby_rect = self.bg_lobby_image.get_rect()
 
-        self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, pygame.font.Font(
-            Fonts.ger_font, 40), (255, 255, 255), position_type="topleft", text_center="center", text="")
-        self.username_text = TextBox(self.screen, (611, 356), 123, 41, pygame.font.Font(
-            Fonts.ger_font, 40), (255, 255, 255), position_type="topleft", text_center="center", text="")
-        self.ipaddress_text = TextBox(self.screen, (611, 483), 195, 30, pygame.font.Font(
-            Fonts.ger_font, 30), (255, 255, 255), position_type="topleft", text_center="center", text="")
-        self.roomname_text = TextBox(self.screen, (611, 538), 204, 30, pygame.font.Font(
-            Fonts.ger_font, 30), (255, 255, 255), position_type="topleft", text_center="center", text="")
+        self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, Fonts.ger_font(
+            40), (255, 255, 255), position_type="topleft", text_center="center", text="")
+        self.username_text = TextBox(self.screen, (611, 356), 123, 41, Fonts.ger_font(
+            40), (255, 255, 255), position_type="topleft", text_center="center", text="")
+        self.ipaddress_text = TextBox(self.screen, (611, 483), 195, 30, Fonts.ger_font(
+            30), (255, 255, 255), position_type="topleft", text_center="center", text="")
+        self.roomname_text = TextBox(self.screen, (611, 538), 204, 30, Fonts.ger_font(
+            30), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(508, 606))

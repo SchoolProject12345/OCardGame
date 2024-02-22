@@ -1,5 +1,6 @@
 import pygame
 import os
+import logging
 from utility import search_event
 from utility import cwd_path
 from UserInterface.ui_settings import SCREEN_CENTER, SCREEN_HEIGHT, SCREEN_WIDTH
@@ -30,7 +31,7 @@ class GameMenu(State):
                         "element": 2,
                         "hp": 40,
                         "max_hp": 40,
-                        "name": "ert_vine_serpent",
+                        "name": "wtr_eternal_sunseeker",
                         "state": "blocked",
                     },
                     None,
@@ -107,9 +108,6 @@ class GameMenu(State):
             "selecting": False
         }
         self.pending_actions = []
-        Fonts.ger_font = os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
-        )
         self.player_max_energy = 5
         self.player_health = 500
         self.player_energy = 4
@@ -194,7 +192,7 @@ class GameMenu(State):
             position=(566, 706),
             width=96,
             height=52,
-            font=pygame.font.Font(Fonts.ger_font, 30),
+            font=Fonts.ger_font(30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -206,7 +204,7 @@ class GameMenu(State):
             position=(683, 706),
             width=96,
             height=52,
-            font=pygame.font.Font(Fonts.ger_font, 30),
+            font=Fonts.ger_font(30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -218,7 +216,7 @@ class GameMenu(State):
             position=(566, 0),
             width=96,
             height=52,
-            font=pygame.font.Font(Fonts.ger_font, 30),
+            font=Fonts.ger_font(30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -230,7 +228,7 @@ class GameMenu(State):
             position=(683, 0),
             width=96,
             height=52,
-            font=pygame.font.Font(Fonts.ger_font, 30),
+            font=Fonts.ger_font(30),
             color=(101, 101, 101),
             position_type="topleft",
             text_center="center",
@@ -242,11 +240,22 @@ class GameMenu(State):
             position=(72, 726),
             width=96,
             height=52,
-            font=pygame.font.Font(Fonts.ger_font, 18),
+            font=Fonts.ger_font(30),
             color=(255, 255, 255),
             position_type="topleft",
             text_center="center",
             text="",
+        )
+
+        self.is_selecting = TextBox(
+            self.screen,
+            position=(1183, 711),
+            position_type="topleft",
+            width=153,
+            height=41,
+            font=Fonts.ger_font(35),
+            color=(255, 255, 255),
+            text="Selecting..."
         )
 
         # Pause Menu
@@ -329,18 +338,42 @@ class GameMenu(State):
                 for state in event_dict.keys():
                     self.ui_state[state] = event_dict[state]
             if event.type == CustomEvents.CARD_ATTACK:
-                self.pending_actions.extend([event.slot,"CARD_ATTACK"])
+                self.pending_actions.extend([event])
                 pygame.event.post(pygame.event.Event(
                     CustomEvents.UI_STATE, {"selecting": True}))
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.DEF_ATTACK:
-                self.pending_actions.extend([event.slot,"DEF_ATTACK"])
+                self.pending_actions.extend([event])
                 pygame.event.post(pygame.event.Event(
                     CustomEvents.UI_STATE, {"selecting": True}))
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
-                self.pending_actions.append(event.slot)
-                ic(self.pending_actions)
+                self.pending_actions.append(event)
+
+    def handle_action(self):
+        if len(self.pending_actions) < 2:
+            return
+        approved = self.check_attack()
+        if self.pending_actions[0].type == CustomEvents.DEF_ATTACK and approved:
+            print(
+                f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}")
+        elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
+            print(
+                f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}")
+        pygame.event.post(pygame.event.Event(
+            CustomEvents.UI_STATE, {"selecting": False}))
+        self.pending_actions.clear()
+
+    def check_attack(self):
+        attack = self.pending_actions[0].attack
+        if self.pending_actions[0].slot == self.pending_actions[1].slot:
+            if attack.target_mode.canself():
+                return True
+            else:
+                logging.info(
+                    "Trying to inflict illegal attack on self. Cancelling attack.")
+                return False
+        return True
 
     # Toggle State
 
@@ -396,17 +429,14 @@ class GameMenu(State):
             self.surrender_button.render()
             if self.pauseback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
                 self.is_paused_toggle()
-
-            elif self.settings_button.answer():
-                self.is_insettings_toggle()
-                self.is_handed = False
-                self.is_decked = False
-                self.is_paused = False
             elif self.surrender_button.answer():
                 self.is_paused_toggle()
                 self.revert_state(2)
+        if self.ui_state["selecting"]:
+            self.is_selecting.render()
 
         self.handle_events(super().events)
+        self.handle_action()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:

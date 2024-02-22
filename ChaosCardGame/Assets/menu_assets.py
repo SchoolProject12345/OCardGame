@@ -198,8 +198,11 @@ class CardAssets:
 @dataclass
 class Fonts:
     pygame.font.init()
-    ger_font = pygame.font.Font(os.path.join(
-        utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"))
+    ger_font_path = os.path.join(
+        utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+
+    def ger_font(size):
+        return pygame.font.Font(Fonts.ger_font_path, size)
 
 
 @dataclass

@@ -17,8 +17,6 @@ class JoinMenu(State):
         self.is_anchor = False
         self.local_options = ["JoinMenu", "LobbyMenu"]
         super().__init__(screen, self.is_anchor, self.local_options)
-        Fonts.ger_font = os.path.join(
-            cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
         self.escp_key = KeyRel(pygame.K_ESCAPE)
 
         self.bg_join_menu_image = MenuBackgrounds.bg_assets["join_menu_empty"]["img"].convert_alpha(
@@ -36,7 +34,7 @@ class JoinMenu(State):
             position=SCREEN_CENTER,
             width=400,
             height=50,
-            font=pygame.font.Font(Fonts.ger_font, 53),
+            font=Fonts.ger_font(53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",
@@ -49,7 +47,7 @@ class JoinMenu(State):
             position=(SCREEN_CENTER[0], SCREEN_CENTER[1]+97),
             width=400,
             height=50,
-            font=pygame.font.Font(Fonts.ger_font, 53),
+            font=Fonts.ger_font(53),
             default_color=(97, 97, 97),
             color=(255, 255, 255),
             position_type="center",
