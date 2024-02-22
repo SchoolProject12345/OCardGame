@@ -429,7 +429,7 @@ class State(IntEnum):
             case State.damageless: return "damageless"
             case State.blocked: return "blocked"
             case State.invisible: return "invisible" 
-            case State.unattacked: return "extra_attack"
+            case State.unattacked: return "unattacked"
             case State.cloudy: return "cloudy"
             case State.no_multi: return "no_multi"
 
