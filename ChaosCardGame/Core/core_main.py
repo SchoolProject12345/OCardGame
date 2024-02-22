@@ -139,7 +139,6 @@ class GCDNumeric(Numeric):
     "Return the GCD of all elements in the list returned by `eval`uation of the `NumericList`."
     sample: NumericList
     def eval(self, **kwargs) -> int:
-        # please save me from Python
         return gcd(*self.sample.eval(**kwargs))
     def __str__(self):
         return f"the greatest common divisor of {str(self.sample)}"
