@@ -116,8 +116,8 @@ class GameMenu(State):
         self.enemy_energy = 2
 
         # Game Menu
-        self.bg_game_menu_image = MenuBackgrounds.bg_assets["earth_arena"][
-            "img"
+        self.bg_game_menu_image = MenuBackgrounds.bg_menu_image[
+            min(self.game_state["arena"], 4)
         ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
             topleft=(0, 0))
