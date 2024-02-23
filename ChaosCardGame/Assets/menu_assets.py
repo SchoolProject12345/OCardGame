@@ -186,7 +186,7 @@ class CardAssets:
             os.path.join(graphics_path, "Cards"), prefixes=["s_", "b_"]
         )
         commander_sprites = handle_assets(
-            os.path.join(graphics_path, "Commanders"), prefixes=["s_,b_"]
+            os.path.join(graphics_path, "Commanders"), prefixes=["s_","b_"]
         )
     else:
         card_sprites = handle_assets(
