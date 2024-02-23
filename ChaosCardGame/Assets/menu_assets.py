@@ -118,18 +118,18 @@ class MenuBackgrounds:
         "fire_lobby_empty",
     ]
     bg_lobby_images: list = [
-        bg_assets["air_lobby_empty"] ["img"],
-        bg_assets["ert_lobby_empty"] ["img"],
+        bg_assets["air_lobby_empty"]["img"],
+        bg_assets["ert_lobby_empty"]["img"],
         bg_assets["fire_lobby_empty"]["img"],
-        bg_assets["wtr_lobby_empty"] ["img"],
-        bg_assets["cha_lobby_empty"] ["img"]
+        bg_assets["wtr_lobby_empty"]["img"],
+        bg_assets["cha_lobby_empty"]["img"],
     ]
-    bg_menu_images: list  = [
-        bg_assets["air_arena"]  ["img"],
+    bg_menu_images: list = [
+        bg_assets["air_arena"]["img"],
         bg_assets["earth_arena"]["img"],
-        bg_assets["fire_arena"] ["img"],
+        bg_assets["fire_arena"]["img"],
         bg_assets["water_arena"]["img"],
-        bg_assets["chaos_arena"]["img"]
+        bg_assets["chaos_arena"]["img"],
     ]
     logging.info("Successfully loaded backgrounds")
 
@@ -184,6 +184,9 @@ class CardAssets:
     if load_cards:
         card_sprites = handle_assets(
             os.path.join(graphics_path, "Cards"), prefixes=["s_", "b_"]
+        )
+        commander_sprites = handle_assets(
+            os.path.join(graphics_path, "Commanders"), prefixes=["s_,b_"]
         )
     else:
         card_sprites = handle_assets(
