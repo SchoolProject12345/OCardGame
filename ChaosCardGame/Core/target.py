@@ -57,7 +57,9 @@ class TargetMode:
     def cancommander(self) -> bool:
         return not self & 1 << 31
     def canself(self) -> bool:
-        return (self & 1 << 3) or (self & 1 << 2)  or (self & 1 << 30)
+        return (self & 1 << 3) or (self & 1 << 2)  or (self & 1 << 30) or (self.isfreeoftarget())
+    def isfreeoftarget(self) -> bool:
+        not (self.target_string & self.TARGET)
     # useful for debugging:
     def __repr__(self):
         return ("TargetMode(" +
@@ -68,7 +70,11 @@ class TargetMode:
             ) + ")"
         )
     @classmethod
-    def from_str(self, name: str | list[str]) -> "TargetMode":
+    @static
+    # named from_str for backward compatibility.
+    def from_str(self, name: str | list[str | int] | int) -> "TargetMode":
+        if isinstance(name, int):
+            return TargetMode(name)
         if isinstance(name, list):
             return deep_or(*(TargetMode.from_str(target) for target in name))
         name_ = name.lower().strip()
@@ -95,8 +101,11 @@ TargetMode.allied_commander   = TargetMode(TargetMode.ALLIED_COMMANDER)
 TargetMode.random             = TargetMode(TargetMode.RANDOM)
 TargetMode.can_self           = TargetMode(TargetMode.CAN_SELF)
 TargetMode.nocommander        = TargetMode(TargetMode.NOCOMMANDER)
-TargetMode.all                = TargetMode(TargetMode.foes, TargetMode.allies)
-TargetMode.massivedestruction = TargetMode(TargetMode.all, TargetMode.allied_commander, TargetMode.commander)
+TargetMode.all                = TargetMode(TargetMode.FOES | TargetMode.ALLIES)
+TargetMode.foesc              = TargetMode(TargetMode.FOES | TargetMode.COMMANDER)
+TargetMode.alliesc             = TargetMode(TargetMode.ALLIES | TargetMode.ALLIED_COMMANDER)
+TargetMode.massivedestruction = TargetMode(TargetMode.foesc | TargetMode.alliesc)
+
 
 #print(repr(TargetMode.allies))
 #print(repr(TargetMode.massivedestruction))
