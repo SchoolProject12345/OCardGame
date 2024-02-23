@@ -44,7 +44,7 @@ class GameMenu(State):
                 "commander": {
                     "charges": 0,
                     "element": 3,
-                    "hp": 600,
+                    "hp": 254,
                     "max_hp": 600,
                     "name": "air_skyvisindi",
                     "state": "default",
@@ -63,13 +63,21 @@ class GameMenu(State):
                 "name": "Ånyks",
             },
             "remote": {
-                "board": [None, None, None, {
-                    "element": 2,
-                    "hp": 20,
-                    "max_hp": 40,
-                    "name": "air_the_mythical_pegasus",
-                    "state": "unattacked",
-                }, None, None, None],
+                "board": [
+                    None,
+                    None,
+                    None,
+                    {
+                        "element": 2,
+                        "hp": 20,
+                        "max_hp": 40,
+                        "name": "air_the_mythical_pegasus",
+                        "state": "unattacked",
+                    },
+                    None,
+                    None,
+                    None,
+                ],
                 "commander": {
                     "charges": 0,
                     "element": 1,
@@ -80,7 +88,7 @@ class GameMenu(State):
                 },
                 "deck_length": 10,
                 "discard": [],
-                "energy": 4,
+                "energy": 1,
                 "energy_per_turn": 3,
                 "hand": [
                     "cha_voidultraray",
@@ -106,23 +114,16 @@ class GameMenu(State):
             "decked": False,
             "handed": False,
             "popped": False,
-            "selecting": False
+            "selecting": False,
         }
         self.pending_actions = []
-        self.player_max_energy = 5
-        self.player_health = 500
-        self.player_energy = 4
-        self.enemy_max_energy = 5
-        self.enemy_health = 250
-        self.enemy_energy = 2
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
         self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[
             min(self.current_arena, 4)
         ].convert_alpha()
-        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
-            topleft=(0, 0))
+        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
 
         # Buttons
         self.hand_button = ImageButton(
@@ -150,7 +151,7 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(255, 122, 122),
-            max_value=600,
+            max_value=self.game_state["local"]["commander"]["max_hp"],
         )
 
         self.player_energy_bar = DualBar(
@@ -161,7 +162,7 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(122, 215, 255),
-            max_value=self.player_max_energy,
+            max_value=self.game_state["local"]["max_energy"],
         )
 
         self.enemy_health_bar = DualBar(
@@ -172,8 +173,8 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(255, 122, 122),
-            max_value=600,
-            rotation=180
+            max_value=self.game_state["remote"]["commander"]["max_hp"],
+            rotation=180,
         )
 
         self.enemy_energy_bar = DualBar(
@@ -184,8 +185,8 @@ class GameMenu(State):
             height=52,
             color_bg=pygame.color.Color(220, 220, 220),
             color_fg=pygame.color.Color(122, 215, 255),
-            max_value=self.enemy_max_energy,
-            rotation=180
+            max_value=self.game_state["remote"]["max_energy"],
+            rotation=180,
         )
 
         # Text Boxes
@@ -257,7 +258,7 @@ class GameMenu(State):
             height=41,
             font=Fonts.ger_font(35),
             color=(255, 255, 255),
-            text="Selecting..."
+            text="Selecting...",
         )
 
         # Pause Menu
@@ -280,9 +281,7 @@ class GameMenu(State):
         self.settings_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(
-                MenuButtons.button_assets["Settings"]["img"]
-            ),
+            image=alpha_converter(MenuButtons.button_assets["Settings"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], 392),
         )
@@ -290,9 +289,7 @@ class GameMenu(State):
         self.surrender_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(
-                MenuButtons.button_assets["Surrender"]["img"]
-            ),
+            image=alpha_converter(MenuButtons.button_assets["Surrender"]["img"]),
             postion_type="center",
             position=(SCREEN_CENTER[0], 490),
         )
@@ -301,8 +298,7 @@ class GameMenu(State):
         self.bg_deck_menu_image = MenuBackgrounds.bg_assets["deck_menu_empty"][
             "img"
         ].convert_alpha()
-        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
-            center=SCREEN_CENTER)
+        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(center=SCREEN_CENTER)
 
         # Buttons
         self.deckback_button = ImageButton(
@@ -317,8 +313,7 @@ class GameMenu(State):
         self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"][
             "img"
         ].convert_alpha()
-        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
-            center=SCREEN_CENTER)
+        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(center=SCREEN_CENTER)
 
         # Buttons
         self.handback_button = ImageButton(
@@ -341,13 +336,15 @@ class GameMenu(State):
                     self.ui_state[state] = event_dict[state]
             if event.type == CustomEvents.CARD_ATTACK:
                 self.pending_actions.extend([event])
-                pygame.event.post(pygame.event.Event(
-                    CustomEvents.UI_STATE, {"selecting": True}))
+                pygame.event.post(
+                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.DEF_ATTACK:
                 self.pending_actions.extend([event])
-                pygame.event.post(pygame.event.Event(
-                    CustomEvents.UI_STATE, {"selecting": True}))
+                pygame.event.post(
+                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
                 self.pending_actions.append(event)
@@ -358,12 +355,15 @@ class GameMenu(State):
         approved = self.check_attack()
         if self.pending_actions[0].type == CustomEvents.DEF_ATTACK and approved:
             print(
-                f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}")
+                f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+            )
         elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
             print(
-                f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}")
-        pygame.event.post(pygame.event.Event(
-            CustomEvents.UI_STATE, {"selecting": False}))
+                f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+            )
+        pygame.event.post(
+            pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
+        )
         self.pending_actions.clear()
 
     def check_attack(self):
@@ -373,14 +373,16 @@ class GameMenu(State):
                 return True
             else:
                 logging.warn(
-                    "Trying to inflict illegal attack on self. Cancelling attack.")
+                    "Trying to inflict illegal attack on self. Cancelling attack."
+                )
                 return False
         if self.pending_actions[0].slot[1] == "commander":
             if attack.target_mode.cancommander():
                 return True
             else:
                 logging.warn(
-                    "Trying to inflict illegal attack on commander. Cancelling attack.")
+                    "Trying to inflict illegal attack on commander. Cancelling attack."
+                )
                 return False
         return True
 
@@ -397,38 +399,40 @@ class GameMenu(State):
 
     def game_menu(self):
         # Update game state
-        #game_state = handle.get_state()
-        #if len(self.game_state["local"]["board"]) != len(game_state["local"]["board"]):
+        # game_state = handle.get_state()
+        # if len(self.game_state["local"]["board"]) != len(game_state["local"]["board"]):
         #    self.card_manager = CardManager(
         #        self.screen,
         #        len(game_state["local"]["board"])
         #    )
-        #self.game_state = game_state
+        # self.game_state = game_state
         # (Commented it out in case you need to make test, this is just a "blueprint" to implement it fully)
         # (tested it out it works fine)
-        
+
         # Check for Arena changes.
         if self.current_arena != handle.state["arena"].value:
             self.current_arena = handle.state["arena"].value
             self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[
                 min(self.current_arena, 4)
             ].convert_alpha()
-            self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
-                topleft=(0, 0))
-        
+            self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
+
         # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
-        self.player_health_bar.render(self.player_health)
-        self.player_energy_bar.render(self.player_energy)
-        self.enemy_health_bar.render(self.enemy_health)
-        self.enemy_energy_bar.render(self.enemy_energy)
-        self.player_health_bar_text.render(str(self.player_health))
-        self.player_energy_bar_text.render(str(self.player_energy))
-        self.enemy_health_bar_text.render(str(self.enemy_health))
-        self.enemy_energy_bar_text.render(str(self.enemy_energy))
+        self.player_health_bar.render(self.game_state["local"]["commander"]["hp"])
+        self.player_energy_bar.render(self.game_state["local"]["energy"])
+        self.enemy_health_bar.render(self.game_state["remote"]["commander"]["hp"])
+        self.enemy_energy_bar.render(self.game_state["remote"]["energy"])
+        self.player_health_bar_text.render(
+            str(self.game_state["local"]["commander"]["hp"])
+        )
+        self.player_energy_bar_text.render(str(self.game_state["local"]["energy"]))
+        self.enemy_health_bar_text.render(
+            str(self.game_state["remote"]["commander"]["hp"])
+        )
+        self.enemy_energy_bar_text.render(str(self.game_state["remote"]["energy"]))
 
-        self.card_manager.render(
-            super().events, self.ui_state, self.game_state)
+        self.card_manager.render(super().events, self.ui_state, self.game_state)
 
         # User buttons
         self.deck_button.render()
@@ -437,7 +441,9 @@ class GameMenu(State):
         if self.ui_state["decked"]:
             self.screen.blit(self.bg_deck_menu_image, self.bg_deck_menu_rect)
             self.deckback_button.render()
-            if self.deckback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+            if self.deckback_button.answer() or self.escp_rel.update(
+                pygame.event.get(pygame.KEYUP)
+            ):
                 self.is_decked_toggle()
         self.hand_button.render()
         if self.hand_button.answer():
@@ -445,7 +451,9 @@ class GameMenu(State):
         if self.ui_state["handed"]:
             self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
             self.handback_button.render()
-            if self.handback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+            if self.handback_button.answer() or self.escp_rel.update(
+                pygame.event.get(pygame.KEYUP)
+            ):
                 self.is_handed_toggle()
 
         # Toggles
@@ -456,7 +464,9 @@ class GameMenu(State):
             self.pauseback_button.render()
             self.settings_button.render()
             self.surrender_button.render()
-            if self.pauseback_button.answer() or self.escp_rel.update(pygame.event.get(pygame.KEYUP)):
+            if self.pauseback_button.answer() or self.escp_rel.update(
+                pygame.event.get(pygame.KEYUP)
+            ):
                 self.is_paused_toggle()
             elif self.surrender_button.answer():
                 self.is_paused_toggle()
