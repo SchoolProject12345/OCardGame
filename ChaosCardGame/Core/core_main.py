@@ -753,7 +753,7 @@ class ChangeTarget(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
         if kwargs["user"].state is State.cloudy:
-            if self.new_target.canself():
+            if (self.new_target & TargetMode.TARGET).canself():
                 kwargs["target_mode"] = TargetMode.self
             else:
                 kwargs["target_mode"] = TargetMode.target
@@ -1466,7 +1466,7 @@ class ActiveCard:
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
         if self.state == State.cloudy:  # overrides taunt
-            if kwargs["target_mode"].canself():  # canself are (usually) positive
+            if (kwargs["target_mode"] & TargetMode.TARGET).canself():  # canself are (usually) positive
                 kwargs["target_mode"] = TargetMode.user  # user always exists
                 kwargs["main_target"] = self
             # elif target foes but there are none
