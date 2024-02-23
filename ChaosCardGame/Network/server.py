@@ -76,6 +76,8 @@ class HandlerHandler(metaclass=SingletonMonad):
             args = (SingletonMonad.__getattribute__("_handle"), *args)
         if method in [join, host]:
             self.ip_adress = args[1]
+            if self.deck is not Void:
+                core.Player.save_json(args[0], handle.deck, handle.commander)
         elif method not in [ReplayHandler.read_replay]:
             core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
             return False
@@ -390,14 +392,22 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
     socket.send(*args)
     return socket.recv(size)
 
+def username_check(username: str, *, _valid: bool = True) -> tuple[str, bool]:
+    "Make various check to see if the string is a valid username and return a valid username based on the one given as argument."
+    if len(username) > 64:
+        return username_check(username[0:64], False) # excludes 64
+    # short circuits
+    if all(c == ' ' for c in username):
+        return "#BLANK#", False
+    return username, _valid
+
 @static
 def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345, *, arena: core.Arena = core.Arena.själløssmängd) -> ServerHandler:
     """
     Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
     IP must either be localhost (usually "127.0.0.1") or `server.get_ip()`.
     """
-    if len(hostname) > 64:
-        hostname = hostname[:63]
+    hostname, username_valid = username_check(hostname)
     net.get_data()["server"]["name"] = hostname
     core.DEV() and print("IP:", ip)
     client_socket = net.listen_for_connection(ip, port)
@@ -440,8 +450,7 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345, *,
 @static
 def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
     "Initialize connection with peer of IP `target_ip`, returning a `ClientHandler` and listening for logs on a separate thread."
-    if len(username) > 64:
-        username = username[:63]
+    usenrame, username_valid = username_check(username)
     server_socket: net.socket.socket = net.join_connection(target_ip, port)
     if server_socket is None:
         return
