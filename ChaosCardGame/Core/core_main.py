@@ -1239,6 +1239,8 @@ class Attack:
             attack.tags = (*attack.tags, json["tag"])
         return attack
     def is_free_of_target(self):
+        # debug
+        # print(f"Depth-first subeffets of {self.name}: ", [typename(type(effect)) for effect in self.effect.subeffects()])
         # lazy evaluate so quite performant
         for effect in self.effect.subeffects():
             for field in effect.__dict__.values():
@@ -1312,6 +1314,7 @@ class AbstractCard:
         for card in getCARDS() + list(getCOMMANDERS().values()):
             if cleanstr(card.name) == name:
                 return card
+        return AbstractCard.from_id(name)
 
 @dataclass
 class CreatureCard(AbstractCard):
@@ -1859,6 +1862,26 @@ class Player:
             io.truncate(0)
             io.write(dumps(players, separators=(',', ':')))
         return players
+    def save_json(name: str, deck: list[str], commander: str):
+        deck2: list[str] = []
+        for card in deck:
+            card_ = AbstractCard.get_card(card)
+            if card_ is None:
+                warn(f"Card with name {card_} is not found in `cards.json`")
+                continue
+            deck2.append(card_.name)
+        commander_ = AbstractCard.get_card(commander)
+        if commander_ is None:
+            warn(f"Commander {commander} doesn't exist.")
+        else:
+            commander = commander_.name
+        with open(os.path.join(Constants.path, "Data/players.json"), "r+") as io:
+            players: dict = loads(io.read())
+            players[cleanstr(name)] = {
+                "commander": commander,
+                "deck": deck2,
+                "name": name
+            }
     def singledraw(self) -> AbstractCard:
         if len(self.deck) == 0:
             # Seriously Python is it too hard to return the list after extending it so we can chain methods?
