@@ -39,7 +39,6 @@
     "cost": 1,
     "target_mode": "target",
     "power": 0,
-    "target": "target",
     "effect": {
      "den": 30,
      "num": {
@@ -88,9 +87,8 @@
    {
     "name": "Colourblast",
     "cost": 1,
-    "target_mode": "foes",
+    "target_mode": ["foes", "commander"],
     "power": 35,
-    "target": "foes",
     "effect": {
      "new_state": "monotonous",
      "type": "state_change",
@@ -109,15 +107,14 @@
    {
     "name": "Muscle Drain",
     "cost": 2,
-    "target_mode": "target",
+    "target_mode": ["target", "canself"],
     "power": 0,
-    "target": "target",
     "effect": {
      "effect1": {
-      "new_target": "self",
+      "new_target": "user",
       "effect": {
        "amount": 35,
-       "from": "alliesc",
+       "from": ["allies", "allied_commander"],
        "type": "redirect"
       },
       "type": "target_change"
@@ -130,7 +127,7 @@
         "num": 65461,
         "times": {
          "sample": {
-          "target_mode": "self",
+          "target_mode": "user",
           "type": "hps"
          },
          "type": "sum"
@@ -170,7 +167,6 @@
     "cost": 2,
     "target_mode": "target",
     "power": 0,
-    "target": "target",
     "effect": {
      "new_state": "damageless",
      "type": "state_change",
@@ -210,7 +206,6 @@
     "cost": 2,
     "target_mode": "target ",
     "power": 120,
-    "target": "target",
     "effect": {
      "new_target": "allies",
      "effect": {
@@ -231,7 +226,7 @@
    {
     "name": "Night Vision",
     "effect": {
-     "new_target": "foesc",
+     "new_target": ["foes", "commander"],
      "effect": {
       "by_tags": [
        "+"
@@ -250,7 +245,6 @@
     "cost": 3,
     "target_mode": "foes",
     "power": 0,
-    "target": "foes",
     "effect": {
      "new_state": "block",
      "type": "state_change",
@@ -302,7 +296,6 @@
     "cost": 2,
     "target_mode": "target",
     "power": 110,
-    "target": "target",
     "effect": {
      "cond": 1,
      "else": {
@@ -346,9 +339,8 @@
    {
     "name": "Shadow Realm",
     "cost": 3,
-    "target_mode": "foes",
+    "target_mode": ["foes", "nocommander"],
     "power": 0,
-    "target": "foes",
     "effect": {
      "sample": 1,
      "effect": {
@@ -440,7 +432,6 @@
     "tag": "aoe",
     "target_mode": "foes",
     "power": 50,
-    "target": "foes",
     "effect": {
      "infinite": false,
      "tags": [
@@ -477,7 +468,6 @@
     "cost": 3,
     "target_mode": "target",
     "power": 70,
-    "target": "target",
     "effect": {
      "count": 2,
      "by_name": "Chaosling",
@@ -617,7 +607,6 @@
     "cost": 2,
     "target_mode": "allies",
     "power": 0,
-    "target": "allies",
     "effect": {
      "amount": {
       "den": 1,
@@ -656,9 +645,8 @@
    {
     "name": "Tentacle Torrent",
     "cost": 1,
-    "target_mode": "foesc",
+    "target_mode": ["foes", "commander"],
     "power": 0,
-    "target": "foes",
     "effect": {
      "effect": {
       "amount": 25,
@@ -697,7 +685,6 @@
     "cost": 2,
     "target_mode": "foes",
     "power": 0,
-    "target": "foes",
     "effect": {
      "amount": {
       "sample": {
@@ -718,7 +705,7 @@
   "on_use": {
    "name": "Read",
    "cost": 4,
-   "target_mode": "self",
+   "target_mode": "user",
    "power": 0,
    "effect": {
     "max": 2,
@@ -739,11 +726,10 @@
    {
     "name": "Magmatic Separation",
     "cost": 1,
-    "target_mode": "foesc",
+    "target_mode": ["foes", "commander"],
     "power": 66,
-    "target": "foesc",
     "effect": {
-     "new_target": "self",
+     "new_target": "user",
      "effect": {
       "amount": {
        "den": 1,
@@ -792,7 +778,6 @@
     "tag": "dot",
     "target_mode": "target",
     "power": 40,
-    "target": "target",
     "effect": {
      "infinite": true,
      "tags": [
@@ -849,7 +834,6 @@
     "cost": 2,
     "target_mode": "target",
     "power": 0,
-    "target": "target",
     "effect": {
      "amount": 100,
      "type": "damage",
@@ -920,7 +904,7 @@
               "target_mode": "all",
               "power": 60,
               "effect": {
-               "new_target": "self",
+               "new_target": "user",
                "effect": {
                 "amount": 65535,
                 "type": "damage"
@@ -949,7 +933,7 @@
     "target_mode": "foes",
     "power": 60,
     "effect": {
-     "new_target": "self",
+     "new_target": "user",
      "tag": "lastresort",
      "effect": {
       "amount": 65535,
@@ -974,7 +958,6 @@
     "tag": "disability",
     "target_mode": "target",
     "power": 30,
-    "target": "target",
     "effect": {
      "new_state": "cloudy",
      "type": "state_change",
@@ -993,9 +976,8 @@
    {
     "name": "Tidal Surge",
     "cost": 3,
-    "target_mode": "foesc",
-    "power": 90,
-    "target": "foesc"
+    "target_mode": ["foes", "commander"],
+    "power": 90
    }
   ]
  },
@@ -1009,9 +991,8 @@
    {
     "name": "Summoning",
     "cost": 1,
-    "target_mode": "self",
+    "target_mode": "user",
     "power": 0,
-    "target": "self",
     "effect": {
      "count": 1,
      "by_name": "Chaosling",
@@ -1048,7 +1029,6 @@
     "tag": "dot",
     "target_mode": "target",
     "power": 20,
-    "target": "target",
     "effect": {
      "effect": {
       "infinite": true,
@@ -1109,7 +1089,7 @@
    {
     "name": "Bloom Blessing",
     "effect": {
-     "new_target": "alliesc",
+     "new_target": ["allies", "allied_commander"],
      "effect": {
       "amount": 15,
       "type": "heal"
@@ -1133,12 +1113,11 @@
    {
     "name": "Magic Taunt",
     "cost": 2,
-    "target_mode": "foesc",
+    "target_mode": ["foes", "commander", "canself"],
     "power": 10,
-    "target": "foes",
     "effect": {
      "duration": 1,
-     "new_targets": "self",
+     "new_targets": "user",
      "type": "taunt"
     }
    }
@@ -1183,9 +1162,8 @@
    {
     "name": "Thousand Jaws",
     "cost": 2,
-    "target_mode": "foes",
+    "target_mode": ["foes", "canself"],
     "power": 30,
-    "target": "foes",
     "effect": {
      "infinite": false,
      "tags": [
@@ -1211,9 +1189,8 @@
    {
     "name": "Photosynthetic Slash",
     "cost": 3,
-    "target_mode": "target",
+    "target_mode": ["target", "nocommander"],
     "power": 65,
-    "target": "target",
     "effect": {
      "if_successful": {
       "per_turn": 1,
@@ -1250,8 +1227,7 @@
     "name": "Chaos rampage",
     "cost": 2,
     "target_mode": "foes",
-    "power": 60,
-    "target": "foes"
+    "power": 60
    }
   ]
  },
@@ -1264,7 +1240,7 @@
    {
     "name": "Rock Solid",
     "effect": {
-     "new_target": "self",
+     "new_target": "user",
      "effect": {
       "amount": 15,
       "type": "heal"
@@ -1285,7 +1261,6 @@
     "cost": 2,
     "target_mode": "target",
     "power": 0,
-    "target": "target",
     "effect": {
      "effect1": {
       "new_state": "damageless",
@@ -1338,7 +1313,6 @@
     "cost": 3,
     "target_mode": "target",
     "power": 15,
-    "target": "target",
     "effect": {
      "new_state": "block",
      "type": "change_state"
@@ -1385,7 +1359,6 @@
     "cost": 2,
     "target_mode": "foes",
     "power": 24,
-    "target": "foes",
     "effect": {
      "effect": {
       "effect": {
@@ -1436,7 +1409,6 @@
     "cost": 1,
     "target_mode": "target",
     "power": 30,
-    "target": "target",
     "effect": {
      "effect1": {
       "infinite": false,
@@ -1452,7 +1424,7 @@
      },
      "type": "union",
      "effect2": {
-      "new_target": "self",
+      "new_target": "user",
       "effect": {
        "duration": 65535,
        "new_targets": "target",
@@ -1490,7 +1462,6 @@
     "cost": 2,
     "target_mode": "allies",
     "power": 0,
-    "target": "allies",
     "effect": {
      "amount": 30,
      "type": "heal"
@@ -1509,8 +1480,7 @@
     "name": "Pyro Blitz",
     "cost": 1,
     "target_mode": "target",
-    "power": 50,
-    "target": "target"
+    "power": 50
    }
   ]
  },
@@ -1526,7 +1496,6 @@
     "cost": 3,
     "target_mode": "target",
     "power": 40,
-    "target": "target",
     "effect": {
      "infinite": true,
      "tags": [
@@ -1562,9 +1531,8 @@
    {
     "name": "Energizing Bite",
     "cost": 1,
-    "target_mode": "target",
+    "target_mode": ["target", "canself"],
     "power": 35,
-    "target": "target",
     "effect": {
      "type": "todo",
      "desc": "Add one stack."
@@ -1581,10 +1549,10 @@
    {
     "name": "Second Wind",
     "effect": {
-     "new_target": "foesc",
+     "new_target": ["foes", "commander"],
      "effect": {
       "amount": 0,
-      "from": "alliesc",
+      "from": ["allies", "allied_commander"],
       "type": "redirect"
      },
      "type": "change_target"
@@ -1599,7 +1567,6 @@
     "cost": 1,
     "target_mode": "target",
     "power": 100,
-    "target": "target",
     "effect": {
      "cond": 1,
      "else": {
@@ -1609,7 +1576,7 @@
      },
      "value": {
       "meta": ["taunted"],
-      "target_mode": "self",
+      "target_mode": "user",
       "type": "count"
      },
      "effect": {
@@ -1643,9 +1610,8 @@
    {
     "name": "Temple OS' Choice",
     "cost": 1,
-    "target_mode": "randomchaos",
-    "power": 65535,
-    "target": "randomtargetmode"
+    "target_mode": 0,
+    "power": 65535
    }
   ]
  },
@@ -1661,7 +1627,6 @@
     "cost": 2,
     "target_mode": "target",
     "power": 0,
-    "target": "target",
     "effect": {
      "amount": 80,
      "type": "damage",
@@ -1690,9 +1655,8 @@
    {
     "name": "Hypnotic Gaze",
     "cost": 2,
-    "target_mode": "target",
+    "target_mode": ["foes", "nocommander"],
     "power": 0,
-    "target": "foes",
     "effect": {
      "sample": 1,
      "effect": {
@@ -1752,7 +1716,6 @@
     "cost": 4,
     "target_mode": "target",
     "power": 45,
-    "target": "target",
     "effect": {
      "cond": 1,
      "else": {
@@ -1778,7 +1741,7 @@
   "on_use": {
    "name": "Absorb",
    "cost": 1,
-   "target_mode": "foesc",
+   "target_mode": ["foes", "commander"],
    "power": 20,
    "effect": {
     "by_tags": [
@@ -1810,9 +1773,8 @@
    {
     "name": "Terrorising Screech",
     "cost": 3,
-    "target_mode": "foes",
+    "target_mode": ["foes", "nocommander"],
     "power": 0,
-    "target": "foes",
     "effect": {
      "effect": {
       "effect1": {
