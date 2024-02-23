@@ -1,6 +1,8 @@
 import pygame
 import utility
 import os
+import Core.core_main as core
+from Network.server import HandlerHandler as handle
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.OcgVision.vision_main import State, ImageToggle, ToggleGridFour, ImageButton
 from Assets.menu_assets import MenuBackgrounds, MenuToggles, MenuButtons, alpha_converter
@@ -17,17 +19,12 @@ class CardCollection:
             "Assets/Graphics/Cards/Misc/card_not_found/b_card_not_found.png"
         )),
     )
+
     def __init__(self, screen, element: str):
         self.screen = screen
+        self.card_ids: list[str] = []
         self.total = [
-            (
-            pygame.image.load(
-                os.path.join(utility.cwd_path, dirpath, filenames[1])
-            ),
-            pygame.image.load(
-                os.path.join(utility.cwd_path, dirpath, filenames[0])
-            )
-            )
+            self.generate_toggle_pair(dirpath, filenames)
             for (dirpath, _, filenames) in os.walk(os.path.join(utility.cwd_path, f"Assets/Graphics/Cards/{element.strip().title()}"))
             if len(filenames) > 1
         ]
@@ -37,7 +34,7 @@ class CardCollection:
         self.left_side = ToggleGridFour(
             self.screen,
             self.total,
-            475, 450,
+            475, 525,
             (50, 145),
             1.6, 1.0
         )
@@ -46,13 +43,32 @@ class CardCollection:
             self.total,
             475, 450,
             (SCREEN_WIDTH-475-10, 145),
-            1.6, 1.0,
+            1.6, 0.8, # small big cards so they don't overlap too much
             start=4
         )
+
     def render(self):
         self.left_side.render()
         self.right_side.render()
 
+    def generate_toggle_pair(self, dirpath: str, filenames: tuple[str, str]) -> tuple[pygame.Surface, pygame.Surface]:
+        self.card_ids.append(filenames[0][2:-4]) # remove leading "s_" & trailing ".png"
+        return (
+            pygame.image.load(
+                os.path.join(utility.cwd_path, dirpath, filenames[1])
+            ),
+            pygame.image.load(
+                os.path.join(utility.cwd_path, dirpath, filenames[0])
+            )
+        )
+
+    def get_toggled(self) -> list[str]:
+        "Return all of self's toggled cards to save them in a deck."
+        toggles = self.left_side.toggles + self.right_side.toggles
+        return [
+            self.card_ids[i] for i in range(min(len(self.card_ids), 8))
+            if toggles[i].answer()
+        ]
 
 class CardsMenu(State):
     def __init__(self, screen):
@@ -107,10 +123,21 @@ class CardsMenu(State):
             CardCollection(self.screen, "water"),
             CardCollection(self.screen, "fire")
         )
+    def save_deck(self) -> list[str]:
+        deck: list[str] = []
+        for grid in self.grids:
+            deck.extend(grid.get_toggled())
+        #if len(deck) != core.Constants.default_deck_size:
+        #    #= TODO: make popup warning or something =#
+        # save anyway because the server might have different rules.
+        handle.deck = deck # save deck to handle and wait for username to save in `players.txt`
+        return deck
+
     def cards_menu(self):
         self.screen.blit(self.bg_cards_menu_image, self.bg_cards_menu_rect)
         self.exit_button.render()
         if self.exit_button.answer() or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            print(self.save_deck())
             self.revert_state(1)
         # Toggle selector
         for index, toggle in enumerate(self.element_toggles):
