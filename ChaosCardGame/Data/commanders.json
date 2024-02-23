@@ -19,7 +19,7 @@
   "trigger":"whendamaged",
   "effect":{
    "type":"target_change",
-   "new_target":"foesc",
+   "new_target":["foes", "commander"],
    "effect":{
     "type":"damage",
     "amount":{
@@ -84,7 +84,7 @@
     "effect":{
      "type":"redirect",
      "amount":40,
-     "from":"self"
+     "from":"user"
     }
    }
   }
