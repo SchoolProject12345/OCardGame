@@ -156,6 +156,7 @@ class UnionCounter:
     tags: tuple
     elements: tuple
     meta: tuple
+    @static
     def __call__(self: "UnionCounter", creature: "ActiveCard") -> bool: # look at what Python forces me to do
         if hasany(creature.card.tags, self.tags):
             return True
@@ -170,6 +171,7 @@ class CountUnion(Numeric):
     "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
     target_mode: "TargetMode"
     counter: UnionCounter
+    @static
     def eval(self, **kwargs) -> int:
         sum(self.counter(creature)
             for creature in AbstractEffect.targeted_objects(
@@ -771,14 +773,11 @@ class RandomTargets(AbstractEffect):
     effect: AbstractEffect
     sample: Numeric
     def execute(self, **kwargs) -> bool:
-        print(f"RandomTargets launched with target {kwargs['target_mode'].name} executed.")
         targets = AbstractEffect.targeted_objects(**kwargs)
-        print(f"RandomTargets has {len(targets)} targets.")
         rng.shuffle(targets)  # maybe unefficient but it works.
         sample = self.sample.eval()
         while len(targets) > sample:
             targets.pop()
-        print(f"Only {len(targets)} left.")
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
         # [] are necessary to evaluate entirely the generator before short-circuiting (for once Python works correctly).
         return any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
@@ -1108,7 +1107,10 @@ class RepeatEffect(AbstractEffect):
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return any([self.effect.execute(**withfield(kwargs, "repeat_depth", show(n))) for n in range(self.n.eval(**kwargs))])
+        return any(
+            [self.effect.execute(**withfield(kwargs, "repeat_depth", show(n)))
+             for n in range(self.n.eval(**kwargs))]
+        )
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -1237,8 +1239,6 @@ class Attack:
             attack.tags = (*attack.tags, json["tag"])
         return attack
     def is_free_of_target(self):
-        # debug
-        #print(f"Depth-first subeffets of {self.name}: ", [typename(type(effect)) for effect in self.effect.subeffects()])
         # lazy evaluate so quite performant
         for effect in self.effect.subeffects():
             for field in effect.__dict__.values():
@@ -1272,9 +1272,6 @@ class Attack:
             s += f"dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
         return s
-    def has_target(self):
-        pass # TODO: to that
-        
 
 @dataclass
 class AbstractCard:
@@ -1449,7 +1446,7 @@ class ActiveCard:
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "target_mode", attack.target_mode)
         getorset(kwargs, "damage_mode", ifelse(self.state is State.no_multi, DamageMode.ignore_se, DamageMode.direct))
-        is_target_depandent: bool = not attack.is_free_of_target
+        is_target_depandent: bool = not attack.is_free_of_target()
         if is_target_depandent and self.taunt is not None:
             if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
@@ -1562,6 +1559,8 @@ class ActiveCard:
         _kwargs = kwargs.copy()
         _kwargs["main_target"] = getordef(kwargs, "user", self)
         _kwargs["target_mode"] = TargetMode.target
+        _kwargs["player"] = self.owner
+        _kwargs["board"] = self.board
         _kwargs.update(**update)
         _kwargs["user"] = self
         _kwargs["survey"] = EffectSurvey()
@@ -1967,14 +1966,9 @@ class Player:
             "main_target": self.active[j],
             "damage_mode": DamageMode.indirect,
             "target_mode": TargetMode.user,
-            "user": self.active[j],
-            "survey": EffectSurvey()
         }
         board.log(f"place|{self.active[j].namecode()}|{self.active[j].card.name}|{self.active[j].card.max_hp}|{self.active[j].element.value}")
-        for passive in self.active[j].card.passives:
-            if passive.trigger != PassiveTrigger.whenplaced:
-                continue
-            passive.execute(**kwargs)
+        self.active[j].trigger_passive(PassiveTrigger.whenplaced, {}, **kwargs)
         return True
     def is_softlock(self) -> bool:
         # Doesn't check for commander which:
