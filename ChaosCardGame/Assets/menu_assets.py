@@ -119,17 +119,17 @@ class MenuBackgrounds:
         "fire_lobby_empty",
     ]
     bg_lobby_images: list = [
-        bg_assets["air_lobby_empty"]  ["img"]
-        bg_assets["earth_lobby_empty"]["img"]
-        bg_assets["fire_lobby_empty"] ["img"]
-        bg_assets["water_lobby_empty"]["img"]
+        bg_assets["air_lobby_empty"]  ["img"],
+        bg_assets["earth_lobby_empty"]["img"],
+        bg_assets["fire_lobby_empty"] ["img"],
+        bg_assets["water_lobby_empty"]["img"],
         bg_assets["chaos_lobby_empty"]["img"]
     ]
     bg_menu_images: list  = [
-        bg_assets["air_arena"]  ["img"]
-        bg_assets["earth_arena"]["img"]
-        bg_assets["fire_arena"] ["img"]
-        bg_assets["water_arena"]["img"]
+        bg_assets["air_arena"]  ["img"],
+        bg_assets["earth_arena"]["img"],
+        bg_assets["fire_arena"] ["img"],
+        bg_assets["water_arena"]["img"],
         bg_assets["chaos_arnea"]["img"]
     ]
     logging.info("Successfully loaded backgrounds")
