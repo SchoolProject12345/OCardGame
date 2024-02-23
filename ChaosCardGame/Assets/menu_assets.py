@@ -102,7 +102,6 @@ def handle_assets(path: str, per_file=False, prefixes: list = []):
 graphics_path = os.path.join(utility.cwd_path, "Assets", "Graphics", "")
 
 
-@dataclass
 class MenuBackgrounds:
     """
     A class used to represent backgrounds.
@@ -112,7 +111,7 @@ class MenuBackgrounds:
     # Background Images
     bg_dir = os.path.join(graphics_path, "Backgrounds", "")
     bg_assets = handle_assets(bg_dir, True)
-    lobby_ids = [
+    lobby_ids: list = [
         "air_lobby_empty",
         "cha_lobby_empty",
         "ert_lobby_empty",
