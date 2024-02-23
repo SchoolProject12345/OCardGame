@@ -1,7 +1,7 @@
 import os
 import pygame
 from Network.server import HandlerHandler as handle
-from random import randint
+import random
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.OcgVision.vision_io import KeyRel

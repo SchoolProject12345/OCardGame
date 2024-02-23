@@ -3,7 +3,7 @@ from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum           # for clear, lightweight (int) elements/state.
 from json import loads, dumps      # to load `./Data/`
 from math import gcd               # kratos
-from typing import Callable
+from typing import Callable, Iterator
 from Core.target import TargetMode # moved for clarity
 import random as rng               # for shuffle function/rng effects
 import re
@@ -35,7 +35,7 @@ class Numeric:
             return RawNumeric(json)
         match cleanstr(json["type"]):
             case "raw": return RawNumeric(json["value"])
-            case "hps": return HPList(TargetMode.from_str(json["target_mode"]))
+            case "hps": return HPList()
             case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion.from_json(json)
@@ -49,9 +49,7 @@ class Numeric:
             case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
-    def subeffects(self) -> tuple[("AbstractEffect", "Numeric"), ...]:
-        warn(f"Numeric {typename(type(self))} doesn't have a subeffects method.")
-        return ()
+
 
 @dataclass
 class TurnNumeric(Numeric):
@@ -158,6 +156,7 @@ class UnionCounter:
     tags: tuple
     elements: tuple
     meta: tuple
+    @static
     def __call__(self: "UnionCounter", creature: "ActiveCard") -> bool: # look at what Python forces me to do
         if hasany(creature.card.tags, self.tags):
             return True
@@ -172,6 +171,7 @@ class CountUnion(Numeric):
     "Return the number of creatures among the targets that match eithere by `tags` or by `elements`."
     target_mode: "TargetMode"
     counter: UnionCounter
+    @static
     def eval(self, **kwargs) -> int:
         sum(self.counter(creature)
             for creature in AbstractEffect.targeted_objects(
@@ -276,9 +276,9 @@ def getCARDS(CARDS=[]) -> list:
     id = -1  # starts at -1 + 1 = 0
     for card in json:
         try:
-            CARDS += [AbstractCard.from_json(card, (id := id + 1))]
-        except:
-            warn("Got an error with card named:", card["name"])
+            CARDS.append(AbstractCard.from_json(card, (id := id + 1)))
+        except Exception as error:
+            warn("Got an error with card named", card["name"], str(error))
             id -= 1
     return CARDS
 
@@ -559,10 +559,14 @@ class AbstractEffect:
             case "noeffect": return NullEffect()
             case None: return NullEffect()
             case _: return warn(f"Tried to parse an effect with type {type} in {json}. Returning NullEffect instead.") and NullEffect()
-    def subeffects(self) -> tuple[("AbstractEffect", Numeric), ...]:
-        # debug-only, leaf doesn't implement it
-        warn(f"{typename(type(self))} doesn't have a subeffects method.")
-        return ()
+    def subeffects(self) -> Iterator["AbstractEffect | Numeric"]:
+        "Return a generator of all subeffects of self, going recursively depth-first in the expression tree. Recursive."
+        for field in self.__dict__.values():
+            if isinstance(field, AbstractEffect | Numeric):
+                yield field
+                for sub_field in field.subeffects():
+                    yield sub_field # recursive
+Numeric.subeffects = AbstractEffect.subeffects
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
@@ -751,7 +755,7 @@ class ChangeTarget(AbstractEffect):
     def execute(self, **kwargs) -> bool:
         kwargs = kwargs.copy()
         if kwargs["user"].state is State.cloudy:
-            if self.new_target.canself():
+            if (self.new_target & TargetMode.TARGET).canself():
                 kwargs["target_mode"] = TargetMode.self
             else:
                 kwargs["target_mode"] = TargetMode.target
@@ -769,14 +773,11 @@ class RandomTargets(AbstractEffect):
     effect: AbstractEffect
     sample: Numeric
     def execute(self, **kwargs) -> bool:
-        print(f"RandomTargets launched with target {kwargs['target_mode'].name} executed.")
         targets = AbstractEffect.targeted_objects(**kwargs)
-        print(f"RandomTargets has {len(targets)} targets.")
         rng.shuffle(targets)  # maybe unefficient but it works.
         sample = self.sample.eval()
         while len(targets) > sample:
             targets.pop()
-        print(f"Only {len(targets)} left.")
         kwargs = withfield(kwargs, "target_mode", TargetMode.target)
         # [] are necessary to evaluate entirely the generator before short-circuiting (for once Python works correctly).
         return any([self.effect.execute(**withfield(kwargs, "main_target", target)) for target in targets])
@@ -1106,7 +1107,10 @@ class RepeatEffect(AbstractEffect):
     n: Numeric
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
-        return any([self.effect.execute(**withfield(kwargs, "repeat_depth", show(n))) for n in range(self.n.eval(**kwargs))])
+        return any(
+            [self.effect.execute(**withfield(kwargs, "repeat_depth", show(n)))
+             for n in range(self.n.eval(**kwargs))]
+        )
     def from_json(json: dict):
         return RepeatEffect(Numeric.from_json(json["n"]), AbstractEffect.from_json(json["effect"]))
     def __str__(self):
@@ -1198,6 +1202,8 @@ class Passive:
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
     def execute(self, **kwargs) -> EffectSurvey:
+        if not "__debug__" in kwargs.keys():
+            warn(f"Passive with trigger {self.trigger.name} was trigger from another source than `user.trigger_passive(trigger)`")
         kwargs["survey"] = EffectSurvey()
         kwargs["source"] = self
         kwargs["board"].log(f"passive|{kwargs['user'].card.name}|{self.name}") # card.name to handle whendefeated passive.
@@ -1232,6 +1238,23 @@ class Attack:
         if "tag" in json:
             attack.tags = (*attack.tags, json["tag"])
         return attack
+    def is_free_of_target(self):
+        # lazy evaluate so quite performant
+        for effect in self.effect.subeffects():
+            for field in effect.__dict__.values():
+                if isinstance(field, TargetMode) and not field.isfreeoftarget():
+                    return False
+        return True
+    def copy(self) -> "Attack":
+        "Shallow copy of self."
+        return Attack(
+            self.name,
+            self.power,
+            self.target_mode,
+            self.cost,
+            self.effect,
+            self.tags
+        )
     def log(self, **kwargs):
         if "spell" in self.tags:
             log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode}|{kwargs['survey'].return_code.value}"
@@ -1249,9 +1272,6 @@ class Attack:
             s += f"dealing {self.power} damages and "
         s += f"doing {str(self.effect)}"
         return s
-    def has_target(self):
-        pass # TODO: to that
-        
 
 @dataclass
 class AbstractCard:
@@ -1425,8 +1445,9 @@ class ActiveCard:
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "target_mode", attack.target_mode)
-        getorset(kwargs, "damage_mode", ifelse(self.state == State.no_multi, DamageMode.ignore_se, DamageMode.direct))
-        if self.taunt is not None:
+        getorset(kwargs, "damage_mode", ifelse(self.state is State.no_multi, DamageMode.ignore_se, DamageMode.direct))
+        is_target_depandent: bool = not attack.is_free_of_target()
+        if is_target_depandent and self.taunt is not None:
             if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
             else:
@@ -1434,15 +1455,15 @@ class ActiveCard:
                 kwargs["main_target"] = self.taunt
                 self.taunt_dur -= 1
         # fail if can't hit commander but taunted by commander
-        if not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
+        if is_target_depandent and not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
         # we don't want Everstone Symbiote to make itself damageless before supporting
-        if not kwargs["target_mode"].canself() and kwargs["main_target"] is self:
+        if is_target_depandent and not kwargs["target_mode"].canself() and kwargs["main_target"] is self:
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
         if self.state == State.cloudy:  # overrides taunt
-            if kwargs["target_mode"].canself():  # canself are (usually) positive
+            if (kwargs["target_mode"] & TargetMode.TARGET).canself():  # canself are (usually) positive
                 kwargs["target_mode"] = TargetMode.user  # user always exists
                 kwargs["main_target"] = self
             # elif target foes but there are none
@@ -1530,15 +1551,26 @@ class ActiveCard:
                 return self.owner.namecode() + '@' # may be fixed later.
             if self.owner.active[i] is self:
                 return self.owner.namecode() + chr(97 + i)
+    def log_passive(self, passive: Passive):
+        self.board.log(f"passive|{self.card.name}|{passive.name}")
     @static
     def trigger_passive(self, trigger: PassiveTrigger, kwargs: dict[str, object], **update) -> EffectSurvey:
         "Trigger `self`'s passive that have the same trigger has the one passed in arguments after updating its kwargs."
         _kwargs = kwargs.copy()
         _kwargs["main_target"] = getordef(kwargs, "user", self)
         _kwargs["target_mode"] = TargetMode.target
+        _kwargs["player"] = self.owner
+        _kwargs["board"] = self.board
         _kwargs.update(**update)
         _kwargs["user"] = self
-        return sum((passive.execute(**withfield(_kwargs, "survey", EffectSurvey())) for passive in self.card.passives if passive.trigger is trigger), start=EffectSurvey())
+        _kwargs["survey"] = EffectSurvey()
+        _kwargs["__debug__"] = True
+        for passive in self.card.passives:
+            if not passive.trigger is trigger:
+                continue
+            self.log_passive(passive)
+            _kwargs["survey"] += passive.execute(**withfield(_kwargs, "survey", EffectSurvey()))
+        return _kwargs["survey"]
     @static
     def damage(self, amount: int, **kwargs) -> int:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
@@ -1608,13 +1640,33 @@ class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
         on_use = Attack.from_json(json["on_use"])
+
         on_use.tags = (*on_use.tags, "spell")
         return SpellCard(json["name"], id, Element.from_str(json["element"]), on_use)
     def use(self, target: ActiveCard):
         board = target.board
+        #= Dark Knowledge - start =#
+        on_use = self.on_use.copy()
+        tenebrous_mage: None | ActiveCard = board.active_player.get_creature_on_field("tenebrousmage")
+        if tenebrous_mage is not None:
+            # check for mods
+            if (len(tenebrous_mage.card.passives) > 0
+                and cleanstr(tenebrous_mage.card.passives[1].name) == "darkknowledge"
+                and on_use.cost > 1): # doesn't reduce below 1
+                tenebrous_mage.log_passive(tenebrous_mage.card.passives[0].name)
+                on_use.cost -= 1
+        #= Dark Knowledge - end =#
         sim = ActiveCard(
-            CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
-                         self.on_use], passives=[], cost=0, tags=self.on_use.tags),
+            CreatureCard(
+                name=self.name,
+                id=self.id,
+                element=self.element,
+                max_hp=0,
+                attacks=[on_use],
+                passives=[],
+                cost=0,
+                tags=on_use.tags
+            ),
             board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
@@ -1690,6 +1742,18 @@ class Player:
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
         self.commander_charges = 0
+    def get_creature_on_field(self, creature: str | CreatureCard) -> ActiveCard | None:
+        """
+        Return creature if `self` has creature with name `creature` active on their board, `None` otherwise.
+        Used for hardcoding purposes.
+        """
+        if isinstance(creature, CreatureCard):
+            creature = creature.name
+        creature = cleanstr(creature)
+        for active in self.get_actives():
+            if cleanstr(active.card.name) == creature:
+                return active
+        return # explicit > implicit
     def isvalid(self) -> bool:
         "Return `True` if self's deck is invalid, short cirtuting to `False` otherwise. Note: This doesn't guarantee the deck is valid for the host, as theire version might be different."
         if len(self.deck) != Constants.default_deck_size:
@@ -1902,14 +1966,9 @@ class Player:
             "main_target": self.active[j],
             "damage_mode": DamageMode.indirect,
             "target_mode": TargetMode.user,
-            "user": self.active[j],
-            "survey": EffectSurvey()
         }
         board.log(f"place|{self.active[j].namecode()}|{self.active[j].card.name}|{self.active[j].card.max_hp}|{self.active[j].element.value}")
-        for passive in self.active[j].card.passives:
-            if passive.trigger != PassiveTrigger.whenplaced:
-                continue
-            passive.execute(**kwargs)
+        self.active[j].trigger_passive(PassiveTrigger.whenplaced, {}, **kwargs)
         return True
     def is_softlock(self) -> bool:
         # Doesn't check for commander which:

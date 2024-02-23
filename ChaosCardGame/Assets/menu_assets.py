@@ -45,8 +45,7 @@ def smoothscale_converter(objects: list[pygame.Surface] | list[list], factor: fl
 
 def dir_sorter(dir_path: str, prefixes):
     if len(prefixes) > len(os.listdir(dir_path)):
-        raise ValueError(
-            f"{dir_path} and {prefixes} must be of the dame length.")
+        raise ValueError(f"{dir_path} and {prefixes} must be of the dame length.")
     sorted_file_path = ["" for _ in range(len(os.listdir(dir_path)))]
     for file in os.listdir(dir_path):
         filepath = os.path.join(dir_path, file)
@@ -63,19 +62,26 @@ def dict_packager(dir_path_list: list, prefixes: list):
         for file_path in dir_path_list:
             packaged_dict[os.path.basename(file_path).split(".")[0]] = {
                 "path": file_path,
-                "img": pygame.image.load(file_path)
+                "img": pygame.image.load(file_path),
             }
     elif os.path.isdir(dir_path_list[0]):
         for dir_path in dir_path_list:
             if len(prefixes) > 0:
                 packaged_dict[os.path.basename(dir_path).split(".")[0]] = {
                     "path": dir_path,
-                    "img": [pygame.image.load(os.path.join(dir_path, image)) for image in dir_sorter(dir_path, prefixes)]
+                    "img": [
+                        pygame.image.load(os.path.join(dir_path, image))
+                        for image in dir_sorter(dir_path, prefixes)
+                    ],
                 }
             else:
                 packaged_dict[os.path.basename(dir_path).split(".")[0]] = {
                     "path": dir_path,
-                    "img": [pygame.image.load(os.path.join(dir_path, image)) for image in os.listdir(dir_path) if os.path.basename(image)[0] != "."]
+                    "img": [
+                        pygame.image.load(os.path.join(dir_path, image))
+                        for image in os.listdir(dir_path)
+                        if os.path.basename(image)[0] != "."
+                    ],
                 }
     return packaged_dict
 
@@ -89,8 +95,7 @@ def handle_assets(path: str, per_file=False, prefixes: list = []):
                     asset_queue.append(os.path.join(dirpath, file))
             else:
                 asset_queue.append(dirpath)
-    asset_queue = [
-        asset for asset in asset_queue if os.path.basename(asset)[0] != "."]
+    asset_queue = [asset for asset in asset_queue if os.path.basename(asset)[0] != "."]
     return dict_packager(asset_queue, prefixes)
 
 
@@ -107,6 +112,12 @@ class MenuBackgrounds:
     # Background Images
     bg_dir = os.path.join(graphics_path, "Backgrounds", "")
     bg_assets = handle_assets(bg_dir, True)
+    lobby_ids = [
+        "air_lobby_empty",
+        "cha_lobby_empty",
+        "ert_lobby_empty",
+        "fire_lobby_empty",
+    ]
     logging.info("Successfully loaded backgrounds")
 
     bg_menu_image: list = [
@@ -190,13 +201,11 @@ class CardAssets:
         )
     else:
         card_sprites = handle_assets(
-            os.path.join(utility.cwd_path, "Debug",
-                         "debug_card"), prefixes=["s_", "b_"]
+            os.path.join(utility.cwd_path, "Debug", "debug_card"), prefixes=["s_", "b_"]
         )
         card_sprites.update(
             handle_assets(
-                os.path.join(graphics_path, "Cards",
-                             "Misc"), prefixes=["s_", "b_"]
+                os.path.join(graphics_path, "Cards", "Misc"), prefixes=["s_", "b_"]
             )
         )
         logging.warning("Enabled debug cards")
@@ -207,7 +216,8 @@ class CardAssets:
 class Fonts:
     pygame.font.init()
     ger_font_path = os.path.join(
-        utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf")
+        utility.cwd_path, "Assets", "Fonts", "GermaniaOne-Regular.ttf"
+    )
 
     def ger_font(size):
         return pygame.font.Font(Fonts.ger_font_path, size)
@@ -216,5 +226,5 @@ class Fonts:
 @dataclass
 class States:
     states_assets = handle_assets(
-        os.path.join(graphics_path, "Sprites", "States"),
-        True)
+        os.path.join(graphics_path, "Sprites", "States"), True
+    )
