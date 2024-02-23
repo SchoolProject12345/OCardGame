@@ -116,8 +116,9 @@ class GameMenu(State):
         self.enemy_energy = 2
 
         # Game Menu
+        self.current_arena = self.game_state["arena"]
         self.bg_game_menu_image = MenuBackgrounds.bg_menu_image[
-            min(self.game_state["arena"], 4)
+            min(self.current_arena, 4)
         ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
             topleft=(0, 0))
@@ -387,6 +388,15 @@ class GameMenu(State):
         self.ui_state["handed"] = not self.ui_state["handed"]
 
     def game_menu(self):
+        # Check for Arena changes.
+        if self.current_arena != handle.state["arena"].value:
+            self.current_arena = handle.state["arena"].value
+            self.bg_game_menu_image = MenuBackgrounds.bg_menu_image[
+                min(self.current_arena, 4)
+            ].convert_alpha()
+            self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
+                topleft=(0, 0))
+        
         # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
         self.player_health_bar.render(self.player_health)
