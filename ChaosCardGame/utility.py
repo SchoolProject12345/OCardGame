@@ -347,6 +347,8 @@ def isinstancepar(val: object, cls: type):
       - E.g. `["foo", "bar", 3.0]` is a `list[str | float]` but `[3]` is not.
       - E.g. `set[int]`, `list[str]`, ...
     """
+    if cls is None:
+        return val is None
     if isinstance(cls, str):
         return any(_cls.__name__ == cls for _cls in type(val).__mro__)
     if not hasattr(cls, "__args__"):
