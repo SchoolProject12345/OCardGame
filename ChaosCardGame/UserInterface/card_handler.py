@@ -39,7 +39,10 @@ class CardHolder:
             self.card = {"name": "MiscEmpty"}
         if active and self.card["name"] != "MiscEmpty":
             self.check_clicked(mouse_pos, mousebuttondown)
-        self.card_img = CardAssets.card_sprites[self.card["name"]]["img"]
+        if self.card["name"] in CardAssets.card_sprites:
+            self.card_img = CardAssets.card_sprites[self.card["name"]]["img"]
+        else:
+            self.card_img = CardAssets.card_sprites["card_not_found"]["img"]
         self.screen.blit(self.card_img[0], self.position)
 
     def check_clicked(
@@ -98,8 +101,20 @@ class CardManager:
         self.card_info = AbstractCard.from_id(self.card_state["name"])
         self.popup_bg = MenuBackgrounds.bg_assets["attack_popup_empty"]["img"]
         self.popup_bg_rect = self.popup_bg.get_rect(center=SCREEN_CENTER)
-        self.popup_card_img = CardAssets.card_sprites[self.get_card(
-            self.popup_slot)["name"]]["img"][1]
+        popup_name = self.get_card(self.popup_slot)["name"]
+        self.popup_txt = []
+        if popup_name in CardAssets.card_sprites.keys():
+            self.popup_card_img = CardAssets.card_sprites[popup_name]["img"][1]
+        else:
+            self.popup_card_img = CardAssets.card_sprites["card_not_found"]["img"][1]
+            self.popup_txt.append(TextBox(
+                self.screen,
+                (837, 215),
+                132, 29,
+                Fonts.ger_font(22),
+                (200, 200, 200),
+                text = f"ID: {popup_name}"
+            ))
 
         self.popup_btns = [
             ImageButton(
@@ -108,8 +123,8 @@ class CardManager:
                 self.screen, True, image=MenuButtons.button_assets["CardHealth"]["img"], position=(641, 259), position_type="topleft"
             )
         ]
-        self.popup_txt = [TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font(22), (
-            255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP")]
+        self.popup_txt.append(TextBox(self.screen, (837, 265), 132, 29, Fonts.ger_font(22), (
+            255, 255, 255), "topleft", "center", f"{self.card_state['hp']}/{self.card_state['max_hp']} HP"))
 
         if self.popup_slot[0] == "local":
             self.popup_btns.extend([
