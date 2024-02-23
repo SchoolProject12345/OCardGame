@@ -389,6 +389,17 @@ class GameMenu(State):
         self.ui_state["handed"] = not self.ui_state["handed"]
 
     def game_menu(self):
+        # Update game state
+        #game_state = handle.get_state()
+        #if len(self.game_state["local"]["board"]) != len(game_state["local"]["board"]):
+        #    self.card_manager = CardManager(
+        #        self.screen,
+        #        len(game_state["local"]["board"])
+        #    )
+        #self.game_state = game_state
+        # (Commented it out in case you need to make test, this is just a "blueprint" to implement it fully)
+        # (tested it out it works fine)
+        
         # Check for Arena changes.
         if self.current_arena != handle.state["arena"].value:
             self.current_arena = handle.state["arena"].value
