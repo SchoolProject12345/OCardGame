@@ -44,13 +44,11 @@
      "num": {
       "b": {
        "den": 210,
-       "num": 65516,
+       "num": -20,
        "times": {
-        "sample": {
-         "target_mode": "user",
-         "type": "hps"
-        },
-        "type": "sum"
+        "type":"property",
+        "path":"user",
+        "attr":"hp"
        },
        "type": "mul"
       },
@@ -124,13 +122,11 @@
       "amount": {
        "b": {
         "den": 180,
-        "num": 65461,
+        "num": -75,
         "times": {
-         "sample": {
-          "target_mode": "user",
-          "type": "hps"
-         },
-         "type": "sum"
+         "type":"property",
+         "path":"user",
+         "attr":"hp"
         },
         "type": "mul"
        },
@@ -303,11 +299,9 @@
       "type": "add_energy"
      },
      "value": {
-      "sample": {
-       "target_mode": "target",
-       "type": "HPs"
-      },
-      "type": "sum"
+      "type":"property",
+      "path":"main_target",
+      "attr":"hp"
      },
      "type": "if"
     }
@@ -871,7 +865,7 @@
          "effect": {
           "effect1": {
            "den": 3,
-           "num": 65535,
+           "num": -1,
            "effect": {
             "effect1": {
              "amount": 105,
@@ -997,6 +991,16 @@
      "count": 1,
      "by_name": "Chaosling",
      "type": "summon"
+    }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Dark Knowledge",
+    "trigger":"never",
+    "effect":{
+     "type":"hardcoded",
+     "desc":"All spell cost -1 energy to use (min. 1). Does not stack."
     }
    }
   ]
@@ -1197,7 +1201,7 @@
       "type": "add_energy"
      },
      "effect": {
-      "per_turn": 65535,
+      "per_turn": -1,
       "type": "add_energy",
       "player": "foe"
      },
@@ -1721,14 +1725,12 @@
      "else": {
       "target": "unactive",
       "type": "boardresize",
-      "delta": 65535
+      "delta": -1
      },
      "value": {
-      "sample": {
-       "target_mode": "target",
-       "type": "HPs"
-      },
-      "type": "sum"
+      "type": "property",
+      "path": "main_target",
+      "attr": "hp"
      },
      "type": "if"
     }
