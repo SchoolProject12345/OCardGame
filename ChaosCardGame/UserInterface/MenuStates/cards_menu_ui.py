@@ -6,20 +6,49 @@ from UserInterface.OcgVision.vision_main import State, ImageToggle, ToggleGridFo
 from Assets.menu_assets import MenuBackgrounds, MenuToggles, MenuButtons, alpha_converter
 
 
-class EarthCards():
-    def __init__(self, screen):
+class CardCollection:
+    placeholder = (
+        pygame.image.load(os.path.join(
+            utility.cwd_path,
+            "Assets/Graphics/Cards/Misc/card_not_found/s_card_not_found.png"
+        )),
+        pygame.image.load(os.path.join(
+            utility.cwd_path,
+            "Assets/Graphics/Cards/Misc/card_not_found/b_card_not_found.png"
+        )),
+    )
+    def __init__(self, screen, element: str):
         self.screen = screen
-        self.image = pygame.image.load(
-            os.path.join(utility.cwd_path, "Assets/Group 50.png")).convert_alpha()
-        self.image_2 = pygame.image.load(
-            os.path.join(utility.cwd_path, "Assets/Group 53.png")).convert_alpha()
-        self.total = [self.image for i in range(6)]
-        self.total_2 = [self.image for i in range(6)]
+        self.total = [
+            (
+            pygame.image.load(
+                os.path.join(utility.cwd_path, dirpath, filenames[1])
+            ),
+            pygame.image.load(
+                os.path.join(utility.cwd_path, dirpath, filenames[0])
+            )
+            )
+            for (dirpath, _, filenames) in os.walk(os.path.join(utility.cwd_path, f"Assets/Graphics/Cards/{element.strip().title()}"))
+            if len(filenames) > 1
+        ]
+        # 4 + 4 = 8
+        if len(self.total) < 8:
+            self.total += [self.placeholder] * (8 - len(self.total))
         self.left_side = ToggleGridFour(
-            self.screen, [self.total, self.total, self.total, self.total], 475, 450, (25, 145), 0.78, 0.8)
+            self.screen,
+            self.total,
+            475, 450,
+            (50, 145),
+            1.6, 1.0
+        )
         self.right_side = ToggleGridFour(
-            self.screen, [self.total_2, self.total_2, self.total_2, self.total_2], 475, 450, (SCREEN_WIDTH-475-10, 145), 0.78, 0.8)
-
+            self.screen,
+            self.total,
+            475, 450,
+            (SCREEN_WIDTH-475-10, 145),
+            1.6, 1.0,
+            start=4
+        )
     def render(self):
         self.left_side.render()
         self.right_side.render()
@@ -66,12 +95,18 @@ class CardsMenu(State):
             ImageToggle(
                 self.screen, "FireToggle", image=alpha_converter(MenuToggles.toggle_assets["FireToggle"]["img"]), position=(toggle_xpos[4], SCREEN_HEIGHT-20), position_type="midbottom")
         ]
-        self.active_toggle = -1
+        self.active_toggle = 2
         self.new_toggle = None
 
         # Init all cards and grids here
-        self.earth_grid = EarthCards(self.screen)
-
+        # Tuple so immutable hence less memory
+        self.grids: tuple[CardCollection, ...] = (
+            CardCollection(self.screen, "air"),
+            CardCollection(self.screen, "chaos"),
+            CardCollection(self.screen, "earth"),
+            CardCollection(self.screen, "water"),
+            CardCollection(self.screen, "fire")
+        )
     def cards_menu(self):
         self.screen.blit(self.bg_cards_menu_image, self.bg_cards_menu_rect)
         self.exit_button.render()
@@ -94,8 +129,7 @@ class CardsMenu(State):
             toggle.render()
             toggle.answer()
         # Cards
-        if self.active_toggle == 2:
-            self.earth_grid.render()
+        self.grids[self.active_toggle].render()
 
     def state_manager_hook(self, app):
         if State.state_tree[1] == self.local_options[0]:
