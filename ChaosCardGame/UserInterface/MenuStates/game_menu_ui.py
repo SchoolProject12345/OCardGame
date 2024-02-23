@@ -117,7 +117,7 @@ class GameMenu(State):
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
-        self.bg_game_menu_image = MenuBackgrounds.bg_menu_image[
+        self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[
             min(self.current_arena, 4)
         ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
