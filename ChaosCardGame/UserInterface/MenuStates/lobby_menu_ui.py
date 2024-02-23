@@ -18,7 +18,8 @@ class LobbyMenu(State):
         super().__init__(screen, self.is_anchor, self.local_options)
 
         self.bg_lobby_image = MenuBackgrounds.bg_lobby_images[
-            handle.get_state()["arena"]].convert_alpha()
+            min(handle.get_state()["arena"], 4)
+        ].convert_alpha()
         self.bg_lobby_rect = self.bg_lobby_image.get_rect()
 
         self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, Fonts.ger_font(
