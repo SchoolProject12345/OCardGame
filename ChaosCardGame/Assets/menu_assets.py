@@ -119,11 +119,11 @@ class MenuBackgrounds:
         "fire_lobby_empty",
     ]
     bg_lobby_images: list = [
-        bg_assets["air_lobby_empty"]  ["img"],
-        bg_assets["earth_lobby_empty"]["img"],
-        bg_assets["fire_lobby_empty"] ["img"],
-        bg_assets["water_lobby_empty"]["img"],
-        bg_assets["chaos_lobby_empty"]["img"]
+        bg_assets["air_lobby_empty"] ["img"],
+        bg_assets["ert_lobby_empty"] ["img"],
+        bg_assets["fire_lobby_empty"]["img"],
+        bg_assets["wtr_lobby_empty"] ["img"],
+        bg_assets["cha_lobby_empty"] ["img"]
     ]
     bg_menu_images: list  = [
         bg_assets["air_arena"]  ["img"],
