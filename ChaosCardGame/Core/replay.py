@@ -348,7 +348,8 @@ class ReplayHandler:
                     "name":args[1],
                     "hp":int(args[2]),
                     "max_hp":int(args[2]),
-                    "element":int(args[3])
+                    "element":int(args[3]),
+                    "state":"default"
                 }
                 ret = f"A {args[1]} appeared at the {core.nth(i)} position of {self.state[player]['name']}'s board."
             case "draw":
