@@ -118,34 +118,21 @@ class MenuBackgrounds:
         "ert_lobby_empty",
         "fire_lobby_empty",
     ]
-    logging.info("Successfully loaded backgrounds")
-
-    bg_menu_image: list = [
+    bg_lobby_images: list = [
+        bg_assets["air_lobby_empty"]  ["img"]
+        bg_assets["earth_lobby_empty"]["img"]
+        bg_assets["fire_lobby_empty"] ["img"]
+        bg_assets["water_lobby_empty"]["img"]
+        bg_assets["chaos_lobby_empty"]["img"]
+    ]
+    bg_menu_images: list  = [
         bg_assets["air_arena"]  ["img"]
         bg_assets["earth_arena"]["img"]
         bg_assets["fire_arena"] ["img"]
         bg_assets["water_arena"]["img"]
         bg_assets["chaos_arnea"]["img"]
     ]
-    
-    # Lobby
-    bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
-    bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
-
-    bg_ert_lobby_path = bg_dir + "ert_lobby_empty.png"
-    bg_ert_lobby_image = pygame.image.load(bg_ert_lobby_path)
-
-    bg_fire_lobby_path = bg_dir + "fire_lobby_empty.png"
-    bg_fire_lobby_image = pygame.image.load(bg_fire_lobby_path)
-
-    bg_wtr_lobby_path = bg_dir + "wtr_lobby_empty.png"
-    bg_wtr_lobby_image = pygame.image.load(bg_wtr_lobby_path)
-
-    bg_cha_lobby_path = bg_dir + "cha_lobby_empty.png"
-    bg_cha_lobby_image = pygame.image.load(bg_cha_lobby_path)
-
-    bg_lobby_images = [bg_air_lobby_image, bg_ert_lobby_image,
-                       bg_wtr_lobby_image, bg_fire_lobby_image, bg_cha_lobby_image]
+    logging.info("Successfully loaded backgrounds")
 
 
 @dataclass
