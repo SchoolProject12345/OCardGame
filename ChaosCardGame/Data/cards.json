@@ -105,7 +105,7 @@
    {
     "name": "Muscle Drain",
     "cost": 2,
-    "target_mode": ["target", "canself"],
+    "target_mode": ["target", "can_self"],
     "power": 0,
     "effect": {
      "effect1": {
@@ -1117,7 +1117,7 @@
    {
     "name": "Magic Taunt",
     "cost": 2,
-    "target_mode": ["foes", "commander", "canself"],
+    "target_mode": ["foes", "commander", "can_self"],
     "power": 10,
     "effect": {
      "duration": 1,
@@ -1166,7 +1166,7 @@
    {
     "name": "Thousand Jaws",
     "cost": 2,
-    "target_mode": ["foes", "canself"],
+    "target_mode": ["foes", "can_self"],
     "power": 30,
     "effect": {
      "infinite": false,
@@ -1535,7 +1535,7 @@
    {
     "name": "Energizing Bite",
     "cost": 1,
-    "target_mode": ["target", "canself"],
+    "target_mode": ["target", "can_self"],
     "power": 35,
     "effect": {
      "type": "todo",
