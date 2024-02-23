@@ -62,12 +62,12 @@ class LoreMenu(State):
         self.screen.blit(
             self.bg_lore_images[self.lore_index], self.bg_lore_menu_rect)
         events = search_event(super().events, pygame.KEYDOWN)
-        if self.escp_rel.update([e for e in events if e.type == pygame.KEYUP]):
+        if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
             self.lore_index = 0
             self.revert_state()
             sound_handle(action_type="stop", channel=7)
 
-        elif self.space_rel.update([e for e in events if e.type == pygame.KEYUP]):
+        elif self.space_rel.update(search_event(super().events, pygame.KEYUP)):
             if self.lore_index == 11:
                 self.lore_index = 0
                 self.revert_state()
