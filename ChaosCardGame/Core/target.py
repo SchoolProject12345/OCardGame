@@ -57,7 +57,7 @@ class TargetMode:
     def cancommander(self) -> bool:
         return not self & 1 << 31
     def canself(self) -> bool:
-        return (self & 1 << 3) or (self & 1 << 2)  or (self & 1 << 30)
+        return (self & 1 << 3) or (self & 1 << 2)  or (self & 1 << 30) or (self.isfreeoftarget())
     def isfreeoftarget(self) -> bool:
         not (self.target_string & self.TARGET)
     # useful for debugging:
