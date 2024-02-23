@@ -1448,8 +1448,9 @@ class ActiveCard:
             return kwargs["survey"]
         getorset(kwargs, "player", self.owner)
         getorset(kwargs, "target_mode", attack.target_mode)
-        getorset(kwargs, "damage_mode", ifelse(self.state == State.no_multi, DamageMode.ignore_se, DamageMode.direct))
-        if self.taunt is not None:
+        getorset(kwargs, "damage_mode", ifelse(self.state is State.no_multi, DamageMode.ignore_se, DamageMode.direct))
+        is_target_depandent: bool = not attack.is_free_of_target
+        if is_target_depandent and self.taunt is not None:
             if self.taunt.hp <= 0 or self.taunt_dur <= 0:
                 self.taunt = None
             else:
@@ -1457,11 +1458,11 @@ class ActiveCard:
                 kwargs["main_target"] = self.taunt
                 self.taunt_dur -= 1
         # fail if can't hit commander but taunted by commander
-        if not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
+        if is_target_depandent and not kwargs["target_mode"].cancommander() and kwargs["main_target"].iscommander():
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
         # we don't want Everstone Symbiote to make itself damageless before supporting
-        if not kwargs["target_mode"].canself() and kwargs["main_target"] is self:
+        if is_target_depandent and not kwargs["target_mode"].canself() and kwargs["main_target"] is self:
             kwargs["survey"].return_code = ReturnCode.wrong_target
             return kwargs["survey"]
         if self.state == State.cloudy:  # overrides taunt
