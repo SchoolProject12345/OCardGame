@@ -109,6 +109,14 @@ class MenuBackgrounds:
     bg_assets = handle_assets(bg_dir, True)
     logging.info("Successfully loaded backgrounds")
 
+    bg_menu_image: list = [
+        bg_assets["air_arena"]  ["img"]
+        bg_assets["earth_arena"]["img"]
+        bg_assets["fire_arena"] ["img"]
+        bg_assets["water_arena"]["img"]
+        bg_assets["chaos_arnea"]["img"]
+    ]
+    
     # Lobby
     bg_air_lobby_path = bg_dir + "air_lobby_empty.png"
     bg_air_lobby_image = pygame.image.load(bg_air_lobby_path)
