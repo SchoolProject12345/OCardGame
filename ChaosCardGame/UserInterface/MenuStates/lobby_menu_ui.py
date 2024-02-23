@@ -17,7 +17,10 @@ class LobbyMenu(State):
         self.local_options = ["LobbyMenu", "GameMenu"]
         super().__init__(screen, self.is_anchor, self.local_options)
 
-        self.bg_lobby_image = MenuBackgrounds.bg_assets[random.choice(MenuBackgrounds.lobby_ids)]["img"].convert_alpha()
+        self.current_arena: int = handle.get_state()["arena"]
+        self.bg_lobby_image = MenuBackgrounds.bg_lobby_images[
+            min(self.current_arena, 4)
+        ].convert_alpha()
         self.bg_lobby_rect = self.bg_lobby_image.get_rect()
 
         self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, Fonts.ger_font(
@@ -37,6 +40,14 @@ class LobbyMenu(State):
         # print(self.local_is_hosting)
 
     def lobby_menu(self):
+        # handle.state is fast than handle.get_state()
+        if self.current_arena != handle.state["arena"].value:
+            self.current_arena = handle.state["arena"].value
+            self.bg_lobby_image = MenuBackgrounds.bg_lobby_images[
+                min(self.current_arena, 4)
+            ].convert_alpha()
+            self.bg_lobby_rect = self.bg_lobby_image.get_rect()
+        
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
         if self.local_is_hosting == True:

@@ -79,6 +79,10 @@ class HandlerHandler(metaclass=SingletonMonad):
         elif method not in [ReplayHandler.read_replay]:
             core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
             return False
+        if method is host:
+            arena = core.Arena.random()
+            self.state["arena"] = arena
+            kwargs["arena"] = arena
         net.threading.Thread(
             target=self.init_handler,
             args=(method, *args),
@@ -387,7 +391,7 @@ def sendrecv(socket: net.socket.socket, size: int, *args):
     return socket.recv(size)
 
 @static
-def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) -> ServerHandler:
+def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345, *, arena: core.Arena = core.Arena.själløssmängd) -> ServerHandler:
     """
     Listen for connection with peer, returning a `ServerHandler` and listening for actions on a separate thread.
     IP must either be localhost (usually "127.0.0.1") or `server.get_ip()`.
@@ -410,7 +414,9 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345) ->
     )
     net.get_data()["client"]["commander"]["name"] = client.commander.card.name
     net.get_data()["server"]["commander"]["name"] = host.commander.card.name
-    board = core.Board(host, client)
+    if arena is core.Arena.själløssmängd:
+        arena = core.Arena.random()
+    board = core.Board(host, client, autoplay=False, arena=arena)
     handle = ServerHandler(board, client_socket)
     def listen(handler: ServerHandler):
         while handler.ongoing and not handler.closed:

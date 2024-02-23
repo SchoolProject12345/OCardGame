@@ -102,7 +102,6 @@ def handle_assets(path: str, per_file=False, prefixes: list = []):
 graphics_path = os.path.join(utility.cwd_path, "Assets", "Graphics", "")
 
 
-@dataclass
 class MenuBackgrounds:
     """
     A class used to represent backgrounds.
@@ -112,11 +111,25 @@ class MenuBackgrounds:
     # Background Images
     bg_dir = os.path.join(graphics_path, "Backgrounds", "")
     bg_assets = handle_assets(bg_dir, True)
-    lobby_ids = [
+    lobby_ids: list = [
         "air_lobby_empty",
         "cha_lobby_empty",
         "ert_lobby_empty",
         "fire_lobby_empty",
+    ]
+    bg_lobby_images: list = [
+        bg_assets["air_lobby_empty"] ["img"],
+        bg_assets["ert_lobby_empty"] ["img"],
+        bg_assets["fire_lobby_empty"]["img"],
+        bg_assets["wtr_lobby_empty"] ["img"],
+        bg_assets["cha_lobby_empty"] ["img"]
+    ]
+    bg_menu_images: list  = [
+        bg_assets["air_arena"]  ["img"],
+        bg_assets["earth_arena"]["img"],
+        bg_assets["fire_arena"] ["img"],
+        bg_assets["water_arena"]["img"],
+        bg_assets["chaos_arena"]["img"]
     ]
     logging.info("Successfully loaded backgrounds")
 
