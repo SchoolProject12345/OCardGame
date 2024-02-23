@@ -75,7 +75,7 @@ class GameMenu(State):
                     "element": 1,
                     "hp": 600,
                     "max_hp": 600,
-                    "name": "debug_card",
+                    "name": "air_skyvisindi",
                     "state": "default",
                 },
                 "deck_length": 10,
@@ -374,6 +374,13 @@ class GameMenu(State):
             else:
                 logging.warn(
                     "Trying to inflict illegal attack on self. Cancelling attack.")
+                return False
+        if self.pending_actions[0].slot[1] == "commander":
+            if attack.target_mode.cancommander():
+                return True
+            else:
+                logging.warn(
+                    "Trying to inflict illegal attack on commander. Cancelling attack.")
                 return False
         return True
 
