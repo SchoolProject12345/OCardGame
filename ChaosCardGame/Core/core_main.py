@@ -3,7 +3,7 @@ from dataclasses import dataclass  # easier class declaration
 from enum import IntEnum           # for clear, lightweight (int) elements/state.
 from json import loads, dumps      # to load `./Data/`
 from math import gcd               # kratos
-from typing import Callable
+from typing import Callable, Iterator
 from Core.target import TargetMode # moved for clarity
 import random as rng               # for shuffle function/rng effects
 import re
@@ -35,7 +35,7 @@ class Numeric:
             return RawNumeric(json)
         match cleanstr(json["type"]):
             case "raw": return RawNumeric(json["value"])
-            case "hps": return HPList(TargetMode.from_str(json["target_mode"]))
+            case "hps": return HPList()
             case "gcd": return GCDNumeric(Numeric.from_json(json["sample"]))
             case "sum": return NumericSum(Numeric.from_json(json["sample"]))
             case "count": return CountUnion.from_json(json)
@@ -49,9 +49,7 @@ class Numeric:
             case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
         return f"UNDEFINED ({type(self)})"
-    def subeffects(self) -> tuple[("AbstractEffect", "Numeric"), ...]:
-        warn(f"Numeric {typename(type(self))} doesn't have a subeffects method.")
-        return ()
+
 
 @dataclass
 class TurnNumeric(Numeric):
@@ -276,9 +274,9 @@ def getCARDS(CARDS=[]) -> list:
     id = -1  # starts at -1 + 1 = 0
     for card in json:
         try:
-            CARDS += [AbstractCard.from_json(card, (id := id + 1))]
-        except:
-            warn("Got an error with card named:", card["name"])
+            CARDS.append(AbstractCard.from_json(card, (id := id + 1)))
+        except Exception as error:
+            warn("Got an error with card named", card["name"], str(error))
             id -= 1
     return CARDS
 
@@ -559,10 +557,14 @@ class AbstractEffect:
             case "noeffect": return NullEffect()
             case None: return NullEffect()
             case _: return warn(f"Tried to parse an effect with type {type} in {json}. Returning NullEffect instead.") and NullEffect()
-    def subeffects(self) -> tuple[("AbstractEffect", Numeric), ...]:
-        # debug-only, leaf doesn't implement it
-        warn(f"{typename(type(self))} doesn't have a subeffects method.")
-        return ()
+    def subeffects(self) -> Iterator["AbstractEffect | Numeric"]:
+        "Return a generator of all subeffects of self, going recursively depth-first in the expression tree. Recursive."
+        for field in self.__dict__.values():
+            if isinstance(field, AbstractEffect | Numeric):
+                yield field
+                for sub_field in field.subeffects():
+                    yield sub_field # recursive
+Numeric.subeffects = AbstractEffect.subeffects
 
 class NullEffect(AbstractEffect):
     "Does literally nothing except consumming way to much RAM thanks to this beautiful innovation that OOP is."
@@ -1198,6 +1200,8 @@ class Passive:
                        AbstractEffect.from_json(getordef(json, "effect", {"type": "null"}))
         )
     def execute(self, **kwargs) -> EffectSurvey:
+        if not "__debug__" in kwargs.keys():
+            warn(f"Passive with trigger {self.trigger.name} was trigger from another source than `user.trigger_passive(trigger)`")
         kwargs["survey"] = EffectSurvey()
         kwargs["source"] = self
         kwargs["board"].log(f"passive|{kwargs['user'].card.name}|{self.name}") # card.name to handle whendefeated passive.
@@ -1232,6 +1236,25 @@ class Attack:
         if "tag" in json:
             attack.tags = (*attack.tags, json["tag"])
         return attack
+    def is_free_of_target(self):
+        # debug
+        #print(f"Depth-first subeffets of {self.name}: ", [typename(type(effect)) for effect in self.effect.subeffects()])
+        # lazy evaluate so quite performant
+        for effect in self.effect.subeffects():
+            for field in effect.__dict__.values():
+                if isinstance(field, TargetMode) and not field.isfreeoftarget():
+                    return False
+        return True
+    def copy(self) -> "Attack":
+        "Shallow copy of self."
+        return Attack(
+            self.name,
+            self.power,
+            self.target_mode,
+            self.cost,
+            self.effect,
+            self.tags
+        )
     def log(self, **kwargs):
         if "spell" in self.tags:
             log = f"spell|{kwargs['user'].card.name}|{kwargs['main_target'].namecode()}|{self.target_mode}|{kwargs['survey'].return_code.value}"
@@ -1530,6 +1553,8 @@ class ActiveCard:
                 return self.owner.namecode() + '@' # may be fixed later.
             if self.owner.active[i] is self:
                 return self.owner.namecode() + chr(97 + i)
+    def log_passive(self, passive: Passive):
+        self.board.log(f"passive|{self.card.name}|{passive.name}")
     @static
     def trigger_passive(self, trigger: PassiveTrigger, kwargs: dict[str, object], **update) -> EffectSurvey:
         "Trigger `self`'s passive that have the same trigger has the one passed in arguments after updating its kwargs."
@@ -1538,7 +1563,14 @@ class ActiveCard:
         _kwargs["target_mode"] = TargetMode.target
         _kwargs.update(**update)
         _kwargs["user"] = self
-        return sum((passive.execute(**withfield(_kwargs, "survey", EffectSurvey())) for passive in self.card.passives if passive.trigger is trigger), start=EffectSurvey())
+        _kwargs["survey"] = EffectSurvey()
+        _kwargs["__debug__"] = True
+        for passive in self.card.passives:
+            if not passive.trigger is trigger:
+                continue
+            self.log_passive(passive)
+            _kwargs["survey"] += passive.execute(**withfield(_kwargs, "survey", EffectSurvey()))
+        return _kwargs["survey"]
     @static
     def damage(self, amount: int, **kwargs) -> int:
         "Does damage to self, modified by any modifiers. `kwargs` must contain damage_mode & user"
@@ -1608,13 +1640,33 @@ class SpellCard(AbstractCard):
     on_use: Attack
     def from_json(json: dict, id: int):
         on_use = Attack.from_json(json["on_use"])
+
         on_use.tags = (*on_use.tags, "spell")
         return SpellCard(json["name"], id, Element.from_str(json["element"]), on_use)
     def use(self, target: ActiveCard):
         board = target.board
+        #= Dark Knowledge - start =#
+        on_use = self.on_use.copy()
+        tenebrous_mage: None | ActiveCard = board.active_player.get_creature_on_field("tenebrousmage")
+        if tenebrous_mage is not None:
+            # check for mods
+            if (len(tenebrous_mage.card.passives) > 0
+                and cleanstr(tenebrous_mage.card.passives[1].name) == "darkknowledge"
+                and on_use.cost > 1): # doesn't reduce below 1
+                tenebrous_mage.log_passive(tenebrous_mage.card.passives[0].name)
+                on_use.cost -= 1
+        #= Dark Knowledge - end =#
         sim = ActiveCard(
-            CreatureCard(name=self.name, id=self.id, element=self.element, max_hp=0, attacks=[
-                         self.on_use], passives=[], cost=0, tags=self.on_use.tags),
+            CreatureCard(
+                name=self.name,
+                id=self.id,
+                element=self.element,
+                max_hp=0,
+                attacks=[on_use],
+                passives=[],
+                cost=0,
+                tags=on_use.tags
+            ),
             board.active_player, board
         )
         survey = sim.attack(self.on_use, target)
@@ -1633,10 +1685,10 @@ class SpellCard(AbstractCard):
         return self.on_use.cost
 
 class Arena(IntEnum):
-    smigruv = 0       # +1 max energy & energy per turn
-    himinnsokva = 1   # random endofturn events
-    jordros = 2       # +1 board size
-    watorvarg = 3     # +1 hand size
+    smigruv = 3       # +1 max energy & energy per turn
+    himinnsokva = 0   # random endofturn events
+    jordros = 1       # +1 board size
+    watorvarg = 2     # +1 hand size
     chaos = 4         # *all* effects
     själløssmängd = 5 # no effect whatsoever; placeholder
     # used by Omy, gotta redo
@@ -1690,6 +1742,18 @@ class Player:
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
         self.commander_charges = 0
+    def get_creature_on_field(self, creature: str | CreatureCard) -> ActiveCard | None:
+        """
+        Return creature if `self` has creature with name `creature` active on their board, `None` otherwise.
+        Used for hardcoding purposes.
+        """
+        if isinstance(creature, CreatureCard):
+            creature = creature.name
+        creature = cleanstr(creature)
+        for active in self.get_actives():
+            if cleanstr(active.card.name) == creature:
+                return active
+        return # explicit > implicit
     def isvalid(self) -> bool:
         "Return `True` if self's deck is invalid, short cirtuting to `False` otherwise. Note: This doesn't guarantee the deck is valid for the host, as theire version might be different."
         if len(self.deck) != Constants.default_deck_size:
@@ -1960,35 +2024,43 @@ class Board:
         if (player1 - 1) % 3 == player2:
             return 1
         return -1
-    def __init__(self, player1: Player, player2: Player, autoplay: bool = True):
+    def __init__(self, player1: Player, player2: Player, /, *, autoplay: bool = True, arena: Arena = Arena.själløssmängd):
+        if arena is Arena.själløssmängd:
+            arena = Arena.random()
         self.logs = []
+
         self.active_player, self.unactive_player = player1, player2
         if DEV() and rng.random() < 0.5:  # Coinflip in DEV()-mode, must implement RPS in GUI- (and Omy-) mode
             self.active_player, self.unactive_player = self.unactive_player, self.active_player
         player1.commander.board = self
         player2.commander.board = self
-        self.arena = Arena.random()
+        self.arena = arena
+
         if self.arena.has_effect(Arena.smigruv):
             player1.max_energy += 1
             player2.max_energy += 1
             player1.energy_per_turn += 1
             player2.energy_per_turn += 1
+
         self.player1 = player1
         self.player2 = player2
         self.board_size = rng.randint(
             Constants.min_board_size,
             Constants.max_board_size
         ) + ifelse(self.arena.has_effect(Arena.jordros), 1, 0)
+
         player1.active = [None for _ in range(self.board_size)]
         player2.active = self.player1.active.copy()
         self.unactive_player.energy += 1 # To compensate disadvantage
         self.turn = 0
+
         if len(player1.deck) != Constants.default_deck_size:
             warn(f"player1 ({player1.name})'s deck is not valid, giving random one instead.")
             player1.deck = Player.get_deck()
         if len(player2.deck) != Constants.default_deck_size:
             warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
             player2.deck = Player.get_deck()
+
         self.log(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
         self.log(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
         self.log(f"arena|{self.arena.value}")
@@ -1997,6 +2069,7 @@ class Board:
         self.log(ifelse(self.active_player is self.player1, "-firstp|p1", "-firstp|p2"))
         self.player1.add_energy(0) # to log energy
         self.player2.add_energy(0)
+
         player1.draw()
         player2.draw()
         self.autoplay = autoplay
