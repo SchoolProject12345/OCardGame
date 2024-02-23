@@ -130,7 +130,7 @@ class MenuBackgrounds:
         bg_assets["earth_arena"]["img"],
         bg_assets["fire_arena"] ["img"],
         bg_assets["water_arena"]["img"],
-        bg_assets["chaos_arnea"]["img"]
+        bg_assets["chaos_arena"]["img"]
     ]
     logging.info("Successfully loaded backgrounds")
 
