@@ -410,6 +410,12 @@ class ToggleGridFour:
             ["bottomleft", self.bottom_left],
             ["bottomright", self.bottom_right],
         ]
+        self.positions_T = [
+            self.initial_pos,
+            (self.top_right[0]+33, self.top_right[1]),
+            self.bottom_left,
+            (self.bottom_right[0]+33, self.bottom_left[1])
+        ]
         for index, image in enumerate(self.all_images):
             self.toggles.append(
                 ImageToggle(
@@ -418,6 +424,7 @@ class ToggleGridFour:
                     image=image,
                     position_type=self.positions[index][0],
                     position=self.positions[index][1],
+                    position_T=self.positions_T[index]
                 )
             )
         self.priority = None
