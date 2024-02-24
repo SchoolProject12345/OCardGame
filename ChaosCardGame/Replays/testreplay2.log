@@ -1,6 +1,6 @@
 pov|p1
-player|p1|Vafisorg|Vafisorg|600|5
-player|p2|Ævilogi|Ævilogi|600|2
+player|p1|Vafisorg|Vafisorg|600|5|999
+player|p2|Ævilogi|Ævilogi|600|2|125
 arena|3
 boardsize|p1|4
 boardsize|p2|4
