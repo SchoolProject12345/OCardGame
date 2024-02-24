@@ -576,7 +576,7 @@ def pad_crossed_slot(board: list, /, to_length: int, *,
     if l == to_length:
         return board
     padding = (to_length - l)/2
-    return floor(l) * [placeholder] + board + ceil(l) * [placeholder]
+    return floor(padding) * [placeholder] + board + ceil(padding) * [placeholder]
 
 @static
 def ansi_elementcolor(element: core.Element) -> str:
