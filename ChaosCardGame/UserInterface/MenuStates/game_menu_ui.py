@@ -9,7 +9,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, DualBar, Tex
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.event_library import CustomEvents
-from UserInterface.card_handler import CardManager
+from UserInterface.card_handler import BoardManager, DeckManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
 
@@ -40,7 +40,13 @@ class GameMenu(State):
                     "ult_cost": 65535,
                 },
                 "board": [
-                    None,
+                    {
+                        "element": 2,
+                        "hp": 10,
+                        "max_hp": 40,
+                        "name": "fire_hand_of_ashes",
+                        "state": "blocked",
+                    },
                     None,
                     None,
                     None,
@@ -114,7 +120,7 @@ class GameMenu(State):
         ].convert_alpha()
         self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
 
-        # Buttons
+        # Hand
         self.hand_button = ImageButton(
             self.screen,
             True,
@@ -122,7 +128,7 @@ class GameMenu(State):
             position_type="topleft",
             position=(296, 706),
         )
-
+        # Deck
         self.deck_button = ImageButton(
             self.screen,
             True,
@@ -130,6 +136,8 @@ class GameMenu(State):
             position_type="topleft",
             position=(824, 706),
         )
+
+        self.deck_manager = DeckManager(self.screen)
 
         # Bars
         self.player_health_bar = DualBar(
@@ -312,7 +320,7 @@ class GameMenu(State):
             position_type="center",
             position=(SCREEN_CENTER[0], 555),
         )
-        self.card_manager = CardManager(
+        self.card_manager = BoardManager(
             self.screen, len(self.game_state["local"]["board"])
         )
 
@@ -366,8 +374,8 @@ class GameMenu(State):
                 ]["charges"]
             ):
                 print(
-                f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
-            )
+                    f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+                )
 
         pygame.event.post(
             pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
@@ -450,22 +458,18 @@ class GameMenu(State):
         if self.deck_button.answer():
             self.is_decked_toggle()
         if self.ui_state["decked"]:
-            self.screen.blit(self.bg_deck_menu_image, self.bg_deck_menu_rect)
-            self.deckback_button.render()
-            if self.deckback_button.answer() or self.escp_rel.update(
-                pygame.event.get(pygame.KEYUP)
-            ):
-                self.is_decked_toggle()
-        self.hand_button.render()
-        if self.hand_button.answer():
-            self.is_handed_toggle()
-        if self.ui_state["handed"]:
-            self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
-            self.handback_button.render()
-            if self.handback_button.answer() or self.escp_rel.update(
-                pygame.event.get(pygame.KEYUP)
-            ):
-                self.is_handed_toggle()
+            self.deck_manager.render(super().events)
+
+        # self.hand_button.render()
+        # if self.hand_button.answer():
+        #     self.is_handed_toggle()
+        # if self.ui_state["handed"]:
+        #     self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
+        #     self.handback_button.render()
+        #     if self.handback_button.answer() or self.escp_rel.update(
+        #         pygame.event.get(pygame.KEYUP)
+        #     ):
+        #         self.is_handed_toggle()
 
         # Toggles
         if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):

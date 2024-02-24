@@ -14,9 +14,11 @@ from Assets.menu_assets import (
 from UserInterface.OcgVision.vision_main import ImageButton, TextBox, DualBar
 from UserInterface.event_library import CustomEvents
 from Core.core_main import AbstractCard
+import json
+import logging
 
 
-class CardHolder:
+class BoardCardHolder:
     board_positions = {
         "remote": {
             "board": rect_grid((203, 225), "topleft", (940, 124), (7, 1), 12),
@@ -41,11 +43,13 @@ class CardHolder:
         self.card_open = kwargs.get("card_open", False)
         self.is_commander = is_commander
         if self.is_commander:
-            self.position = CardHolder.board_positions[board_index[0]][board_index[1]]
-        else:
-            self.position = CardHolder.board_positions[board_index[0]][board_index[1]][
-                board_index[2]
+            self.position = BoardCardHolder.board_positions[board_index[0]][
+                board_index[1]
             ]
+        else:
+            self.position = BoardCardHolder.board_positions[board_index[0]][
+                board_index[1]
+            ][board_index[2]]
 
     def render(
         self,
@@ -96,7 +100,7 @@ class CardHolder:
             )
 
 
-class CardManager:
+class BoardManager:
     def __init__(self, screen, n_cards):
         self.screen = screen
         self.n_cards = n_cards
@@ -107,17 +111,21 @@ class CardManager:
         }
         for n in range(self.n_cards):
             self.card_slots["local"]["board"].append(
-                CardHolder(self.screen, ("local", "board", n))
+                BoardCardHolder(self.screen, ("local", "board", n))
             )
             self.card_slots["remote"]["board"].append(
-                CardHolder(self.screen, ("remote", "board", n))
+                BoardCardHolder(self.screen, ("remote", "board", n))
             )
         for slot_type in ["local", "remote"]:
             self.card_slots[slot_type]["commander"].append(
-                CardHolder(self.screen, (slot_type, "commander"), is_commander=True)
+                BoardCardHolder(
+                    self.screen, (slot_type, "commander"), is_commander=True
+                )
             )
             self.card_slots[slot_type]["commander"].append(
-                CardHolder(self.screen, (slot_type, "commander"), is_commander=True)
+                BoardCardHolder(
+                    self.screen, (slot_type, "commander"), is_commander=True
+                )
             )
 
     def render(self, events, ui_gamestate, game_state):
@@ -431,7 +439,7 @@ class CardManager:
         self.screen.blit(self.popup_card_img, (295, 179))
         if self.card_state["state"] != "default":
             self.screen.blit(self.state_icon, self.state_icon_rect)
-        if self.popup_slot[0] == "remote":
+        if self.popup_slot[0] == "remote" and len(self.popup_slot) == 2:
             self.screen.blit(self.ultimate_box, (641, 403))
         for btn in self.popup_btns:
             btn.render()
@@ -452,8 +460,9 @@ class CardManager:
                 health_bar = DualBar(
                     self.screen,
                     (
-                        CardHolder.board_positions["local"]["board"][index][0] + 5,
-                        CardHolder.board_positions["local"]["board"][index][1] + 130,
+                        BoardCardHolder.board_positions["local"]["board"][index][0] + 5,
+                        BoardCardHolder.board_positions["local"]["board"][index][1]
+                        + 130,
                     ),
                     "topleft",
                     7,
@@ -477,8 +486,10 @@ class CardManager:
                 health_bar = DualBar(
                     self.screen,
                     (
-                        CardHolder.board_positions["remote"]["board"][index][0] + 5,
-                        CardHolder.board_positions["remote"]["board"][index][1] - 13,
+                        BoardCardHolder.board_positions["remote"]["board"][index][0]
+                        + 5,
+                        BoardCardHolder.board_positions["remote"]["board"][index][1]
+                        - 13,
                     ),
                     "topleft",
                     7,
@@ -519,3 +530,122 @@ class CardManager:
                 return self.game_state[index[0]][index[1]]
             else:
                 return None
+
+
+class CardInfoPopup:
+    def __init__(self, screen, position: tuple, position_type: str = "topleft") -> None:
+        self.screen = screen
+        self.position = position
+        self.position_type = position_type
+
+        self.main_surface = Sprites.box_assets["card_info_popup"]["img"]
+        self.main_surface_rect = self.main_surface.get_rect(
+            **{self.position_type: self.position}
+        )
+
+        self.back_btn = ImageButton(
+            self.main_surface,
+            pygame.event.Event(CustomEvents.INFO_POPUP, {"state": False}),
+            image=MenuButtons.button_assets["Back"]["img"],
+            position_type="topleft",
+            posiiton=(185.60),
+        )
+
+    def render(self, card_id: str):
+        self.card_img = CardAssets.card_sprites[card_id]["img"][1]
+        self.main_surface.blit(self.card_img, (51, 23))
+        self.back_btn.answer()
+        self.back_btn.render()
+        self.screen.blit(self.main_surface, self.main_surface_rect)
+
+
+class DeckCardHolder:
+    def __init__(self, screen: pygame.Surface, rect_value: pygame.Rect):
+        self.main_screen = screen
+        self.rect_value = rect_value
+        self.active = True
+
+    def render(self, mouse_pos, is_m_btn_down, card_id: str, active: bool):
+        self.card_id = card_id
+        if active:
+            self.check_clicked(mouse_pos, is_m_btn_down)
+        self.card_img = CardAssets.card_sprites[card_id]["img"][0]
+        self.main_screen.blit(self.card_img, self.rect_value)
+
+    def check_clicked(self, mouse_pos, is_m_btn_down):
+        if self.rect_value.collidepoint(mouse_pos) and is_m_btn_down:
+            pygame.event.post(
+                pygame.event.Event(
+                    CustomEvents.INFO_POPUP, {"state": True, "card_id": self.card_id}
+                )
+            )
+            return True
+        return False
+
+
+class DeckManager:
+    def __init__(self, screen):
+        self.screen = screen
+        self.deck_bg = MenuBackgrounds.bg_assets["deck_menu_empty"]["img"]
+        with open(os.path.join(cwd_path, "Data", "players.json"), "r") as file:
+            self.deck = json.load(file)["deck"]["cards"]
+        self.deck_grid = rect_grid((326, 148), "topleft", (696, 410), (5, 3), 10, 10)
+        if len(self.deck) != len(self.deck_grid):
+            logging.error("Deck size does not match grid size")
+        self.deck_holders = [
+            DeckCardHolder(self.screen, rect_value) for rect_value in self.deck_grid
+        ]
+        self.back_btn = ImageButton(
+            self.screen,
+            pygame.event.Event(CustomEvents.UI_STATE, {"decked": False}),
+            image=MenuButtons.button_assets["Back"]["img"],
+            position_type="topleft",
+            position=(545, 587),
+        )
+        self.show_info = False
+
+    def render(self, events):
+        self.screen.blit(self.deck_bg, (209, 38))
+        self.render_deck(events)
+        self.handle_info(events)
+
+    def render_deck(self, events):
+        mouse_pos = pygame.mouse.get_pos()
+        m_btn_down = search_event(events, pygame.MOUSEBUTTONDOWN)
+        for index, card_id in enumerate(self.deck):
+            self.deck_holders[index].render(
+                mouse_pos,
+                m_btn_down,
+                card_id,
+                not self.show_info,
+            )
+        if not self.show_info:
+            self.back_btn.answer()
+            self.back_btn.render()
+
+    def generate_info(self, card_id):
+        self.info_main_screen = Sprites.box_assets["card_info_popup"]["img"]
+        self.info_back_btn = ImageButton(
+            self.screen,
+            pygame.event.Event(CustomEvents.INFO_POPUP, {"state": False}),
+            image=MenuButtons.button_assets["Back"]["img"],
+            position_type="topleft",
+            position=(545, 587),
+        )
+        self.info_card_img = CardAssets.card_sprites[card_id]["img"][1]
+
+    def render_info(self):
+        self.screen.blit(self.info_main_screen, (468, 143))
+        self.info_back_btn.answer()
+        self.info_back_btn.render()
+        self.screen.blit(self.info_card_img, (519, 166))
+
+    def handle_info(self, events):
+        for event in events:
+            if event.type == CustomEvents.INFO_POPUP:
+                self.show_info = event.state
+                if self.show_info:
+                    self.generate_info(event.card_id)
+
+        if self.show_info:
+            self.render_info()
