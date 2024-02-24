@@ -107,21 +107,15 @@ class ReplayHandler:
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
         state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
         state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
+        if len(state["local"]) < len(state["remote"]):
+            state["local"].extend(["crossed_slot"] * (state["remote"] - len(state["local"])))
+        elif len(state["remote"]) < len(state["local"]):
+            state["remote"].extend(["crossed_slot"] * (state["local"] - len(state["remote"])))
         state["remote"]["hand"]  = [format_name_ui_elt(card) for card in state["remote"]["hand"]]
         state[ "local"]["hand"]  = [format_name_ui_elt(card) for card in state[ "local"]["hand"]]
         state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
         state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
-    @static
-    def get_required_charges(commander: str) -> int:
-        commander: str = core.cleanstr(commander)
-        if commander not in core.getCOMMANDERS():
-            core.warn(f"Tried to fetch unknown commander: {commander}.")
-            return 250
-        commander: core.CommanderCard = core.getCOMMANDERS()[commander]
-        if len(commander.attacks) > 1:
-            return commander.attacks[1].cost
-        return 65535
     def showboard(self):
         # `self.state` is faster than `self.get_state()` and contains more informations as less formatted
         data = self.state
@@ -138,7 +132,7 @@ class ReplayHandler:
         print(f"Energy: \033[1m{server['energy']}\033[22m/\033[1m{server['max_energy']}\033[22m (\033[1m+{server['energy_per_turn']}/turn\033[22m)\033[0K")
         print(progressbar(
             server["commander"]["charges"],
-            ReplayHandler.get_required_charges(server["commander"]["name"]),
+            server["commander"]["ult_cost"],
             style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(server["commander"], '⋆') + "\033[0K")
@@ -150,7 +144,7 @@ class ReplayHandler:
         print(f"Energy: \033[1m{client['energy']}\033[22m/\033[1m{client['max_energy']}\033[22m (\033[1m+{client['energy_per_turn']}/turn\033[22m)\033[0K")
         print(progressbar(
             client["commander"]["charges"],
-            ReplayHandler.get_required_charges(client["commander"]["name"]),
+            client["commander"]["ult_cost"],
             style = core.Constants.progressbar_style
         ))
         print("\033[4m" + ansi_card(client["commander"], '⋆') + "\033[0K")
@@ -248,7 +242,7 @@ class ReplayHandler:
           "name":"Loading...",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0},
+          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0,"ult_cost":65535},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -259,7 +253,7 @@ class ReplayHandler:
           "name":"Loading...",
           "deck_length":core.Constants.default_deck_size,
           "hand":[],
-          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0},
+          "commander":{"name":"Loading...","hp":0,"max_hp":600,"element":0,"state":"default","charges":0,"ult_cost":65535},
           "board":[],
           "discard":[],
           "energy":core.Constants.default_energy_per_turn,
@@ -297,6 +291,7 @@ class ReplayHandler:
                 self.state[ind]["commander"]["name"] = args[2]
                 self.state[ind]["commander"]["hp"] = self.state[ind]["commander"]["max_hp"] = int(args[3])
                 self.state[ind]["commander"]["element"] = int(args[4])
+                self.state[ind]["commander"]["ult_cost"] = int(args[5])
                 ret = f"Contestant {args[1]} commands through {args[2]}."
             case "boardsize":
                 psize = len(self.state[args[0]]["board"])
@@ -348,8 +343,7 @@ class ReplayHandler:
                     "name":args[1],
                     "hp":int(args[2]),
                     "max_hp":int(args[2]),
-                    "element":int(args[3]),
-                    "state":"default"
+                    "element":int(args[3])
                 }
                 ret = f"A {args[1]} appeared at the {core.nth(i)} position of {self.state[player]['name']}'s board."
             case "draw":
