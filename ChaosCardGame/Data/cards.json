@@ -200,7 +200,7 @@
    {
     "name": "Flare Fury",
     "cost": 2,
-    "target_mode": "target ",
+    "target_mode": "target",
     "power": 120,
     "effect": {
      "new_target": "allies",
@@ -271,7 +271,7 @@
      },
      "type": "union",
      "effect2": {
-      "new_target": "allycommander",
+      "new_target": "allied_commander",
       "effect": {
        "by_tags": [
         "-",
@@ -384,7 +384,7 @@
    {
     "name": "Grazing",
     "cost": 1,
-    "target_mode": "alliedcommander",
+    "target_mode": "allied_commander",
     "power": 0,
     "effect": {
      "tags": [
@@ -1207,6 +1207,13 @@
      },
      "type": "if"
     }
+   }
+  ],
+  "passives":[
+   {
+    "name":"Samurai Stealth",
+    "trigger":"never",
+    "effect":{"type":"null"}
    }
   ]
  },
