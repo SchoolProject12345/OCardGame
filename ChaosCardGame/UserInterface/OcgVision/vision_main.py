@@ -427,22 +427,22 @@ class ToggleGridFour:
                     position_T=self.positions_T[index]
                 )
             )
-        self.priority = None
+        self.priority: list[ImageToggle] = []
 
     def render(self):
         for toggle in self.toggles:
+            toggle.answer()
             if toggle.state == "hover":
-                if self.priority is not None:
-                    self.priority.render()
-                self.priority = toggle
+                # hover takes priority over everything.
+                self.priority.append(toggle)
+            elif toggle.is_toggled:
+                # list is 4 at max so performance is not an issue.
+                self.priority.insert(0, toggle)
             else:
                 toggle.render()
-            if toggle.answer():
-                if self.priority is not None:
-                    self.priority.render()
-                self.priority = toggle
-        if self.priority is not None:
-            self.priority.render()
+        for toggle in self.priority:
+            toggle.render()
+        self.priority.clear()
 
 
 class DualBar:
