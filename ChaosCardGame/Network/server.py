@@ -123,12 +123,16 @@ class ServerHandler(ReplayHandler):
     board: core.Board
     client_socket: net.socket.socket
     closed: bool = False
+    ready: bool = False
+    remote_ready: bool = False
     @static
     def __init__(self, board: core.Board, client_socket: net.socket.socket):
         ReplayHandler.__init__(self)
         self.board = board
         self.client_socket = client_socket
-        self.closed = False
+        self.closed        = False
+        self.ready         = False
+        self.remote_ready  = False
     @static # Just realized I destroy duck typing everywhere, while literally using it one line lower.
     def __call__(self, data: str) -> bool: # __call__ allows to quack like a function.
         if not self.ongoing:
@@ -141,6 +145,9 @@ class ServerHandler(ReplayHandler):
             return all(self(_data) for _data in data.split('\n'))
         datas: list[str] = data.split('|')
         head = core.cleanstr(datas[0])
+        if head == "ready":
+            self.remote_ready = True
+            return True
         if  self.board.active_player is not self.board.player2 and head not in core.Constants.anytime_actions:
             self.client_socket.send(b"error|Wrong turn.")
             return True
@@ -163,6 +170,10 @@ class ServerHandler(ReplayHandler):
     def run_action(self, action: str) -> bool:
         args = action.split('|')
         head = args[0]
+        if head == "ready":
+            self.client_socket.send(b"ready")
+            self.ready = True
+            return True
         if head in core.Constants.clientside_actions:
             clientside_action(self, *args)
             return True
@@ -266,15 +277,19 @@ class ServerHandler(ReplayHandler):
 
 class ClientHandler(ReplayHandler):
     server_socket: net.socket.socket
-    waiting: bool = False
-    closed: bool = False
+    waiting: bool      = False
+    closed: bool       = False
+    ready: bool        = False
+    remote_ready: bool = False
     @static
     def __init__(self, server_socket: net.socket.socket, waiting: bool = False):
         ReplayHandler.__init__(self)
         self.server_socket = server_socket
-        self.waiting = False
+        self.waiting      = False
         self.state["pov"] = "p2"
-        self.closed = False
+        self.closed       = False
+        self.ready        = False
+        self.remote_ready = False
     @static
     def __call__(self, data: str) -> bool:
         self.waiting = False
@@ -283,8 +298,12 @@ class ClientHandler(ReplayHandler):
             return False
         if '\n' in data:
             return all(self(_data) for _data in data.split('\n'))
+        head, *args, kwargs = kwargssplit(data)
+        if head == "ready":
+            self.remote_ready = True
+            return True
         try:
-            devlog(self.play_log(data))
+            devlog(self.play_log(data, head, *args, **kwargs))
         except Exception as e:
             print("Error with:", data)
             print(repr(e))
@@ -316,6 +335,10 @@ class ClientHandler(ReplayHandler):
         "Request server to run action, returning `True` if sucessfully sent and `False` if clientside check failed."
         args = action.split('|')
         head = args[0]
+        if head == "ready":
+            self.ready = True
+            self.server_socket.send("ready");
+            return True
         if head in core.Constants.clientside_actions:
             clientside_action(self, *args)
             return True
