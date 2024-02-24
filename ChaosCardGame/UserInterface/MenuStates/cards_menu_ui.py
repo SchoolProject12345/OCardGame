@@ -83,7 +83,7 @@ class CardCollection:
         self.right_side = ToggleGridFour(
             self.screen,
             self.total,
-            475, 450,
+            475, 525,
             (SCREEN_WIDTH-475-10, 145),
             1.6, 0.8,  # if they overlap, it would be difficult to create a deck.
             start=4
