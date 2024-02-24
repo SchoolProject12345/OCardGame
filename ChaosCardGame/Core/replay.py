@@ -117,11 +117,11 @@ class ReplayHandler:
         state["remote"]["hand"]  = pad_crossed_slot(
             [format_name_ui_elt(card)
              for card in state["remote"]["hand"]],
-             6, placeholder="crossed_slot")
+             6, placeholder="misc_empty")
         state[ "local"]["hand"]  = pad_crossed_slot(
             [format_name_ui_elt(card)
              for card in state[ "local"]["hand"]],
-             6, placeholder="crossed_slot")
+             6, placeholder="misc_empty")
         state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
         state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
@@ -517,11 +517,6 @@ def player_index(index: str):
 def stringclr(string: str):
     "Used for username color in chat."
     t = sum([ord(c) for c in string])
-    # All 0x1000000 RGB values should be possible as (1, 2, 7, 255) are co-primes,
-    # But I'm not 100% sure.
-    # And I should've mod 256 but whatever.
-    # A few days later, I'm 100% sure this doesn't work,
-    # But I won't change, cuz "Ånyks" has a great color.
     r = t % 255
     g = 2*t % 255
     b = 7*t % 255
