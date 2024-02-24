@@ -1,4 +1,4 @@
-# OCardGame
+# Omy's Card Game
 
 OCardGame is a little chaotic card game coded exhaustively in Python. Inspired by the popular game *Magic The Gathering*, fight powerful monsters through special abilities and level up your card companions!
 
