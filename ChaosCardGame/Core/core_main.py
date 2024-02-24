@@ -1373,6 +1373,10 @@ class CreatureCard(AbstractCard):
 @dataclass
 class CommanderCard(CreatureCard):
     def iscommander(self) -> bool: return True
+    def get_ult_cost(self) -> int:
+        if len(self.attacks) < 2 or not "ultimate" in self.attacks[1].tags:
+            return 65535
+        return self.attacks[1].cost
 
 @dataclass
 class ActiveCard:
@@ -2079,8 +2083,8 @@ class Board:
             warn(f"player2 ({player2.name})'s deck is not valid, giving random one instead.")
             player2.deck = Player.get_deck()
 
-        self.log(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}")
-        self.log(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}")
+        self.log(f"player|p1|{self.player1.name}|{self.player1.commander.card.name}|{self.player1.commander.card.max_hp}|{self.player1.commander.element}|{self.player1.commander.card.get_ult_cost()}")
+        self.log(f"player|p2|{self.player2.name}|{self.player2.commander.card.name}|{self.player2.commander.card.max_hp}|{self.player2.commander.element}|{self.player2.commander.card.get_ult_cost()}")
         self.log(f"arena|{self.arena.value}")
         self.log(f"boardsize|p1|{len(self.player1.active)}")
         self.log(f"boardsize|p2|{len(self.player2.active)}")
