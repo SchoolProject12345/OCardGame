@@ -70,7 +70,7 @@ class GameMenu(State):
                     "max_hp": 600,
                     "element": 3,
                     "state": "default",
-                    "charges": 0,
+                    "charges": 300,
                     "ult_cost": 275,
                 },
                 "board": [
@@ -335,6 +335,12 @@ class GameMenu(State):
                     pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
                 )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
+            if event.type == CustomEvents.ULTIMATE:
+                self.pending_actions.extend([event])
+                pygame.event.post(
+                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                )
+                pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
                 self.pending_actions.append(event)
 
@@ -350,6 +356,19 @@ class GameMenu(State):
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+        elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
+            if (
+                self.game_state[self.pending_actions[0].slot[0]][
+                    self.pending_actions[0].slot[1]
+                ]["ult_cost"]
+                < self.game_state[self.pending_actions[0].slot[0]][
+                    self.pending_actions[0].slot[1]
+                ]["charges"]
+            ):
+                print(
+                f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+            )
+
         pygame.event.post(
             pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
         )

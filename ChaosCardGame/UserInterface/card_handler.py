@@ -4,7 +4,13 @@ from UserInterface.ui_settings import SCREEN_CENTER
 import pygame
 from utility import search_event, cwd_path
 import os
-from Assets.menu_assets import MenuBackgrounds, CardAssets, MenuButtons, Fonts, States
+from Assets.menu_assets import (
+    MenuBackgrounds,
+    CardAssets,
+    MenuButtons,
+    Fonts,
+    Sprites,
+)
 from UserInterface.OcgVision.vision_main import ImageButton, TextBox, DualBar
 from UserInterface.event_library import CustomEvents
 from Core.core_main import AbstractCard
@@ -177,6 +183,7 @@ class CardManager:
                 )
             )
 
+        self.health_box = Sprites.box_assets["card_health"]["img"]
         self.popup_btns = [
             ImageButton(
                 self.screen,
@@ -184,43 +191,75 @@ class CardManager:
                 image=MenuButtons.button_assets["CloseMenu"]["img"],
                 position_type="topleft",
                 position=(641, 502),
-            ),
-            ImageButton(
-                self.screen,
-                True,
-                image=MenuButtons.button_assets["CardHealth"]["img"],
-                position=(641, 259),
-                position_type="topleft",
-            ),
-        ]
-        self.popup_txt.append(
-            TextBox(
-                self.screen,
-                (837, 265),
-                132,
-                29,
-                Fonts.ger_font(22),
-                (255, 255, 255),
-                "topleft",
-                "center",
-                f"{self.card_state['hp']}/{self.card_state['max_hp']} HP",
             )
+        ]
+        self.popup_txt.extend(
+            [
+                TextBox(
+                    self.screen,
+                    (837, 265),
+                    132,
+                    29,
+                    Fonts.ger_font(22),
+                    (255, 255, 255),
+                    "topleft",
+                    "center",
+                    f"{self.card_state['hp']}/{self.card_state['max_hp']} HP",
+                ),
+                TextBox(
+                    self.screen,
+                    (855, 409),
+                    132,
+                    29,
+                    Fonts.ger_font(22),
+                    (255, 255, 255),
+                    position_type="topleft",
+                    text_center="center",
+                    text=f"{self.card_state['charges']}/{self.card_state['ult_cost']} DMG",
+                ),
+                TextBox(
+                    self.screen,
+                    (791, 409),
+                    56,
+                    29,
+                    Fonts.ger_font(22),
+                    (255, 255, 255),
+                    position_type="topleft",
+                    text_center="center",
+                    text=f"{self.card_state['charges'] // self.card_state['ult_cost']}",
+                ),
+            ]
         )
         if self.popup_slot[0] == "local":
-            self.popup_btns.append(
-                ImageButton(
-                    self.screen,
-                    pygame.event.Event(
-                        CustomEvents.DEF_ATTACK,
-                        {
-                            "slot": self.popup_slot,
-                            "attack": self.card_info.attacks[0],
-                        },
+            self.popup_btns.extend(
+                [
+                    ImageButton(
+                        self.screen,
+                        pygame.event.Event(
+                            CustomEvents.DEF_ATTACK,
+                            {
+                                "slot": self.popup_slot,
+                                "attack": self.card_info.attacks[0],
+                            },
+                        ),
+                        image=MenuButtons.button_assets["DefCardAttack"]["img"],
+                        position_type="topleft",
+                        position=(641, 353),
                     ),
-                    image=MenuButtons.button_assets["DefCardAttack"]["img"],
-                    position_type="topleft",
-                    position=(641, 353),
-                )
+                    ImageButton(
+                        self.screen,
+                        pygame.event.Event(
+                            CustomEvents.ULTIMATE,
+                            {
+                                "slot": self.popup_slot,
+                                "attack": self.card_info.attacks[0],
+                            },
+                        ),
+                        image=MenuButtons.button_assets["UltimateStatus"]["img"],
+                        position_type="topleft",
+                        position=(641, 403),
+                    ),
+                ]
             )
             self.popup_txt.extend(
                 [
@@ -248,8 +287,10 @@ class CardManager:
                     ),
                 ]
             )
+        else:
+            self.ultimate_box = Sprites.box_assets["ultimate_status"]["img"]
         if self.card_state["state"] != "default":
-            self.state_icon = States.states_assets[self.card_state["state"]]["img"]
+            self.state_icon = Sprites.states_assets[self.card_state["state"]]["img"]
             self.state_icon_rect = self.state_icon.get_rect(topright=(1017, 184))
 
     def popup_card(self, slot):
@@ -276,6 +317,7 @@ class CardManager:
                 )
             )
 
+        self.health_box = Sprites.box_assets["card_health"]["img"]
         self.popup_btns = [
             ImageButton(
                 self.screen,
@@ -283,14 +325,7 @@ class CardManager:
                 image=MenuButtons.button_assets["CloseMenu"]["img"],
                 position_type="topleft",
                 position=(641, 502),
-            ),
-            ImageButton(
-                self.screen,
-                True,
-                image=MenuButtons.button_assets["CardHealth"]["img"],
-                position=(641, 259),
-                position_type="topleft",
-            ),
+            )
         ]
         self.popup_txt.append(
             TextBox(
@@ -387,14 +422,17 @@ class CardManager:
             )
 
         if self.card_state["state"] != "default":
-            self.state_icon = States.states_assets[self.card_state["state"]]["img"]
+            self.state_icon = Sprites.states_assets[self.card_state["state"]]["img"]
             self.state_icon_rect = self.state_icon.get_rect(topright=(1017, 184))
 
     def render_popup(self):
         self.screen.blit(self.popup_bg, self.popup_bg_rect)
+        self.screen.blit(self.health_box, (641, 259))
         self.screen.blit(self.popup_card_img, (295, 179))
         if self.card_state["state"] != "default":
             self.screen.blit(self.state_icon, self.state_icon_rect)
+        if self.popup_slot[0] == "remote":
+            self.screen.blit(self.ultimate_box, (641, 403))
         for btn in self.popup_btns:
             btn.render()
             btn.answer()
@@ -411,7 +449,6 @@ class CardManager:
                 active=self.board_active,
             )
             if self.slot_card != None and self.slot_card["name"] != "crossed_slot":
-                ic(self.slot_card["name"])
                 health_bar = DualBar(
                     self.screen,
                     (
