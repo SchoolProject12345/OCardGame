@@ -344,7 +344,7 @@ class ToggleGridFour:
     `mother_surface`: `pygame.Surface`
         The surface to render the toggles on.
     `image`: `list`
-        A list containg 4 lists containing all images for the toggles.
+        A list containg 4 tuple containing all images for the toggles.
     `grid_width`: `int`
         The width of the grid.
     `grid_height`: `int`
@@ -365,7 +365,7 @@ class ToggleGridFour:
     def __init__(
         self,
         mother_surface,
-        images: list[tuple[pygame.Surface, pygame.Surface]],
+        images: list[list[pygame.Surface]],
         grid_width: int,
         grid_height: int,
         initial_pos: tuple[int, int],
@@ -377,9 +377,15 @@ class ToggleGridFour:
         self.width = grid_width
         self.height = grid_height
         self.all_images = [
-            ([pygame.transform.smoothscale_by(image1, factor)] * 3 + [pygame.transform.smoothscale_by(image2, factor_T)] * 3)
-            for image1, image2 in images
-        ][start:start+4]
+            (smoothscale_converter(image[0:3], factor) +
+             smoothscale_converter(image[3:], factor_T))
+             for image in images[start:start+4]
+        ]
+        #self.all_images = [
+        #    ([pygame.transform.smoothscale_by(image1, factor)] * 3 +
+        #     [pygame.transform.smoothscale_by(image2, factor_T)] * 3)
+        #    for image1, image2 in images
+        #][start:start+4]
         self.toggles = []
 
         self.card_width = self.all_images[0][0].get_width()
