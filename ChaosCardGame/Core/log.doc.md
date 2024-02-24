@@ -75,7 +75,7 @@ Note: commander are refered through `p{i}@`
 ## Initialization
 For each player:
 
-`player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}`\
+`player|p{i}|{Player Name}|{Commander Name}|{max_hp}|{element}|{ult_cost}`\
 `boardsize|p{i}|{size}`\
 `-firstp|p{i}`\
 `arena|{arena}`\
