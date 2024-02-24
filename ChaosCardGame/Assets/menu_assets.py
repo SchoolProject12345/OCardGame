@@ -44,8 +44,8 @@ def smoothscale_converter(objects: list[pygame.Surface] | list[list], factor: fl
 
 
 def dir_sorter(dir_path: str, prefixes):
-    if len(prefixes) > len(os.listdir(dir_path)):
-        raise ValueError(f"{dir_path} and {prefixes} must be of the dame length.")
+    # if len(prefixes) > len(os.listdir(dir_path)):
+    #     raise ValueError(f"{dir_path} and {prefixes} must be of the dame length.")
     sorted_file_path = ["" for _ in range(len(os.listdir(dir_path)))]
     for file in os.listdir(dir_path):
         filepath = os.path.join(dir_path, file)

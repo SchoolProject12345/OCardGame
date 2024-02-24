@@ -32,7 +32,7 @@ class GameMenu(State):
                         "element": 2,
                         "hp": 40,
                         "max_hp": 40,
-                        "name": "wtr_eternal_sunseeker",
+                        "name": "blocked",
                         "state": "blocked",
                     },
                     None,

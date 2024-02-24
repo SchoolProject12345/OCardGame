@@ -69,8 +69,9 @@ class CardHolder:
 
     def render_card(self):
         if self.card == None:
-            self.card = {"name": "MiscEmpty"}
-        if self.active and self.card["name"] != "MiscEmpty":
+            self.card = {"name": "misc_empty"}
+        self.card_perm = not self.card["name"] in ["misc_empty","blocked"]
+        if self.active and self.card_perm:
             self.check_clicked(self.mouse_pos, self.mousebuttondown)
         if self.card["name"] in CardAssets.card_sprites:
             self.card_img = CardAssets.card_sprites[self.card["name"]]["img"]
@@ -409,7 +410,7 @@ class CardManager:
                 card=self.slot_card,
                 active=self.board_active,
             )
-            if self.slot_card != None:
+            if self.slot_card != None and self.slot_card["name"] != "blocked":
                 health_bar = DualBar(
                     self.screen,
                     (
