@@ -113,7 +113,7 @@ class CardCollection:
         return [
             # create deck from file name
             self.card_ids[i] for i in range(min(len(self.card_ids), 8))
-            if toggles[i].answer()
+            if toggles[i].is_toggled
         ]
 
 class CardsMenu(State):
