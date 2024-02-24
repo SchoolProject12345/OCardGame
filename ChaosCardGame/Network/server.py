@@ -77,7 +77,7 @@ class HandlerHandler(metaclass=SingletonMonad):
         if method in [join, host]:
             self.ip_adress = args[1]
             if self.deck is not Void:
-                core.Player.save_json(args[0], handle.deck, handle.commander)
+                core.Player.save_json(args[0], HandlerHandler.deck, HandlerHandler.commander)
         elif method not in [ReplayHandler.read_replay]:
             core.warn(f"Tried to intiialize HandlerHandler with unrecognized method: {method.__qualname__}")
             return False
