@@ -2,6 +2,7 @@ import Core.core_main as core
 from datetime import datetime # ???
 from utility import static, typename
 from time import sleep
+from math import floor, ceil
 
 class ReplayHandler:
     """
@@ -15,6 +16,12 @@ class ReplayHandler:
     replay: list[str]
     ongoing: bool
     __log_players: dict[str, "function"] = {}
+    _crossed_slot_ui_placeholder: dict[str, int | str] = {
+        "name":"crossed_slot",
+        "hp":0,
+        "max_hp":0,
+        "state":"blocked",
+    }
     def __init__(self):
         self.state = ReplayHandler.default_state()
         self.replay = []
@@ -105,14 +112,16 @@ class ReplayHandler:
         }
         state["remote"]["commander"] = format_active_ui(state["remote"]["commander"])
         state["local"]["commander"] = format_active_ui(state["local"]["commander"])
-        state["remote"]["board"] = [format_active_ui(card) for card in state["remote"]["board"]] 
-        state[ "local"]["board"] = [format_active_ui(card) for card in state[ "local"]["board"]]
-        if len(state["local"]) < len(state["remote"]):
-            state["local"].extend(["crossed_slot"] * (state["remote"] - len(state["local"])))
-        elif len(state["remote"]) < len(state["local"]):
-            state["remote"].extend(["crossed_slot"] * (state["local"] - len(state["remote"])))
-        state["remote"]["hand"]  = [format_name_ui_elt(card) for card in state["remote"]["hand"]]
-        state[ "local"]["hand"]  = [format_name_ui_elt(card) for card in state[ "local"]["hand"]]
+        state["remote"]["board"] = pad_crossed_slot([format_active_ui(card) for card in state["remote"]["board"]], 7)
+        state[ "local"]["board"] = pad_crossed_slot([format_active_ui(card) for card in state[ "local"]["board"]], 7)
+        state["remote"]["hand"]  = pad_crossed_slot(
+            [format_name_ui_elt(card)
+             for card in state["remote"]["hand"]],
+             6, placeholder="crossed_slot")
+        state[ "local"]["hand"]  = pad_crossed_slot(
+            [format_name_ui_elt(card)
+             for card in state[ "local"]["hand"]],
+             6, placeholder="crossed_slot")
         state["remote"]["discard"] = [format_name_ui_elt(card) for card in state["remote"]["discard"]]
         state[ "local"]["discard"] = [format_name_ui_elt(card) for card in state[ "local"]["discard"]]
         return state
@@ -558,6 +567,16 @@ def progressbar(total: int, on: int, size: int = 15, style: int = 0):
     if style != 2:
         bar += "\033[0m"
     return bar + "]"
+
+def pad_crossed_slot(board: list, /, to_length: int, *,
+                     placeholder=ReplayHandler._crossed_slot_ui_placeholder) -> list:
+    l = len(board)
+    if l > to_length:
+        return board[0:to_length]
+    if l == to_length:
+        return board
+    padding = (to_length - l)/2
+    return floor(l) * [placeholder] + board + ceil(l) * [placeholder]
 
 @static
 def ansi_elementcolor(element: core.Element) -> str:
