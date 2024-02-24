@@ -1,5 +1,5 @@
-player|p1|Ånyks|Krakiþrek|600|1
-player|p2|Omy’s Assistant|Ævilogi|600|2
+player|p1|Ånyks|Krakiþrek|600|1|360
+player|p2|Omy’s Assistant|Ævilogi|600|2|125
 boardsize|p1|5
 boardsize|p2|5
 energy|p1|4/5|4
