@@ -403,7 +403,10 @@ class GameMenu(State):
         # if len(self.game_state["local"]["board"]) != len(game_state["local"]["board"]):
         #    self.card_manager = CardManager(
         #        self.screen,
-        #        len(game_state["local"]["board"])
+        #        max(
+        #            len(game_state["local"]["board"]),
+        #            len(game_state["remote"]["board"])
+        #        )
         #    )
         # self.game_state = game_state
         # (Commented it out in case you need to make test, this is just a "blueprint" to implement it fully)
