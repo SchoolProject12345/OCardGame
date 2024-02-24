@@ -70,6 +70,9 @@ class LobbyMenu(State):
         self.ready_button.render()
 
         if self.ready_button.answer():
+            handle.run_action("ready")
+
+        if handle.ready and handle.remote_ready:
             self.change_state("GameMenu")
 
     def state_manager_hook(self, app):
