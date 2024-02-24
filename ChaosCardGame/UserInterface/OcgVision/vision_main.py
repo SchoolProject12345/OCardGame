@@ -344,7 +344,7 @@ class ToggleGridFour:
     `mother_surface`: `pygame.Surface`
         The surface to render the toggles on.
     `image`: `list`
-        A list containg 4 lists containing all images for the toggles.
+        A list containg 4 tuple containing all images for the toggles.
     `grid_width`: `int`
         The width of the grid.
     `grid_height`: `int`
@@ -365,23 +365,28 @@ class ToggleGridFour:
     def __init__(
         self,
         mother_surface,
-        images,
-        grid_width,
-        grid_height,
-        initial_pos,
-        factor=1,
-        factor_T=1,
+        images: list[list[pygame.Surface]],
+        grid_width: int,
+        grid_height: int,
+        initial_pos: tuple[int, int],
+        factor: float = 1.0,
+        factor_T: float = 1.0,
+        start: int = 0
     ):
         self.mother_surface = mother_surface
         self.width = grid_width
         self.height = grid_height
-        self.all_images = images
+        self.all_images = [
+            (smoothscale_converter(image[0:3], factor) +
+             smoothscale_converter(image[3:], factor_T))
+             for image in images[start:start+4]
+        ]
+        #self.all_images = [
+        #    ([pygame.transform.smoothscale_by(image1, factor)] * 3 +
+        #     [pygame.transform.smoothscale_by(image2, factor_T)] * 3)
+        #    for image1, image2 in images
+        #][start:start+4]
         self.toggles = []
-        for i_1, toggle in enumerate(self.all_images):
-            if i_1 < 2:
-                self.all_images[i_1] = smoothscale_converter(toggle, factor)
-            else:
-                self.all_images[i_1] = smoothscale_converter(toggle, factor_T)
 
         self.card_width = self.all_images[0][0].get_width()
         self.card_height = self.all_images[0][0].get_height()
@@ -415,18 +420,22 @@ class ToggleGridFour:
                     position=self.positions[index][1],
                 )
             )
+        self.priority = None
 
     def render(self):
-        self.priority = None
-        for idx, toggle in enumerate(self.toggles):
+        for toggle in self.toggles:
             if toggle.state == "hover":
-                self.priority = self.toggles[idx]
+                if self.priority is not None:
+                    self.priority.render()
+                self.priority = toggle
             else:
                 toggle.render()
-                toggle.answer()
-        if self.priority != None:
+            if toggle.answer():
+                if self.priority is not None:
+                    self.priority.render()
+                self.priority = toggle
+        if self.priority is not None:
             self.priority.render()
-            self.priority.answer()
 
 
 class DualBar:
