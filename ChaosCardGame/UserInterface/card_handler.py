@@ -252,7 +252,7 @@ class CardManager:
                             CustomEvents.ULTIMATE,
                             {
                                 "slot": self.popup_slot,
-                                "attack": self.card_info.attacks[0],
+                                "attack": self.card_info.attacks[1],
                             },
                         ),
                         image=MenuButtons.button_assets["UltimateStatus"]["img"],

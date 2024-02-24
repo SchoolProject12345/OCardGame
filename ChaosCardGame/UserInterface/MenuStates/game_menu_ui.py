@@ -366,7 +366,7 @@ class GameMenu(State):
                 ]["charges"]
             ):
                 print(
-                f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[1].attack}"
+                f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
 
         pygame.event.post(
