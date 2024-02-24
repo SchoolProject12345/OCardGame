@@ -9,7 +9,7 @@ from UserInterface.MenuStates.lore_menu_ui import LoreMenu
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, alpha_converter
 from SfxEngine.SoundEngine import sound_handle
 import os
-from UserInterface.card_handler import CardHolder
+from UserInterface.card_handler import BoardCardHolder
 
 
 class MainMenu(State):
