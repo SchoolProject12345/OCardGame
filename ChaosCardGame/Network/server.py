@@ -444,11 +444,11 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345, *,
     try:
         client: core.Player = core.Player.from_json(
             clientname,
-            core.json.loads(client)
+            core.loads(client)
         )
     except:
         return host(hostname, ip, port, arena=arena)
-    sendblock(client_socket, core.json.dumps(
+    sendblock(client_socket, core.dumps(
         {
             "deck":[card.ui_id for card in client.base_deck],
             "commander":client.commander.card.ui_id
@@ -501,7 +501,7 @@ def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
         core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
         user["deck"] = [card.name for card in core.Player.get_deck()]
     sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
-    HandlerHandler.deck = core.json.loads(recvok(server_socket, 8092))
+    HandlerHandler.deck = core.loads(recvok(server_socket, 8092))
     handle = ClientHandler(server_socket)
     def listen(handler: ClientHandler):
         while handler.ongoing:
