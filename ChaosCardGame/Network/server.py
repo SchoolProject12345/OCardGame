@@ -40,7 +40,7 @@ class SingletonMonad(type):
     ```
     """
     wrap: str
-    def __getattribute__(self, name: str): # different from __getattr__ obviously ( ͡° ͜ʖ ͡°)
+    def __getattribute__(self, name: str, default = None): # different from __getattr__ obviously ( ͡° ͜ʖ ͡°)
         try: # hasattr is just a try
             return type.__getattribute__(self, name) # for other fields, methods or such
         except AttributeError:
@@ -49,7 +49,9 @@ class SingletonMonad(type):
             wrap: ReplayHandler = type.__getattribute__(self, type.__getattribute__(self, "wrap"))
             return wrap.__getattribute__(name)
         except AttributeError:
-            return Void # fallback method
+            return Void if default is None else default # fallback method
+    def get(self, name: str, default = None):
+        return self.__getattribute__(name, default)
     def __call__(self, *_, **kwargs):
         return self # avoid creating instances.
 
