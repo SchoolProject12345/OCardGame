@@ -431,25 +431,36 @@ def host(hostname: str = "Host", ip: str = "127.0.0.1", /, port: int = 12345, *,
     IP must either be localhost (usually "127.0.0.1") or `server.get_ip()`.
     """
     hostname, username_valid = username_check(hostname)
-    net.get_data()["server"]["name"] = hostname
+    if not username_valid:
+        core.get_settings()["username"] = hostname
     core.DEV() and print("IP:", ip)
     client_socket = net.listen_for_connection(ip, port)
-    host: core.Player = core.Player.from_save(hostname)
+    host_pl: core.Player = core.Player.from_save(hostname)
     clientname = recvok(client_socket, 64).decode()
-    net.get_data()["client"]["name"] = clientname
     client_socket.send(chr(core.Constants.default_deck_size).encode())
-    if client_socket.recv(2).decode == "no":
-        return host(hostname, ip, port)
-    client = recvok(client_socket, 4096).decode() # decks can be quite big.
-    client: core.Player = core.Player.from_json(
-        clientname,
-        net.json.loads(client)
-    )
-    net.get_data()["client"]["commander"]["name"] = client.commander.card.name
-    net.get_data()["server"]["commander"]["name"] = host.commander.card.name
+    if client_socket.recv(2).decode() == "no":
+        return host(hostname, ip, port, arena=arena)
+    client = recvok(client_socket, 8192).decode() # decks can be quite big.
+    try:
+        client: core.Player = core.Player.from_json(
+            clientname,
+            core.json.loads(client)
+        )
+    except:
+        return host(hostname, ip, port, arena=arena)
+    sendblock(client_socket, core.json.dumps(
+        {
+            "deck":[card.ui_id for card in client.base_deck],
+            "commander":client.commander.card.ui_id
+        }
+    ).encode())
+    HandlerHandler.deck = {
+        "deck":[card.ui_id for card in host_pl.base_deck],
+        "commander":host_pl.commander.card.ui_id
+    }
     if arena is core.Arena.själløssmängd:
         arena = core.Arena.random()
-    board = core.Board(host, client, autoplay=False, arena=arena)
+    board = core.Board(host_pl, client, autoplay=False, arena=arena)
     handle = ServerHandler(board, client_socket)
     def listen(handler: ServerHandler):
         while handler.ongoing and not handler.closed:
@@ -490,6 +501,7 @@ def join(username: str, target_ip: str, /, port: int = 12345) -> ClientHandler:
         core.warn(f"Opponent expected a {core.Constants.default_deck_size}-cards long deck, got {len(user['deck'])}. Sending default deck.")
         user["deck"] = [card.name for card in core.Player.get_deck()]
     sendblock(server_socket, net.json.dumps(user, separators=(',', ':')).encode())
+    HandlerHandler.deck = core.json.loads(recvok(server_socket, 8092))
     handle = ClientHandler(server_socket)
     def listen(handler: ClientHandler):
         while handler.ongoing:
