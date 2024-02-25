@@ -95,9 +95,3 @@ def log(error):
         file.write(error)
         file.write("\n")
         file.write("\n")
-
-# tests
-throw_error(ErrorCode.UNKNOWN)
-throw_error(ErrorCode.TEST, "test 123")
-throw_error(ErrorCode.CUSTOM, "test 123")
-throw_error(ErrorCode.INVALID_ROOM_NAME)
