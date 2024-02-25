@@ -584,11 +584,10 @@ class DeckCardHolder:
 
 
 class DeckManager:
-    def __init__(self, screen):
+    def __init__(self, screen, deck: list):
         self.screen = screen
         self.deck_bg = MenuBackgrounds.bg_assets["deck_menu_empty"]["img"]
-        with open(os.path.join(cwd_path, "Data", "players.json"), "r") as file:
-            self.deck = json.load(file)["deck"]["cards"]
+        self.ceck = deck
         self.deck_grid = rect_grid((326, 148), "topleft", (696, 410), (5, 3), 10, 10)
         if len(self.deck) != len(self.deck_grid):
             logging.error("Deck size does not match grid size")

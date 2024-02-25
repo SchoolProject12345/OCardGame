@@ -80,11 +80,23 @@ class GameMenu(State):
                     "ult_cost": 275,
                 },
                 "board": [
+                    {
+                        "element": 2,
+                        "hp": 113,
+                        "max_hp": 143,
+                        "name": "air_whisperwind_sprite",
+                        "state": "default",
+                    },
                     None,
                     None,
                     None,
-                    None,
-                    None,
+                    {
+                        "element": 2,
+                        "hp": 4,
+                        "max_hp": 10,
+                        "name": "air_rio_o_colorido",
+                        "state": "default",
+                    },
                     None,
                     {"name": "crossed_slot", "hp": 0, "max_hp": 0, "state": "blocked"},
                 ],
@@ -137,7 +149,7 @@ class GameMenu(State):
             position=(824, 706),
         )
 
-        self.deck_manager = DeckManager(self.screen)
+        self.deck_manager = DeckManager(self.screen,)
 
         # Bars
         self.player_health_bar = DualBar(
