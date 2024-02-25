@@ -149,7 +149,7 @@ class GameMenu(State):
             position=(824, 706),
         )
 
-        self.deck_manager = DeckManager(self.screen,)
+        self.deck_manager = DeckManager(self.screen,["cha_gargoyle_of_the_void"])
 
         # Bars
         self.player_health_bar = DualBar(
