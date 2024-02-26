@@ -22,6 +22,7 @@ class TargetMode:
     USER: int             = 1 << 3
     COMMANDER: int        = 1 << 4
     ALLIED_COMMANDER: int = 1 << 5
+    ADJACENT: int         = 1 << 6 # creature adjacent to target
     # FLAGS - used to construct complex targets:
     RANDOM: int           = 1 << 29 # unimplemented
     CAN_SELF: int         = 1 << 30
@@ -53,13 +54,13 @@ class TargetMode:
         return TargetMode(self.target_string & target)
     @static
     def has_target(self, target: int) -> bool:
-        return bool(self.target_string & target)
+        return not not (self.target_string & target) # fast bool conversion
     def cancommander(self) -> bool:
         return not self & 1 << 31
     def canself(self) -> bool:
         return (self & 1 << 3) or (self & 1 << 2)  or (self & 1 << 30) or (self.isfreeoftarget())
     def isfreeoftarget(self) -> bool:
-        not (self.target_string & self.TARGET)
+        not (self.target_string & self.TARGET) and not (self.target_string & self.ADJACENT)
     # useful for debugging:
     def __repr__(self):
         return ("TargetMode(" +
@@ -78,9 +79,9 @@ class TargetMode:
         if isinstance(name, list):
             return deep_or(*(TargetMode.from_str(target) for target in name))
         name_ = name.lower().strip()
-        if not name_ in self.__dict__:
+        if not name_ in self.__dict__ or not isinstance(target := self.__dict__[name], TargetMode):
             raise NameError(f"{name} is not a valid TargetMode name.")
-        return self.__dict__[name_]
+        return target
     def to_str(self) -> str:
         return ", ".join(
                 target.lower().replace('_', ' ')
@@ -98,6 +99,7 @@ TargetMode.allies             = TargetMode(TargetMode.ALLIES)
 TargetMode.user               = TargetMode(TargetMode.USER)
 TargetMode.commander          = TargetMode(TargetMode.COMMANDER)
 TargetMode.allied_commander   = TargetMode(TargetMode.ALLIED_COMMANDER)
+TargetMode.adjacent           = TargetMode(TargetMode.ADJACENT)
 TargetMode.random             = TargetMode(TargetMode.RANDOM)
 TargetMode.can_self           = TargetMode(TargetMode.CAN_SELF)
 TargetMode.nocommander        = TargetMode(TargetMode.NOCOMMANDER)
@@ -105,8 +107,3 @@ TargetMode.all                = TargetMode(TargetMode.FOES | TargetMode.ALLIES)
 TargetMode.foesc              = TargetMode(TargetMode.FOES | TargetMode.COMMANDER)
 TargetMode.alliesc             = TargetMode(TargetMode.ALLIES | TargetMode.ALLIED_COMMANDER)
 TargetMode.massivedestruction = TargetMode(TargetMode.foesc | TargetMode.alliesc)
-
-
-#print(repr(TargetMode.allies))
-#print(repr(TargetMode.massivedestruction))
-#print(repr(TargetMode.from_str(["foes", "allies", "nocommander"])))
