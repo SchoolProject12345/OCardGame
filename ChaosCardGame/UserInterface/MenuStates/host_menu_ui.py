@@ -6,7 +6,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, SelectTextBo
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, TextBoxes, Fonts, alpha_converter
 from UserInterface.MenuStates.game_menu_ui import GameMenu
 from UserInterface.ui_settings import SCREEN_CENTER
-from utility import cwd_path, search_event, get_setting
+from utility import cwd_path, search_event, get_setting, get_settings
 
 
 class HostMenu(State):
@@ -82,8 +82,9 @@ class HostMenu(State):
         self.username_text = self.hostmenu_tb_username.render(keys)
 
         if self.hostmenu_host_button.answer():
-            self.roomname = self.tb_roomname.text
-            self.player_username = self.hostmenu_tb_username.text
+            get_settings()["roomname"] = self.tb_roomname.text
+            get_settings()["username"] = self.hostmenu_tb_username.text
+            get_settings()["is_hosting"] = True
             handle.fetch_handler(
                 host_server, self.hostmenu_tb_username.text, handle.ip_address)
             self.change_state("LobbyMenu")

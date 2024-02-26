@@ -54,6 +54,7 @@ class JoinMenu(State):
             text_center="center",
             default_text="Username"
         )
+
         self.joinmenu_tb_username.text = get_setting("username", "")
 
         # Buttons
@@ -70,8 +71,7 @@ class JoinMenu(State):
             True,
             image=alpha_converter(MenuButtons.button_assets["Exit"]["img"]),
             position_type="center",
-            position=(SCREEN_CENTER[0],
-                      SCREEN_CENTER[1]+302)
+            position=(SCREEN_CENTER[0],SCREEN_CENTER[1]+302)
         )
 
     def join_menu(self):
@@ -88,9 +88,10 @@ class JoinMenu(State):
         if self.joinmenu_join_button.answer():
             # IMPLEMENT INVALID USERNAME
             get_settings()["username"] = self.joinmenu_tb_username.text
+            get_settings()["is_hosting"] = False
             handle.fetch_handler(
                 join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
-            self.change_state("LobbyMenu")  # Needs fixing
+            self.change_state("LobbyMenu")
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)
 

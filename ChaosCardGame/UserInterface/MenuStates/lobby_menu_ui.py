@@ -37,6 +37,7 @@ class LobbyMenu(State):
 
         self.roomname_text_content = get_setting("roomname", "Default")
         self.local_is_hosting = get_setting("is_hosting", False)
+        print(f"Dude:{self.local_is_hosting}")
         # print(self.local_is_hosting)
 
     def lobby_menu(self):
@@ -69,11 +70,11 @@ class LobbyMenu(State):
 
         self.ready_button.render()
 
-        if self.ready_button.answer():
-            handle.run_action("ready")
+        # if self.ready_button.answer():
+        #     handle.run_action("ready")
 
-        if handle.ready and handle.remote_ready:
-            self.change_state("GameMenu")
+        # if handle.ready and handle.remote_ready:
+        #     self.change_state("GameMenu")
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
