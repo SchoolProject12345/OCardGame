@@ -656,4 +656,15 @@ class HandManager:
         screen,
     ) -> None:
         self.screen = screen
+        self.bg_img = MenuBackgrounds.bg_assets
+
+
+class HandGroup:
+    def __init__(
+        self,
+        screen,
+        card_id,
+        index,
+    ):
+        pass
 
