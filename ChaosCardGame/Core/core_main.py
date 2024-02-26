@@ -45,6 +45,8 @@ class Numeric:
             case "func": return FuncNumeric.from_json(json)
             case "turn": return TurnNumeric()
             case "damagetaken": return DamageTaken()
+            case "getstack": return GetStack(json["name"])
+            case "constant": return NumericConstant(json["attr"])
             case "property": return CardProperty(getordef(json, "path", "user").strip(), json["attr"].strip())
             case _: return warn(f"Wrong Numeric type '{json['type']}' in json.") and RawNumeric(0)
     def __str__(self) -> str:
@@ -135,6 +137,14 @@ class CardProperty(Numeric):
         return "'s ".join(self.path.split('/') + self.attr.split('.')).replace("_", " ")
 
 @dataclass
+class GetStack(Numeric):
+    stack: str
+    def eval(self, **kwargs) -> int:
+        return show(kwargs["user"].stacks[self.stack])
+    def __str__(self):
+        return f"the user's {self.stack}"
+
+@dataclass
 class GCDNumeric(Numeric):
     "Return the GCD of all elements in the list returned by `eval`uation of the `NumericList`."
     sample: NumericList
@@ -165,6 +175,12 @@ class UnionCounter:
         if "taunted" in self.meta and creature.taunt is not None:
             return True
         return False
+    def from_json(json: dict) -> "UnionCounter":
+        return UnionCounter(
+            (*json.get("tags", ()),),
+            (*(Element.from_str(element) for element in json.get("elements", ())),),
+            (*json.get("meta", ()),)
+        )
 
 @dataclass
 class CountUnion(Numeric):
@@ -173,23 +189,18 @@ class CountUnion(Numeric):
     counter: UnionCounter
     @static
     def eval(self, **kwargs) -> int:
-        sum(self.counter(creature)
+        return sum(self.counter(creature)
             for creature in AbstractEffect.targeted_objects(
                 **withfield(kwargs, "target_mode", self.target_mode)
             ))
-        return 
     def from_json(json: dict):
         return CountUnion(
             TargetMode.from_str(json["target_mode"]),
-            UnionCounter(
-                (*getordef(json, "tags", ()),),
-                (*(Element.from_str(element) for element in getordef(json, "elements", ())),),
-                (*getordef(json, "meta", ()),)
-            )
+            UnionCounter.from_json(json)
         )
     def __str__(self):
         # TODO: make this less ugly
-        return f"the amount of cards with elements {self.counter.elements} or with tag {self.counter.tags}"
+        return f"the amount of cards with elements {self.counter.elements} or with tag {self.counter.tags} or with meta {self.counter.meta}"
 
 @dataclass
 class EnergyCount(Numeric):
@@ -426,8 +437,8 @@ class State(IntEnum):
     @property
     def name(self) -> str:
         match self:
-            case State.discarded: return ""
-            case State.default: return ""
+            case State.discarded: return "default"
+            case State.default: return "default"
             case State.damageless: return "damageless"
             case State.blocked: return "blocked"
             case State.invisible: return "invisible" 
@@ -460,6 +471,7 @@ class DamageMode(IntEnum):
 
 class ReturnCode(IntEnum):
     ok = 200
+    missed = 201
     cant = 400
     no_energy = 401
     wrong_turn = 402
@@ -512,6 +524,9 @@ class AbstractEffect:
             targets.append(kwargs["user"].owner.opponent.commander)
         if target_mode.has_target(TargetMode.ALLIED_COMMANDER):
             targets.append(kwargs["user"].owner.commander)
+        if target_mode.has_target(TargetMode.ADJACENT):
+            targets.extend(kwargs["main_target"].adjacent())
+
         return targets
     def get_tags(self):
         return warn(f"Tried to get tags from a {type(self)}") and ()
@@ -553,7 +568,9 @@ class AbstractEffect:
             case "boardresize": return BoardResize.from_json(json)
             case "if": return IfEffect.from_json(json)
             case "hardcoded": return HardCodedEffect.from_json(json)
+            case "changestats": return ChangeStats.from_json(json)
             case "setproperty": return SetCardProperty.from_json(json)
+            case "addstack": return SetStack.from_json(json)
             case "maxhpadd": return MaxHPAdd.from_json(json)
             case "null": return NullEffect()
             case "noeffect": return NullEffect()
@@ -617,13 +634,14 @@ class SetCardProperty(AbstractEffect):
                 warn(f"Error in CardProperty: {type(card).__name__} has no field {attr} in path {self.attr}@{self.path}.")
                 return False
             card = getattr(card, attr)
+        value = self.value.eval(**kwargs)
         if L != 0:
             key = keys.pop()
-            setattr(card, key, self.value)
+            setattr(card, key, value)
         else:
             attr = attrs.pop(0)
-             # do not modify anything shared, and don't use this for what should be logged
-            setattr(card, attr, self.value)
+            # do not modify anything shared, and don't use this for what should be logged
+            setattr(card, attr, value)
         return True
     def from_json(json: dict):
         if not "dismiss_warning" in json or not json["dismiss_warning"]:
@@ -636,6 +654,61 @@ class SetCardProperty(AbstractEffect):
         return SetCardProperty(path, attr, value)
     def __str__(self):
         return "set the " + "'s ".join(self.path.split("/") + self.attr.split('.')) + f" to {self.value}"
+
+@dataclass
+class ChangeStats(AbstractEffect):
+    attack: float
+    defense: float
+    charging_factor: float
+    duration: int
+    player: str
+    counter: UnionCounter
+    def execute(self, **kwargs):
+        match self.player:
+            case "ally": player: Player = kwargs["user"].owner
+            case "foe": player: Player = kwargs["user"].owner.opponent
+            case _: raise NameError(f"Unreconized ChangeStats target: {player}.")
+        duration = kwargs["user"] if self.duration < 0 else self.duration
+        player.stat_factors.append(
+            StatFactors(
+                self.attack,
+                self.defense,
+                self.charging_factor,
+                link=duration,
+                counter=self.counter
+            )
+        )
+        return not (self.attack == self.defense == self.charging_factor == 1.0)
+    def from_json(json: dict):
+        return ChangeStats(
+            json.get("attack", 1.0),
+            json.get("defense", 1.0),
+            json.get("charging_factor", 1.0),
+            json.get("duration", -1),
+            json.get("player", "ally"),
+            UnionCounter.from_json(json.get("count", {}))
+        )
+    def __str__(self):
+        # TODO: make this less ugly
+        return f"increase {self.player}'s creature tagged {self.counter.tags} or with element {self.counter.elements} attack by a factor of {self.attack}, defense by {self.defense} and charging by {self.charging_factor}"
+
+@dataclass
+class SetStack(AbstractEffect):
+    stack_name: str
+    amount: Numeric
+    def execute(self, **kwargs):
+        amount = self.amount.eval(**kwargs);
+        #targets = [target
+        #           for target in AbstractEffect.targeted_objects(**kwargs)
+        #           if self.stack_name in target.stacks.keys()];
+        targets = [kwargs["user"]] if self.stack_name in kwargs["user"].stacks.keys() else warn(f"User has no stack {self.stack_name}") and []
+        for card in targets:
+            card.stacks[self.stack_name] += amount;
+        return len(targets) != 0
+    def from_json(json: dict):
+        return SetStack(json["name"], Numeric.from_json(json["amount"]))
+    def __str__(self):
+        return f"add {self.amount} to the user's {self.stack_name}"
 
 @dataclass
 class MaxHPAdd(AbstractEffect):
@@ -718,13 +791,13 @@ class DamageRedirect(AbstractEffect):
             return False
         while amount > 0 and len(targets) > 0 and len(from_) > 0:
             target = targets.pop()
-            try_amount = min(amount // (len(targets) + 1), target.hp)
+            # health -1 => redirect never defeats
+            try_amount = min(amount // (len(targets) + 1), target.hp - 1)
             sources = from_.copy()
             while len(sources) != 0:
                 source = sources.pop()
                 redirected = min(
-                    # missing health +1 => redirect never defeats
-                    source.card.max_hp - source.hp + 1,
+                    source.card.max_hp - source.hp,
                     try_amount // (len(sources) + 1)
                 )
                 source.heal(target.indirectdamage(redirected))
@@ -732,7 +805,7 @@ class DamageRedirect(AbstractEffect):
     def from_json(json: dict):
         return DamageRedirect(TargetMode.from_str(json["from"]), Numeric.from_json(json["amount"]))
     def __str__(self):
-        return f"redirect {self.amount} damages from {self.from_.name} to the target(s)"
+        return f"redirect {self.amount} damages from {self.from_.to_str()} to the target(s)"
 
 @dataclass
 class EffectUnion(AbstractEffect):
@@ -960,7 +1033,7 @@ class WithProbability(AbstractEffect):
     "Apply either `self.effect1` or `self.effect2` such that `self.effect1` has `self.probability` to happen."
     probability: float  # no Numeric as Int only.
     effect1: AbstractEffect
-    effect2: AbstractEffect = NullEffect()
+    effect2: AbstractEffect
     def execute(self, **kwargs) -> bool:
         if rng.random() < self.probability:
             return self.effect1.execute(**kwargs)
@@ -1054,16 +1127,17 @@ class BoardResize(AbstractEffect):
         # TODO: boarddiscard first
         # this requires some cleaning, as it needs to apply the passive
         # boardiscard needs to be callable with **kwargs
-        boardsize = clamp(len(player.active) + self.delta, 1, ifelse(DEV(), 26, 7))
+        boardsize = clamp((l := len(player.active)) + self.delta, 1, ifelse(DEV(), 26, 7))
+        if l == boardsize:
+            return False
         if self.delta < 0:
             while boardsize < len(player.active) and None in player.active:
                 player.active.remove(None)
         else:
             while len(player.active) < boardsize:
                 player.active.append(None)
-        kwargs["board"].log(f"boardsize|{player.namecode()}|{len(player.active)}")
-        # TODO: fix return, logging and update replay.py
-        return True
+        kwargs["board"].log(f"boardsize|{player.namecode()}|{(l1 := len(player.active))}")
+        return l1 != l
     def from_json(json: dict):
         return BoardResize(json["delta"], getordef(json, "target", "unactive"))
     def __str__(self):
@@ -1108,7 +1182,7 @@ class RepeatEffect(AbstractEffect):
     effect: AbstractEffect
     def execute(self, **kwargs) -> bool:
         return any(
-            [self.effect.execute(**withfield(kwargs, "repeat_depth", show(n)))
+            [self.effect.execute(**withfield(kwargs, "repeat_depth", n))
              for n in range(self.n.eval(**kwargs))]
         )
     def from_json(json: dict):
@@ -1206,7 +1280,7 @@ class Passive:
             warn(f"Passive with trigger {self.trigger.name} was trigger from another source than `user.trigger_passive(trigger)`")
         kwargs["survey"] = EffectSurvey()
         kwargs["source"] = self
-        kwargs["board"].log(f"passive|{kwargs['user'].card.name}|{self.name}") # card.name to handle whendefeated passive.
+        #kwargs["board"].log(f"passive|{kwargs['user'].card.name}|{self.name}") # card.name to handle whendefeated passive.
         if not self.effect.execute(**kwargs) and kwargs["survey"].damage == kwargs["survey"].heal == 0:
             kwargs["survey"].return_code = ReturnCode.failed
         if kwargs["survey"].return_code.value < 299:
@@ -1319,10 +1393,11 @@ class AbstractCard:
 @dataclass
 class CreatureCard(AbstractCard):
     max_hp: int
-    attacks: list[Attack]  # list of Attack objects
+    attacks: list[Attack]   # list of Attack objects
     passives: list[Passive]
     cost: int
-    tags: tuple[str]
+    tags: tuple[str, ...]
+    stacks: tuple[str, ...] # allow to define empty stacks to avoid errors
     def from_json(json: dict, id: int):
         "Initialize either a CreatureCard object or a CommanderCard object depending on \"commander\" field with every field filled from the JSON (Python) dict passed in argument."
         args = [
@@ -1330,15 +1405,25 @@ class CreatureCard(AbstractCard):
             id,
             Element.from_json(json),
             int(json["hp"]),
-            [Attack("Default Attack", ifelse(getordef(json, "commander", False), Constants.commander_power, Constants.base_power + json["cost"]*Constants.power_increase),
+            [Attack("Default Attack",
+                ifelse(getordef(json, "commander", False),
+                    Constants.commander_power,
+                    Constants.base_power + json["cost"]*Constants.power_increase
+                ),
                 TargetMode.target, ifelse(
                  getordef(json, "commander", False), 1, 0), NullEffect(), ("default",)),
-                *(Attack.from_json(attack) for attack in getordef(json, "attacks", []))],
+            ],
             [Passive.from_json(passive)
              for passive in getordef(json, "passives", [])],
             json["cost"],
-            (*getordef(json, "tags", ()), "any")
+            (*getordef(json, "tags", ()), "any"),
+            (*getordef(json, "stacks", ()),)
         ]
+        for attack in (Attack.from_json(attack) for attack in getordef(json, "attacks", [])):
+            if "default" in attack.tags:
+                args[4][0] = attack # replace Default Attack
+                continue
+            args[4].append(attack)
         if "tag" in json:
             args[7] = (*args[7], json["tag"])
         if cleanstr(json["name"]) == "bobtheblobfish":
@@ -1369,6 +1454,13 @@ class CreatureCard(AbstractCard):
         return "assets/cards/" + fname
     def get_cost(self) -> int:
         return self.cost
+    def has_passive(self, passive: str) -> bool:
+        "Used for hardcoding"
+        passive = cleanstr(passive)
+        for passive_object in self.passives:
+            if cleanstr(passive_object.name) == passive:
+                return True
+        return False
 
 @dataclass
 class CommanderCard(CreatureCard):
@@ -1378,7 +1470,6 @@ class CommanderCard(CreatureCard):
             return 65535
         return self.attacks[1].cost
 
-@dataclass
 class ActiveCard:
     card: CreatureCard
     hp: int
@@ -1388,19 +1479,21 @@ class ActiveCard:
     effects: list[AbstractEffect]
     attacked: bool
     state: State
-    taunt: None | object # cannot annotated due to Python
+    taunt: "None | ActiveCard"
     taunt_dur: int
+    stacks: dict[str, int]
     def __init__(self, card: CreatureCard, owner: "Player", board: "Board"):
-        self.card = card
-        self.hp = card.max_hp
-        self.element = card.element
-        self.owner = owner
-        self.board = board
-        self.effects = []
-        self.attacked = False
-        self.state = State.default
-        self.taunt = None
+        self.card      = card
+        self.hp        = card.max_hp
+        self.element   = card.element
+        self.owner     = owner
+        self.board     = board
+        self.effects   = []
+        self.attacked  = False
+        self.state     = State.default
+        self.taunt     = None
         self.taunt_dur = 0
+        self.stacks    = {stack:0 for stack in card.stacks}
     def can_attack(self):
         if self.is_softlock():
             return False
@@ -1512,7 +1605,10 @@ class ActiveCard:
                  "main_target":kwargs["user"]
                 })
                 passive.execute(**_kwargs)
-        if not attack.effect.execute(**kwargs) and (kwargs["survey"].damage == 0) and (kwargs["survey"].heal == 0):
+        if (not attack.effect.execute(**kwargs)
+            and (kwargs["survey"].damage == 0)
+            and (kwargs["survey"].heal == 0)
+            and kwargs["survey"].return_code.value != 200):
             kwargs["survey"].return_code = ReturnCode.failed
             kwargs["board"].logs.pop() # doesn't log failed attacks.
             return kwargs["survey"]
@@ -1548,7 +1644,22 @@ class ActiveCard:
         ) # user & survey handled by method
     def iscommander(self):
         return self.card.iscommander()
-    def namecode(self):
+    def index_on_board(self) -> int | None:
+        for i in range(len(self.owner.active)):
+            if self.owner.active[i] is self:
+                return i
+    def adjacent(self) -> Iterator["ActiveCard"]:
+        i: int | None = self.index_on_board()
+        if i is None:
+            return
+        l: int = len(self.owner.active)
+        j: int = (i - 1) % l
+        if not self.owner.active[j] is None:
+            yield self.owner.active[j]
+        j: int = (i + 1) % l
+        if not self.owner.active[j] is None:
+            yield self.owner.active[j]
+    def namecode(self) -> str | None:
         if self.iscommander():
             return self.owner.namecode() + '@'
         for i in range(len(self.owner.active)):
@@ -1587,8 +1698,23 @@ class ActiveCard:
                          and attacker.element.effectiveness(self.element), 100 + Constants.strong_increase, 100)
         amount //= ifelse(mode.can_weak()
                           and self.element.resist(attacker.element), 100 + Constants.strong_increase, 100)
-        if self.iscommander() and mode.can_weak():
-            amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) // 100
+        if mode.can_weak():
+            if self.iscommander():
+                amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) / 100
+            for factor in self.owner.stat_factors:
+                amount /= factor.get("defense", self)
+        if mode.can_strong():
+            for factor in attacker.owner.stat_factors:
+                amount *= factor.get("attack", self)
+        amount = int(amount)
+        #= Samurai Stealth - start =#
+        if (self.card.has_passive("samuraistealth")
+            and mode is not DamageMode.indirect  # allow counterplay
+            and rng.random() < 0.3
+            and amount != 0):
+            amount = 1  # symbolical damages
+            # no need to change kwargs["survey"] as it deals one damage.
+        #= Samurai Stealth - end =#
         amount = self.indirectdamage(amount)
         if amount != 0:
             self.trigger_passive(
@@ -1655,13 +1781,13 @@ class SpellCard(AbstractCard):
         #= Dark Knowledge - start =#
         on_use = self.on_use.copy()
         tenebrous_mage: None | ActiveCard = board.active_player.get_creature_on_field("tenebrousmage")
-        if tenebrous_mage is not None:
-            # check for mods
-            if (len(tenebrous_mage.card.passives) > 0
-                and cleanstr(tenebrous_mage.card.passives[1].name) == "darkknowledge"
-                and on_use.cost > 1): # doesn't reduce below 1
-                tenebrous_mage.log_passive(tenebrous_mage.card.passives[0].name)
-                on_use.cost -= 1
+        # check for mods
+        if (tenebrous_mage is not None
+            and len(tenebrous_mage.card.passives) > 0
+            and cleanstr(tenebrous_mage.card.passives[0].name) == "darkknowledge"
+            and on_use.cost > 1): # doesn't reduce below 1
+            tenebrous_mage.log_passive(tenebrous_mage.card.passives[0].name)
+            on_use.cost -= 1
         #= Dark Knowledge - end =#
         sim = ActiveCard(
             CreatureCard(
@@ -1672,7 +1798,8 @@ class SpellCard(AbstractCard):
                 attacks=[on_use],
                 passives=[],
                 cost=0,
-                tags=on_use.tags
+                tags=on_use.tags,
+                stacks={}
             ),
             board.active_player, board
         )
@@ -1721,6 +1848,42 @@ class Arena(IntEnum):
     def random():
         return Arena(rng.randint(0,4)) # no Själløssmängd
 
+# All are multiplicative for now
+# No dataclass; they do not support default mutable
+class StatFactors:
+    attack: float
+    defense: float
+    charging_factor: float
+    __link: ActiveCard | int
+    __counter: UnionCounter
+    def __init__(
+            self,
+            attack: float = 1.0,
+            defense: float = 1.0,
+            charging_factor: float = 1.0, *,
+            link: ActiveCard | int,
+            counter: UnionCounter = UnionCounter(("any",), (), ()) # intentional sharing
+        ) -> None:
+        self.attack = attack
+        self.defense = defense
+        self.charging_factor = charging_factor
+        self.__link = link
+        self.__counter = counter
+    def isactive(self) -> bool:
+        if isinstance(self.__link, int):
+            return self.__link > 0
+        return self.__link.hp > 0
+    def endturn(self) -> bool:
+        if isinstance(self.link, int):
+            self.link -= 1
+        return self.isactive()
+    @static
+    def get(self, attr: str, on: ActiveCard) -> float:
+        if self.__counter(on) and warn("has succeeded the check!") and self.isactive():
+            return show(getattr(self, attr))
+        warn(on.card.name, "failed the counter check!")
+        return 1.0
+
 class Player:
     name: str
     commander: ActiveCard
@@ -1733,11 +1896,12 @@ class Player:
     energy_per_turn: int
     active: list[ActiveCard | None]
     commander_charges: int
+    stat_factors: list[StatFactors]
     @static
     def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard]):
         self.name = name
         self.commander = ActiveCard(commander, self, None)
-        # Avoids sharing
+        # .copy() avoids sharing
         # This also helps to reset the deck in case of summon/forme change
         self.base_deck = deck
         self.deck = deck.copy()
@@ -1749,6 +1913,7 @@ class Player:
         self.energy_per_turn = Constants.default_energy_per_turn
         self.active = []
         self.commander_charges = 0
+        self.stat_factors = []
     def get_creature_on_field(self, creature: str | CreatureCard) -> ActiveCard | None:
         """
         Return creature if `self` has creature with name `creature` active on their board, `None` otherwise.
@@ -1843,6 +2008,8 @@ class Player:
         return players[fname]
     @static
     def from_json(name: str, json: dict):
+        if json["commander"] not in getCOMMANDERS():
+            json["commander"] = rng.choice(list(getCOMMANDERS().keys()))
         return Player(name, getCOMMANDERS()[json["commander"]], [getCARDS()[Player.card_id(i)] for i in json["deck"]])
     @static
     def from_save(name: str):
@@ -1919,12 +2086,16 @@ class Player:
     @static
     def add_charges(self, amount: int, source: ActiveCard | None = None):
         if "divine" in source.card.tags:
-            return 0
+            return 0  # kortgudomlighet is neutral
         if source is not None and not source.iscommander() and source.element is self.commander.element and amount > 0:
             # I have no idea why I'm using strong_increase and not creating a new setting
             # That's a feature I swear
-            amount *= 100 + Constants.strong_increase.__abs__() # no negative that'd be dumb
-            amount //= 100
+            amount *=  100 + Constants.strong_increase.__abs__() # no negative that'd be dumb
+            amount /= 100
+        for factor in self.stat_factors:
+            if factor.isactive():
+                amount *= factor.charging_factor
+        amount = int(amount)
         self.commander_charges += amount
         if amount != 0:
             self.commander.board.log(f"-ccharge|{self.namecode()}|{self.commander_charges}")
@@ -2106,8 +2277,10 @@ class Board:
     def endturn(self) -> tuple[Player, int, list[AbstractCard], int, None | Player]:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
         winner = self.getwinner() # evaluate before healing
+        # TODO: move that in Player.endturn method
         for card in self.active_player.get_actives():
             card.endturn()
+        [factor for factor in self.active_player.stat_factors if factor.endturn()]
         self.active_player.commander.endturn()
         self.active_player, self.unactive_player = self.unactive_player, self.active_player
         ret = (self.unactive_player, self.unactive_player.add_energy(
@@ -2146,16 +2319,13 @@ class Board:
                 SpellCard("Kortgudomlighet's Quantum Physics Experiment", 1+2j, Element.chaos,
                           Attack("Blink", 0, TargetMode.all, 0,
                           RandomTargets(DamageEffect(RawNumeric(65535), DamageMode.ignore_resist), RawNumeric(1)), ("divine", "spell"))),
-                #SpellCard("Kortgudomlighet's Quantum Physics Experiment", 1+2j, Element.chaos,
-                #          Attack("Blink", 0, TargetMode.all, 0,
-                #          RandomTargets(DamageEffect(RawNumeric(65535), DamageMode.indirect), RawNumeric(1)), ("divine", "spell")))
             ]
             # Don't hesitate to add more spells if you have any idea.
             # I should add more normal spells
             # This is nonsense
             spell: SpellCard = rng.choice(spells)
             self.log(f"raw|Kortgumdolighet descended from an unfathomable dimension and taught {self.active_player.name} the mysterious {spell.name} technique which they used without hesitation.")
-            if spell.use(self.active_player.commander).return_code.value < 299 and (self.player1.get_actives() or self.player2.get_actives()):
+            if spell.use(self.active_player.commander).return_code.value > 299 and (self.player1.get_actives() or self.player2.get_actives()):
                 spell.use(rng.choice(self.player1.get_actives() + self.player2.get_actives()))
                 warn("Kortgudomlighet somewhat failed.")
         elif self.autoplay and self.active_player.isai():
