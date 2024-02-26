@@ -1602,7 +1602,7 @@
     "effect": {
      "new_target": ["foes", "commander"],
      "effect": {
-      "amount": 0,
+      "amount": 100,
       "from": ["allies", "allied_commander"],
       "type": "redirect"
      },
