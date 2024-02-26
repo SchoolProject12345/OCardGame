@@ -656,15 +656,84 @@ class HandManager:
         screen,
     ) -> None:
         self.screen = screen
-        self.bg_img = MenuBackgrounds.bg_assets
+        self.bg_img = MenuBackgrounds.bg_assets["hand_menu_empty"]["img"]
+        self.back_btn = ImageButton(
+            self.screen,
+            pygame.event.Event(CustomEvents.UI_STATE, {"handed": False}),
+            image=MenuButtons.button_assets["Back"]["img"],
+            position_type="topleft",
+            position=(571, 519),
+        )
+        self.hand = []
+        self.hand_holders = [HandGroup(self.screen, index) for index in range(6)]
+
+    def render(self, hand: list, events):
+        if self.hand != hand:
+            self.generate_hand(hand)
+        self.screen.blit(self.bg_img, (209, 38))
+
+    def update_hand(self, hand):
+        self.hand = hand
+        self.hand_holders = [
+            HandGroup(self.screen, card_id, index) for index, card_id in enumerate(hand)
+        ]
+
+    def render_hand(self):
+        for holder in self.hand_holders:
+            holder.render()
 
 
 class HandGroup:
+    hand_slots = rect_grid((254, 296), "topleft", (820, 125), (6, 1), 14)
+
     def __init__(
         self,
         screen,
-        card_id,
         index,
     ):
-        pass
+        self.screen = screen
+        self.index = index
+        self.card_position = HandGroup.hand_slots[index]
+        self.place_position = (HandGroup.hand_slots[index][0], 432)
+        self.discard_position = (HandGroup.hand_slots[index][0], 452)
+        self.btns = [
+            ImageButton(
+                self.screen,
+                pygame.event.Event(CustomEvents.PLACE_CARD, {"hand_index": self.index}),
+                image=MenuButtons.button_assets["Place"]["img"],
+                position_type="topleft",
+                position=self.place_position,
+            ),
+            ImageButton(
+                self.screen,
+                pygame.event.Event(
+                    CustomEvents.DISCARD_CARD, {"hand_index": self.index}
+                ),
+                image=MenuButtons.button_assets["Discard"]["img"],
+                poition_type="topleft",
+                position=self.discard_position,
+            ),
+        ]
 
+    def update(self, card_id):
+        self.card_id = card_id
+        self.card_img = CardAssets.card_sprites[card_id]["img"][0]
+
+    def render(self, mouse_pos, mousebuttondown):
+        self.mouse_pos = mouse_pos
+        self.mousebuttondown = mousebuttondown
+        self.check_clicked()
+        self.screen.blit(self.card_img, self.card_position)
+        for btn in self.btns:
+            btn.render()
+            btn.answer()
+
+    def check_clicked(self):
+        if self.card_position.collidepoint(self.mouse_pos) and self.mousebuttondown:
+            pygame.event.post(
+                pygame.event.Event(
+                    CustomEvents.INFO_POPUP, {"state": True, "card_id": self.card_id}
+                )
+            )
+            return True
+        return False
