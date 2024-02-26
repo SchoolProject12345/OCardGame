@@ -133,21 +133,7 @@
    "trigger":"endofturn",
    "effect":{
     "type":"summon",
-    "creature":{
-     "name":"Battleship",
-     "type":"creature",
-     "hp":55,
-     "element":"water",
-     "cost":1,
-     "attacks":[
-      {
-       "name":"Cannon Shot",
-       "cost":1,
-       "power":35,
-       "target_mode":"target"
-      }
-     ]
-    }
+    "by_name":"Battleship"
    }
   }
  ]
