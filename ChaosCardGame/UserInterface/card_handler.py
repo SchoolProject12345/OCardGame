@@ -80,7 +80,7 @@ class BoardCardHolder:
     def render_card(self):
         if self.card == None:
             self.card = {"name": "misc_empty"}
-        self.card_perm = not self.card["name"] in ["misc_empty", "crossed_slot"]
+        self.card_perm = self.card["name"] != "crossed_slot"
         if self.active and self.card_perm:
             self.check_clicked(self.mouse_pos, self.mousebuttondown)
         if self.card["name"] in CardAssets.card_sprites:
@@ -93,9 +93,14 @@ class BoardCardHolder:
         self, mouse_pos: tuple[int, int], mousebuttondown: pygame.MOUSEBUTTONDOWN
     ):
         if self.position.collidepoint(mouse_pos) and mousebuttondown:
+            if self.card["name"] == "misc_empty":
+                self.empty_slot = True
+            else:
+                self.empty_slot = False
             pygame.event.post(
                 pygame.event.Event(
-                    CustomEvents.SLOT_CLICKED, {"slot": self.board_index}
+                    CustomEvents.SLOT_CLICKED,
+                    {"slot": self.board_index, "empty": self.empty_slot},
                 )
             )
 
@@ -142,7 +147,7 @@ class BoardManager:
     def update_popup(self, popup_event):
         for event in popup_event:
             if (
-                CustomEvents.SLOT_CLICKED == event.type
+                CustomEvents.SLOT_CLICKED == event.type and not event.empty
                 and not self.ui_gamestate["selecting"]
             ):
                 self.popup_info = event.slot
@@ -668,19 +673,23 @@ class HandManager:
         self.hand_holders = [HandGroup(self.screen, index) for index in range(6)]
 
     def render(self, hand: list, events):
+        self.screen.blit(self.bg_img, (241, 163))
         if self.hand != hand:
-            self.generate_hand(hand)
-        self.screen.blit(self.bg_img, (209, 38))
+            self.update_hand(hand)
+        self.render_hand(
+            [pygame.mouse.get_pos(), search_event(events, [pygame.MOUSEBUTTONDOWN])]
+        )
+        self.back_btn.render()
+        self.back_btn.answer()
 
     def update_hand(self, hand):
         self.hand = hand
-        self.hand_holders = [
-            HandGroup(self.screen, card_id, index) for index, card_id in enumerate(hand)
-        ]
+        for index, holder in enumerate(self.hand_holders):
+            holder.update(self.hand[index])
 
-    def render_hand(self):
+    def render_hand(self, events):
         for holder in self.hand_holders:
-            holder.render()
+            holder.render(events[0], events[1])
 
 
 class HandGroup:
@@ -694,8 +703,8 @@ class HandGroup:
         self.screen = screen
         self.index = index
         self.card_position = HandGroup.hand_slots[index]
-        self.place_position = (HandGroup.hand_slots[index][0], 432)
-        self.discard_position = (HandGroup.hand_slots[index][0], 452)
+        self.place_position = (HandGroup.hand_slots[index].x, 432)
+        self.discard_position = (HandGroup.hand_slots[index].x, 452)
         self.btns = [
             ImageButton(
                 self.screen,
@@ -710,7 +719,7 @@ class HandGroup:
                     CustomEvents.DISCARD_CARD, {"hand_index": self.index}
                 ),
                 image=MenuButtons.button_assets["Discard"]["img"],
-                poition_type="topleft",
+                position_type="topleft",
                 position=self.discard_position,
             ),
         ]
@@ -724,9 +733,10 @@ class HandGroup:
         self.mousebuttondown = mousebuttondown
         self.check_clicked()
         self.screen.blit(self.card_img, self.card_position)
-        for btn in self.btns:
-            btn.render()
-            btn.answer()
+        if not self.card_id in ["crossed_slot", "misc_empty"]:
+            for btn in self.btns:
+                btn.render()
+                btn.answer()
 
     def check_clicked(self):
         if self.card_position.collidepoint(self.mouse_pos) and self.mousebuttondown:
