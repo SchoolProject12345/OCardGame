@@ -9,7 +9,7 @@ from UserInterface.OcgVision.vision_main import State, ImageButton, DualBar, Tex
 from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_coordadapter import rect_grid
 from UserInterface.event_library import CustomEvents
-from UserInterface.card_handler import BoardManager, DeckManager
+from UserInterface.card_handler import BoardManager, DeckManager, HandManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
 
@@ -27,7 +27,7 @@ class GameMenu(State):
                     "air_the_silver_crow",
                     "fire_kratos_of_fire",
                     "cha_void_ultraray",
-                    "cha_tenebrous_mage",
+                    "misc_empty",
                     "crossed_slot",
                 ],
                 "commander": {
@@ -63,11 +63,11 @@ class GameMenu(State):
                 "name": "Dev",
                 "deck_length": 10,
                 "hand": [
-                    "wtr_deep_sea_potion",
+                    "fire_kratos_of_fire",
                     "fire_kratos_of_fire",
                     "cha_tenebrous_mage",
-                    "wtr_freeze_spell",
-                    "fire_large_fireball",
+                    "fire_kratos_of_fire",
+                    "misc_empty",
                     "crossed_slot",
                 ],
                 "commander": {
@@ -140,6 +140,7 @@ class GameMenu(State):
             position_type="topleft",
             position=(296, 706),
         )
+        self.hand_manager = HandManager(self.screen)
         # Deck
         self.deck_button = ImageButton(
             self.screen,
@@ -149,7 +150,9 @@ class GameMenu(State):
             position=(824, 706),
         )
 
-        self.deck_manager = DeckManager(self.screen,["cha_gargoyle_of_the_void"])
+        self.deck_manager = DeckManager(
+            self.screen, ["cha_gargoyle_of_the_void"]
+        )  # wip
 
         # Bars
         self.player_health_bar = DualBar(
@@ -361,6 +364,15 @@ class GameMenu(State):
                     pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
                 )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
+            if event.type == CustomEvents.PLACE_CARD:
+                self.pending_actions.extend([event])
+                pygame.event.post(
+                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                )
+                self.is_handed_toggle()
+            if event.type == CustomEvents.DISCARD_CARD:
+                print(f"Discarded card at {event.hand_index}")
+
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
                 self.pending_actions.append(event)
 
@@ -388,6 +400,20 @@ class GameMenu(State):
                 print(
                     f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
+        elif (
+            self.pending_actions[0].type == CustomEvents.PLACE_CARD
+            and self.pending_actions[1].empty
+        ):
+            print(
+                f"Placed card {self.pending_actions[0].hand_index} to slot {self.pending_actions[1].slot}"
+            )
+        elif (
+            self.pending_actions[0].type == CustomEvents.PLACE_CARD
+            and not self.pending_actions[1].empty
+        ):
+            logging.warn(
+                f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
+            )
 
         pygame.event.post(
             pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
@@ -395,27 +421,29 @@ class GameMenu(State):
         self.pending_actions.clear()
 
     def check_attack(self):
-        attack = self.pending_actions[0].attack
-        if self.pending_actions[0].slot == self.pending_actions[1].slot:
-            if attack.target_mode.canself():
-                return True
-            else:
-                logging.warn(
-                    "Trying to inflict illegal attack on self. Cancelling attack."
-                )
-                return False
-        if self.pending_actions[0].slot[1] == "commander":
-            if attack.target_mode.cancommander():
-                return True
-            else:
-                logging.warn(
-                    "Trying to inflict illegal attack on commander. Cancelling attack."
-                )
-                return False
-        return True
+        try:
+            attack = self.pending_actions[0].attack
+            if self.pending_actions[0].slot == self.pending_actions[1].slot:
+                if attack.target_mode.canself():
+                    return True
+                else:
+                    logging.warn(
+                        "Trying to inflict illegal attack on self. Cancelling attack."
+                    )
+                    return False
+            if self.pending_actions[0].slot[1] == "commander":
+                if attack.target_mode.cancommander():
+                    return True
+                else:
+                    logging.warn(
+                        "Trying to inflict illegal attack on commander. Cancelling attack."
+                    )
+                    return False
+            return True
+        except Exception:
+            return False
 
     # Toggle State
-
     def is_paused_toggle(self):
         self.ui_state["paused"] = not self.ui_state["paused"]
 
@@ -462,7 +490,6 @@ class GameMenu(State):
             str(self.game_state["remote"]["commander"]["hp"])
         )
         self.enemy_energy_bar_text.render(str(self.game_state["remote"]["energy"]))
-
         self.card_manager.render(super().events, self.ui_state, self.game_state)
 
         # User buttons
@@ -472,16 +499,11 @@ class GameMenu(State):
         if self.ui_state["decked"]:
             self.deck_manager.render(super().events)
 
-        # self.hand_button.render()
-        # if self.hand_button.answer():
-        #     self.is_handed_toggle()
-        # if self.ui_state["handed"]:
-        #     self.screen.blit(self.bg_hand_menu_image, self.bg_hand_menu_rect)
-        #     self.handback_button.render()
-        #     if self.handback_button.answer() or self.escp_rel.update(
-        #         pygame.event.get(pygame.KEYUP)
-        #     ):
-        #         self.is_handed_toggle()
+        self.hand_button.render()
+        if self.hand_button.answer():
+            self.is_handed_toggle()
+        if self.ui_state["handed"]:
+            self.hand_manager.render(self.game_state["local"]["hand"], super().events)
 
         # Toggles
         if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
