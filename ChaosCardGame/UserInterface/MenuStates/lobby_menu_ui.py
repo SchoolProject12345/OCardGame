@@ -69,11 +69,8 @@ class LobbyMenu(State):
 
         self.ready_button.render()
 
-        if self.ready_button.answer():
-            handle.run_action("ready")
-            print("Local set as Ready")
-        if handle.remote_ready == True:
-            print("Remote set as Ready")
+        if self.ready_button.answer() and not handle.ready:
+             handle.run_action("ready")
 
         if handle.ready == True and handle.remote_ready == True:
             self.change_state("GameMenu")
