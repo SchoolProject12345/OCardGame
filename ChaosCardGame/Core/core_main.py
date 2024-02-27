@@ -686,7 +686,7 @@ class ChangeStats(AbstractEffect):
             json.get("charging_factor", 1.0),
             json.get("duration", -1),
             json.get("player", "ally"),
-            UnionCounter.from_json(json.get("count", {}))
+            UnionCounter.from_json(json.get("count", {"tags":["any"]}))
         )
     def __str__(self):
         # TODO: make this less ugly
@@ -1238,6 +1238,7 @@ class PassiveTrigger(IntEnum):
     whenattack = 3   # same kwargs as attack
     whenattacked = 4 # main_target => atatcker
     whendamaged = 5  # main_target => self
+    whendamaging = 6 # main_target => damaged
     never = 6        # to hardcode
     # Must improve code before implementing those:
     whendiscarded = 7  # main_target => allied_commander
@@ -1251,6 +1252,7 @@ class PassiveTrigger(IntEnum):
             case "whenattacking": return PassiveTrigger.whenattack
             case "whenattacked": return PassiveTrigger.whenattacked
             case "whendamaged": return PassiveTrigger.whendamaged
+            case "whendamaging": return PassiveTrigger.whendamaging
             case "never": return PassiveTrigger.never
             case _: return warn(f"Invalid passive trigger {name}: returning PassiveTrigger.never") and PassiveTrigger.never
     def to_str(self):
@@ -1416,7 +1418,7 @@ class CreatureCard(AbstractCard):
             [Passive.from_json(passive)
              for passive in getordef(json, "passives", [])],
             json["cost"],
-            (*getordef(json, "tags", ()), "any"),
+            (*json.get("tags", ()), "any", *(("commander",) if json.get("commander", False) else ())),
             (*getordef(json, "stacks", ()),)
         ]
         for attack in (Attack.from_json(attack) for attack in getordef(json, "attacks", [])):
@@ -1596,15 +1598,7 @@ class ActiveCard:
         attack.log(**kwargs) # log before damages.
         for card in AbstractEffect.targeted_objects(**kwargs):
             kwargs["survey"].damage += card.damage(attack.power, **kwargs)
-            for passive in card.card.passives:
-                if passive.trigger != PassiveTrigger.whenattacked:
-                    continue
-                _kwargs = kwargs.copy()
-                _kwargs.update({
-                 "user":card,
-                 "main_target":kwargs["user"]
-                })
-                passive.execute(**_kwargs)
+            card.trigger_passive(PassiveTrigger.whenattacked, kwargs.copy())
         if (not attack.effect.execute(**kwargs)
             and (kwargs["survey"].damage == 0)
             and (kwargs["survey"].heal == 0)
@@ -1612,10 +1606,7 @@ class ActiveCard:
             kwargs["survey"].return_code = ReturnCode.failed
             kwargs["board"].logs.pop() # doesn't log failed attacks.
             return kwargs["survey"]
-        for passive in self.card.passives:
-            if passive.trigger != PassiveTrigger.whenattack:
-                continue
-            passive.execute(**kwargs)
+        self.trigger_passive(PassiveTrigger.whenattack, kwargs, **kwargs)
         if "ultimate" in attack.tags:
             self.owner.add_charges(-attack.cost)
         else:
@@ -1659,6 +1650,11 @@ class ActiveCard:
         j: int = (i + 1) % l
         if not self.owner.active[j] is None:
             yield self.owner.active[j]
+    def get_stat_factors(self) -> list["StatFactors"]:
+        factors = [factor for factor in self.owner.stat_factors if factor.isactive() and factor.counter(self)]
+        if self.iscommander():
+            factors.append(self.owner.gear.stat_factor)
+        return factors
     def namecode(self) -> str | None:
         if self.iscommander():
             return self.owner.namecode() + '@'
@@ -1671,19 +1667,24 @@ class ActiveCard:
                 return self.owner.namecode() + chr(97 + i)
     def log_passive(self, passive: Passive):
         self.board.log(f"passive|{self.card.name}|{passive.name}")
+    def get_passives(self) -> list[Passive]:
+        passives: list[Passive] = self.card.passives.copy()
+        if self.owner.gear.stat_factor.counter(self):
+            passives.append(self.owner.gear.passive)
+        return passives
     @static
     def trigger_passive(self, trigger: PassiveTrigger, kwargs: dict[str, object], **update) -> EffectSurvey:
         "Trigger `self`'s passive that have the same trigger has the one passed in arguments after updating its kwargs."
         _kwargs = kwargs.copy()
         _kwargs["main_target"] = getordef(kwargs, "user", self)
         _kwargs["target_mode"] = TargetMode.target
-        _kwargs["player"] = self.owner
         _kwargs["board"] = self.board
-        _kwargs.update(**update)
+        _kwargs.update(update)
         _kwargs["user"] = self
+        _kwargs["player"] = self.owner
         _kwargs["survey"] = EffectSurvey()
         _kwargs["__debug__"] = True
-        for passive in self.card.passives:
+        for passive in self.get_passives():
             if not passive.trigger is trigger:
                 continue
             self.log_passive(passive)
@@ -1701,11 +1702,11 @@ class ActiveCard:
         if mode.can_weak():
             if self.iscommander():
                 amount = amount * (100 - Constants.per_minion_reduction * len(self.owner.get_actives())) / 100
-            for factor in self.owner.stat_factors:
-                amount /= factor.get("defense", self)
+            for factor in self.get_stat_factors():
+                amount /= factor.get("defense")
         if mode.can_strong():
-            for factor in attacker.owner.stat_factors:
-                amount *= factor.get("attack", self)
+            for factor in self.get_stat_factors():
+                amount *= factor.get("attack")
         amount = int(amount)
         #= Samurai Stealth - start =#
         if (self.card.has_passive("samuraistealth")
@@ -1723,6 +1724,13 @@ class ActiveCard:
                 damage_taken = amount,
                 main_target = kwargs["user"],
             ) # target_mode handled by method
+            kwargs["user"].trigger_passive(
+                PassiveTrigger.whendamaging,
+                kwargs,
+                damage_taken = amount,
+                main_target = self,
+                user = kwargs["user"]
+            )
         return amount
     @static
     def indirectdamage(self, amount: int) -> int:
@@ -1855,7 +1863,7 @@ class StatFactors:
     defense: float
     charging_factor: float
     __link: ActiveCard | int
-    __counter: UnionCounter
+    counter: UnionCounter
     def __init__(
             self,
             attack: float = 1.0,
@@ -1868,7 +1876,7 @@ class StatFactors:
         self.defense = defense
         self.charging_factor = charging_factor
         self.__link = link
-        self.__counter = counter
+        self.counter = counter
     def isactive(self) -> bool:
         if isinstance(self.__link, int):
             return self.__link > 0
@@ -1878,11 +1886,38 @@ class StatFactors:
             self.link -= 1
         return self.isactive()
     @static
-    def get(self, attr: str, on: ActiveCard) -> float:
-        if self.__counter(on) and warn("has succeeded the check!") and self.isactive():
+    def get(self, attr: str) -> float:
+        if self.isactive():
             return show(getattr(self, attr))
-        warn(on.card.name, "failed the counter check!")
         return 1.0
+
+class CommanderGear:
+    passive: Passive
+    stat_factor: StatFactors
+    gears: dict[str, "CommanderGear"] = {} # class variable
+    def __init__(self, passive: Passive, factors: StatFactors):
+        self.passive = passive
+        self.stat_factor = factors
+    def from_json(json: dict):
+        return CommanderGear(
+            Passive.from_json(json.get("passive", {"trigger":"never", "effect":{"type":"null"}})),
+            StatFactors(
+                json.get("attack", 1.0),
+                json.get("defense", 1.0),
+                json.get("charging_factor", 1.0),
+                link = 65535,
+                counter = UnionCounter.from_json(json.get("counter", {"tags":["any"]}))
+            )
+        )
+    @classmethod
+    def get_gears(self) -> dict[str, "CommanderGear"]:
+        if len(self.gears) != 0:
+            return self.gears
+        with open(os.path.join(Constants.path, "Data/gears.json"), "r") as io:
+            json: dict[str, object] = loads(io.read())
+        for key, value in json.items():
+            self.gears[format_name_ui(key, Element.elementless)] = self.from_json(value)
+        return self.gears
 
 class Player:
     name: str
@@ -1897,8 +1932,9 @@ class Player:
     active: list[ActiveCard | None]
     commander_charges: int
     stat_factors: list[StatFactors]
+    gear: CommanderGear
     @static
-    def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard]):
+    def __init__(self, name: str, commander: CommanderCard, deck: list[AbstractCard], *, gear: CommanderGear = CommanderGear.get_gears()["no_gear"]):
         self.name = name
         self.commander = ActiveCard(commander, self, None)
         # .copy() avoids sharing
@@ -1914,6 +1950,7 @@ class Player:
         self.active = []
         self.commander_charges = 0
         self.stat_factors = []
+        self.gear = gear
     def get_creature_on_field(self, creature: str | CreatureCard) -> ActiveCard | None:
         """
         Return creature if `self` has creature with name `creature` active on their board, `None` otherwise.
@@ -2092,7 +2129,7 @@ class Player:
             # That's a feature I swear
             amount *=  100 + Constants.strong_increase.__abs__() # no negative that'd be dumb
             amount /= 100
-        for factor in self.stat_factors:
+        for factor in self.commander.get_stat_factors():
             if factor.isactive():
                 amount *= factor.charging_factor
         amount = int(amount)

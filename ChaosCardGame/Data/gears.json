@@ -1,0 +1,75 @@
+{
+ "No Gear":{},
+ "Smigruvian Thorn Armor":{
+  "passive":{
+   "trigger":"whendamaged",
+   "effect":{
+    "type":"damage",
+    "amount":25,
+    "damage_mode":"indirect"
+   }
+  },
+  "defense":1.2,
+  "charging_factor":0.8,
+  "counter":{"tags":["commander"]}
+ },
+ "Crystalized Fury":{
+  "attack":1.2
+ },
+ "Frost Charm":{
+  "passive":{
+   "trigger":"whenattack",
+   "effect":{
+    "type":"change_stats",
+    "charging_factor":0.96,
+    "duration":3,
+    "player":"foe"
+   }
+  }
+ },
+ "Everstone":{
+  "passive":{
+   "trigger":"endofturn",
+   "effect":{"type":"heal","amount":12}
+  }
+ },
+ "Jordrossian Shield of Harvest":{
+  "passive":{
+   "trigger":"whenplaced",
+   "effect":{
+    "type":"change_stats",
+    "defense":1.1,
+    "duration":3
+   }
+  }
+ },
+ "Poison-Tipped Arrow":{
+  "passive":{
+   "trigger":"whendamaging",
+   "effect":{
+    "type":"DOT",
+    "damage":{
+     "type":"mul",
+     "num":1,
+     "den":3,
+     "times":{"type":"damage_taken"}
+    },
+    "time":3
+   }
+  }
+ },
+ "Unicorn Horn":{
+  "charging_factor":1.2
+ },
+ "Invisibilty Cape":{},
+ "Battle Horn":{
+  "passive":{
+   "trigger":"whenattack",
+   "effect":{
+    "type":"add_energy",
+    "gain":2
+   }
+  },
+  "counter":{"tags":["commander"]}
+ }
+}
