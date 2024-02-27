@@ -339,7 +339,7 @@ class ClientHandler(ReplayHandler):
         head = args[0]
         if head == "ready":
             self.ready = True
-            self.server_socket.send("ready");
+            self.server_socket.send(b"ready");
             return True
         if head in core.Constants.clientside_actions:
             clientside_action(self, *args)
