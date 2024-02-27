@@ -51,11 +51,11 @@ class LobbyMenu(State):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
         if self.local_is_hosting == True:
-            self.hostusername_text_content = get_setting("username", "")
+            self.hostusername_text_content = "You"
             self.username_text_content = handle.get_state()["remote"]["name"]
         else:
-            self.hostusername_text_content = get_setting("remote_username", "")
-            self.username_text_content = get_setting("username", "")
+            self.hostusername_text_content = handle.get_state()["remote"]["name"]
+            self.username_text_content = "You"
 
         if self.local_is_hosting:
             self.hostusername_text.render(self.hostusername_text_content)
@@ -69,11 +69,14 @@ class LobbyMenu(State):
 
         self.ready_button.render()
 
-        # if self.ready_button.answer():
-        #     handle.run_action("ready")
+        if self.ready_button.answer():
+            handle.run_action("ready")
+            print("Local set as Ready")
+        if handle.remote_ready == True:
+            print("Remote set as Ready")
 
-        # if handle.ready and handle.remote_ready:
-        #     self.change_state("GameMenu")
+        if handle.ready == True and handle.remote_ready == True:
+            self.change_state("GameMenu")
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:

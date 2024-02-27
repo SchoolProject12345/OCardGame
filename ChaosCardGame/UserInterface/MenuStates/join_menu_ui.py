@@ -88,7 +88,6 @@ class JoinMenu(State):
         if self.joinmenu_join_button.answer():
             # IMPLEMENT INVALID USERNAME
             get_settings()["username"] = self.joinmenu_tb_username.text
-            get_settings()["remote_username"] = handle.get_state()["remote"]["name"]
             get_settings()["is_hosting"] = False
 
             handle.fetch_handler(
