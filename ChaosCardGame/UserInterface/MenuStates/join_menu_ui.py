@@ -88,9 +88,15 @@ class JoinMenu(State):
         if self.joinmenu_join_button.answer():
             # IMPLEMENT INVALID USERNAME
             get_settings()["username"] = self.joinmenu_tb_username.text
+            get_settings()["remote_username"] = handle.get_state()["remote"]["name"]
             get_settings()["is_hosting"] = False
+
             handle.fetch_handler(
-                join_server, self.joinmenu_tb_username.text, self.tb_ipaddress.text)
+                join_server,
+                self.joinmenu_tb_username.text,
+                self.tb_ipaddress.text
+                )
+            
             self.change_state("LobbyMenu")
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
             self.revert_state(1)

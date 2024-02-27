@@ -35,13 +35,12 @@ class LobbyMenu(State):
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(508, 606))
 
-        self.roomname_text_content = get_setting("roomname", "Default")
-        self.local_is_hosting = get_setting("is_hosting", False)
-        print(f"Dude:{self.local_is_hosting}")
-        # print(self.local_is_hosting)
 
     def lobby_menu(self):
-        # handle.state is fast than handle.get_state()
+        self.roomname_text_content = get_setting("roomname", "Room")
+        self.local_is_hosting = get_setting("is_hosting", False)
+        
+        # handle.state is faster than handle.get_state()
         if self.current_arena != handle.state["arena"].value:
             self.current_arena = handle.state["arena"].value
             self.bg_lobby_image = MenuBackgrounds.bg_lobby_images[
@@ -53,16 +52,16 @@ class LobbyMenu(State):
 
         if self.local_is_hosting == True:
             self.hostusername_text_content = get_setting("username", "")
-            # self.username_text_content
+            self.username_text_content = handle.get_state()["remote"]["name"]
         else:
-            # self.hostusername_text_content
+            self.hostusername_text_content = get_setting("remote_username", "")
             self.username_text_content = get_setting("username", "")
 
         if self.local_is_hosting:
             self.hostusername_text.render(self.hostusername_text_content)
-            # self.username_text.render(self.username_text_content)
+            self.username_text.render(self.username_text_content)
         else:
-            # self.hostusername_text.render(self.hostusername_text_content)
+            self.hostusername_text.render(self.hostusername_text_content)
             self.username_text.render(self.username_text_content)
 
         self.ipaddress_text.render(handle.ip_address)

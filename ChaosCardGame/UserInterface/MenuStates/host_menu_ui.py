@@ -84,6 +84,7 @@ class HostMenu(State):
         if self.hostmenu_host_button.answer():
             get_settings()["roomname"] = self.tb_roomname.text
             get_settings()["username"] = self.hostmenu_tb_username.text
+            get_settings()["remote_username"] = handle.get_state()["remote"]["name"]
             get_settings()["is_hosting"] = True
             handle.fetch_handler(
                 host_server, self.hostmenu_tb_username.text, handle.ip_address)
