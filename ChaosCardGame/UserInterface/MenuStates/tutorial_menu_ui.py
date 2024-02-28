@@ -60,7 +60,7 @@ class TutorialMenu(State):
             self.screen,
             True,
             image=alpha_converter(
-                MenuButtons.button_assets["SkipTutorial"]["img"]
+                MenuButtons.button_assets["Skip"]["img"]
             ),
             position_type="topleft",
             position=(1105, 632),
@@ -70,7 +70,7 @@ class TutorialMenu(State):
             self.screen,
             True,
             image=alpha_converter(
-                MenuButtons.button_assets["NextTutorial"]["img"]
+                MenuButtons.button_assets["Next"]["img"]
             ),
             position_type="topleft",
             position=(1105, 691),
@@ -80,13 +80,13 @@ class TutorialMenu(State):
         self.screen.blit(
             self.bg_tutorial_images[self.tutorial_index], self.bg_tutorial_menu_rect
         )
+
         self.skiptutorial_button.render()
 
         if self.tutorial_index < 8:
             self.nexttutorial_button.render()
             if self.nexttutorial_button.answer():
                 self.tutorial_index += 1
-                # Play the corresponding TutorialSpeech sound
                 sound_handle(
                     f"TutorialSpeech{self.tutorial_index + 1}", channel=7)
 

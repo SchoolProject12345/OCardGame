@@ -58,25 +58,58 @@ class LoreMenu(State):
         self.bg_lore_images.append(self.bg_lore11_menu_image)
         self.bg_lore_images.append(self.bg_lore12_menu_image)
 
+        # Buttons
+        self.skiplore_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(
+                MenuButtons.button_assets["Skip"]["img"]
+            ),
+            position_type="topleft",
+            position=(1105, 632),
+        )
+
+        self.nextlore_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(
+                MenuButtons.button_assets["Next"]["img"]
+            ),
+            position_type="topleft",
+            position=(1105, 691),
+        )
+
     def lore_menu(self):
         self.screen.blit(
             self.bg_lore_images[self.lore_index], self.bg_lore_menu_rect)
         events = search_event(super().events, pygame.KEYDOWN)
-        if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
-            self.lore_index = 0
-            self.revert_state()
-            sound_handle(action_type="stop", channel=7)
 
-        elif self.space_rel.update(search_event(super().events, pygame.KEYUP)):
+
+        if self.lore_index < 6:
+            self.skiplore_button.render()
+            self.nextlore_button.render()
+            if self.nextlore_button.answer():
+                if self.lore_index == 11:
+                    self.lore_index = 0
+                    self.revert_state()
+                    sound_handle(action_type="stop", channel=7)
+                elif self.lore_index < 11:
+                    self.lore_index += 1
+                    sound_handle(f"LoreSpeech{self.lore_index + 1}", channel= 7)
+
+        if self.space_rel.update(search_event(super().events, pygame.KEYUP)):
             if self.lore_index == 11:
                 self.lore_index = 0
                 self.revert_state()
                 sound_handle(action_type="stop", channel=7)
-
             elif self.lore_index < 11:
                 self.lore_index += 1
                 sound_handle(f"LoreSpeech{self.lore_index + 1}", channel= 7)
 
+        if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
+            self.lore_index = 0
+            self.revert_state()
+            sound_handle(action_type="stop", channel=7)
 
     def state_manager_hook(self, app):
         if State.state_tree[1] == self.local_options[0]:
