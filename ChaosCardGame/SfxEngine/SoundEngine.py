@@ -42,7 +42,7 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
         speech_channels = [7]
         # ajouter par la suite tous les channels avec le so et les vruits, pour regrouper les truks a mute.
         # faut test
-        # pour mote unmute, juste mute + channel du track (by default music deverait etre 2)
+        # pour mute unmute, juste mute + channel du track (by default music deverait etre 2)
         # NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL.
 
         if action_type == "mute/unmute":
