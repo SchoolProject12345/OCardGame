@@ -8,23 +8,17 @@ setup_logger()
 from UserInterface.ocg_app import OcgGame
 #fmt: on
 
-import Debug.errors as err
 from utility import get_setting
 
 def main():
-    # try:
-        logging.info("Launching app")
-        app = OcgGame()
-        app.start()
+    logging.info("Launching app")
+    app = OcgGame()
+    app.start()
 
-    # except Exception as e:
-        # logging.critical(f"Unhandeled exception: {e}")
-        # traceback.print_exc()
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        err.log(e)
-        if get_setting("dev", False):
-            raise
+    # try:
+    main()
+    # except Exception as e:
+    #     traceback.print_exc()
+    #     logging.critical(e)
         

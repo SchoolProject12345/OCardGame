@@ -182,7 +182,7 @@ class ImageButton:
         else:
             self.state = self.all_states[0]
 
-    def answer(self) -> any:
+    def answer(self,active=True) -> any:
         """
         Checks if the mouse is clicked on the button i.e button is in click state
         and if so execute the callback function or return the callback object.
@@ -196,6 +196,7 @@ class ImageButton:
         if (
             self.previous_state == self.all_states[2]
             and self.state == self.all_states[1]
+            and active
         ):
             if isinstance(self.call_back, pygame.event.Event):
                 pygame.event.post(self.call_back)
