@@ -46,8 +46,8 @@ class State:
         Checks state ownership and runs the state_manager_hook.
 
     """
-    # state_tree = ["MainMenu","PlayMenu","HostMenu","LobbyMenu","GameMenu"]
-    state_tree = ["MainMenu"]
+    state_tree = ["MainMenu","PlayMenu","HostMenu","LobbyMenu","GameMenu"]
+    # state_tree = ["MainMenu"]
     events = []
 
     def __init__(

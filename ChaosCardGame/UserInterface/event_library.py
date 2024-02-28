@@ -18,3 +18,4 @@ class CustomEvents:
     INFO_POPUP = pygame.USEREVENT + 7
     PLACE_CARD = pygame.USEREVENT + 8
     DISCARD_CARD = pygame.USEREVENT + 9
+    END_TURN = pygame.USEREVENT + 10
