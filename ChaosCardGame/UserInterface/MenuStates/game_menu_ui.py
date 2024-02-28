@@ -159,8 +159,8 @@ class GameMenu(State):
         self.enemy_energy_bar_text = TextBox(
             self.screen,
             position=(683, 0),
-            width=96,
-            height=52,
+            width=76,
+            height=35,
             font=Fonts.ger_font(30),
             color=(101, 101, 101),
             position_type="topleft",
@@ -170,11 +170,23 @@ class GameMenu(State):
 
         self.player_username_text = TextBox(
             self.screen,
-            position=(72, 726),
+            position=(112, 713),
+            width=76,
+            height=35,
+            font=Fonts.ger_font(30),
+            color=(255, 255, 255),
+            position_type="topleft",
+            text_center="center",
+            text="",
+        )
+
+        self.enemy_username_text = TextBox(
+            self.screen,
+            position=(112, 6),
             width=96,
             height=52,
             font=Fonts.ger_font(30),
-            color=(255, 255, 255),
+            color=(255,255,255),
             position_type="topleft",
             text_center="center",
             text="",
@@ -295,7 +307,7 @@ class GameMenu(State):
                 if self.pending_actions[0].type == CustomEvents.PLACE_CARD and event.empty and "local" in event.slot:
                     self.pending_actions.append(event)
                 elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK,CustomEvents.ULTIMATE] and not event.empty:
-                     self.pending_actions.append(event)
+                    self.pending_actions.append(event)
                 else:
                     logging.warn("Unsuported event")
 
@@ -408,18 +420,16 @@ class GameMenu(State):
 
         # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
+        self.player_username_text.render(self.game_state["local"]["name"])
+        self.enemy_username_text.render(self.game_state["remote"]["name"])
         self.player_health_bar.render(self.game_state["local"]["commander"]["hp"])
         self.player_energy_bar.render(self.game_state["local"]["energy"])
         self.enemy_health_bar.render(self.game_state["remote"]["commander"]["hp"])
         self.enemy_energy_bar.render(self.game_state["remote"]["energy"])
-        self.player_health_bar_text.render(
-            str(self.game_state["local"]["commander"]["hp"])
-        )
         self.player_energy_bar_text.render(str(self.game_state["local"]["energy"]))
-        self.enemy_health_bar_text.render(
-            str(self.game_state["remote"]["commander"]["hp"])
-        )
         self.enemy_energy_bar_text.render(str(self.game_state["remote"]["energy"]))
+        self.player_health_bar_text.render(str(self.game_state["local"]["commander"]["hp"]))
+        self.enemy_health_bar_text.render(str(self.game_state["remote"]["commander"]["hp"]))
         self.card_manager.render(super().events, self.ui_state, self.game_state)
 
         # User buttons
