@@ -342,7 +342,6 @@ class GameMenu(State):
     def handle_events(self, events):
         for event in events:
             if event.type == CustomEvents.UI_STATE:
-                # Access the dictionary attribute using vars()
                 event_dict = vars(event)
                 for state in event_dict.keys():
                     self.ui_state[state] = event_dict[state]
@@ -374,7 +373,12 @@ class GameMenu(State):
                 print(f"Discarded card at {event.hand_index}")
 
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
-                self.pending_actions.append(event)
+                if self.pending_actions[0].type == CustomEvents.PLACE_CARD and event.empty and "local" in event.slot:
+                    self.pending_actions.append(event)
+                elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK,CustomEvents.ULTIMATE] and not event.empty:
+                     self.pending_actions.append(event)
+                else:
+                    logging.warn("Unsuported event")
 
     def handle_action(self):
         if len(self.pending_actions) < 2:
