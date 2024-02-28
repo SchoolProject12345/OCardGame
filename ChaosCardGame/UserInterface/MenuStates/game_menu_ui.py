@@ -22,7 +22,7 @@ def slottuple2index(slot: tuple) -> str:
     l = len(board)
     while delta < l and board[delta] is not None and board[delta]["name"] == "crossed_slot":
         delta += 1
-    print(f"{board=}, {delta=}")
+    print(f"{board=}\n{delta=}\n{slot[2]-delta=}")
     return slot[0] + str(slot[2] - delta)
 
 
@@ -69,7 +69,7 @@ class GameMenu(State):
         )
 
         self.deck_manager = DeckManager(
-            self.screen, ["cha_gargoyle_of_the_void"]
+            self.screen, []
         )  # wip
 
         # Bars
@@ -320,7 +320,7 @@ class GameMenu(State):
             )
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
-            handle.run_action(f"attack|ally{user_slot[2]}|1|{slottuple2index(target_slot)}")
+            handle.run_action(f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
