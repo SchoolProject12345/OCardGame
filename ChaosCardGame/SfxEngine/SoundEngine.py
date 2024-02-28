@@ -16,7 +16,7 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
         - in what channel? (you cant put 2 things at the same time in the same channel, use it carefully)
         - want it to loop? (true or false)
         - is_muted?... its da variable to get from the settings file, as you will mute either sounds, music or speech. they are all in the settingsfile and can be adjusted.
-        to be finished, it works even though its not perfect so dont touch it
+        to be finished, it works even though its not perfect so dont touch it )
     """
 
     actions = ["play", "stop", "mute/unmute"]
