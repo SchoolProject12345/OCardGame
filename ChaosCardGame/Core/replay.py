@@ -118,7 +118,7 @@ class ReplayHandler:
             [format_name_ui_elt(card)
              for card in state["remote"]["hand"]],
              6, placeholder="misc_empty")
-        state[ "local"]["hand"]  = pad_crossed_slot(
+        state[ "local"]["hand"]  = pad_empty_slot(
             [format_name_ui_elt(card)
              for card in state[ "local"]["hand"]],
              6, placeholder="misc_empty")
@@ -572,6 +572,15 @@ def pad_crossed_slot(board: list, /, to_length: int, *,
         return board
     padding = (to_length - l)/2
     return floor(padding) * [placeholder] + board + ceil(padding) * [placeholder]
+def pad_empty_slot(board: list, /, to_length: int, *,
+                   placeholder="misc_empty") -> list:
+    l = len(board)
+    if l > to_length:
+        return board[0:to_length]
+    if l == to_length:
+        return board
+    return board + [placeholder] * (to_length - l)
+
 
 @static
 def ansi_elementcolor(element: core.Element) -> str:
