@@ -124,7 +124,8 @@
     "type":"state_change",
     "new_state":"blocked",
     "for":5
-   }
+   },
+   "tag":"ultimate"
   }
  ],
  "passives":[
