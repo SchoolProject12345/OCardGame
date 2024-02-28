@@ -14,6 +14,12 @@ from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_conver
 from Assets.menu_assets import CardAssets
 
 
+def slottuple2index(slot: tuple) -> str:
+    if len(slot) < 3: # commander
+        return slot[0] + '@'
+    return slot[0] + str(slot[2])
+
+
 class GameMenu(State):
     def __init__(self, screen):
         self.game_state = handle.get_state() # return placeholder before initialization
@@ -299,16 +305,16 @@ class GameMenu(State):
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
             if user_slot[1] == "board":
-                handle.run_action(f"attack|ally{slot[2]}|0|{target_slot[0]}{target_slot[2]}")
+                handle.run_action(f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}")
             else:
-                handle.run_action(f"attack|ally@|0|{target_slot[0]}{target_slot[2]}")
+                handle.run_action(f"attack|ally@|0|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
-            handle.run_action(f"attack|ally{slot[2]}|0|{target_slot[0]}{target_slot[2]}")
+            handle.run_action(f"attack|ally{user_slot[2]}|1|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
@@ -322,7 +328,7 @@ class GameMenu(State):
                     f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
             target_slot = self.pending_actions[1].slot
-            handle.run_action(f"attack|ally@|1|{target_slot[0]}{target_slot[2]}")
+            handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and self.pending_actions[1].empty
@@ -379,7 +385,7 @@ class GameMenu(State):
 
     def game_menu(self):
         # Update game state
-        self.game_state = handle.get_state())
+        self.game_state = handle.get_state()
 
         # Check for Arena changes.
         if self.current_arena != self.game_state["arena"]:
