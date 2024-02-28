@@ -37,7 +37,6 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
     # Display the errorcode in the message
     error_string += f"Error code: {error_code}\n\n"
 
-
     # Unknown or Undefined Error
     if error_code == ErrorCode.UNKNOWN:
         error_string += "An unknown or undefined error has occurred. You are either testing or somehow triggered an error that was never meant to happen. In that case, congratulations."
@@ -64,20 +63,11 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
     if optional_text != "default":
         error_string += "\n\n Extra message: " + optional_text
 
-
     # Print the error in the terminal
     print(error_string)
     with open(ERRORLOG, 'a') as file:
 
-        file.write("\n")
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        file.write(current_time)
-        file.write("\n")
-        file.write(error_string)
-        file.write("\n")
-        file.write("\n")
-
+        file.write(f"\n{datetime.now().strftime("%H:%M:%S")}\n{error_string}\n\n")
 
     # Finally, draw the error box with the error string
 
@@ -87,11 +77,4 @@ def throw_error(error_code: ErrorCode, optional_text="default", optional_gui = T
 
 def log(error):
     with open(ERRORLOG, 'a') as file:
-        file.write("\n")
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        file.write(current_time)
-        file.write("\n")
-        file.write(error)
-        file.write("\n")
-        file.write("\n")
+        file.write(f"\n{datetime.now().strftime("%H:%M:%S")}\n{error}\n\n")
