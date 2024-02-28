@@ -151,8 +151,6 @@ def listen_for_connection(ip: str, port: int):
     listening_socket.bind((ip, port))
     listening_socket.listen(5)
 
-    print(f"Listening for connection on {ip}:{port}")
-
     client_socket, addr = listening_socket.accept()  # one connection max
     print(f"Accepted connection from {addr}")
 
