@@ -147,7 +147,8 @@ class BoardManager:
     def update_popup(self, popup_event):
         for event in popup_event:
             if (
-                CustomEvents.SLOT_CLICKED == event.type and not event.empty
+                CustomEvents.SLOT_CLICKED == event.type
+                and not event.empty
                 and not self.ui_gamestate["selecting"]
             ):
                 self.popup_info = event.slot
@@ -538,30 +539,24 @@ class BoardManager:
 
 
 class CardInfoPopup:
-    def __init__(self, screen, position: tuple, position_type: str = "topleft") -> None:
+    def __init__(self, screen, position: tuple) -> None:
         self.screen = screen
-        self.position = position
-        self.position_type = position_type
-
-        self.main_surface = Sprites.box_assets["card_info_popup"]["img"]
-        self.main_surface_rect = self.main_surface.get_rect(
-            **{self.position_type: self.position}
-        )
+        self.position = (496, 88)
 
         self.back_btn = ImageButton(
-            self.main_surface,
+            self.screen,
             pygame.event.Event(CustomEvents.INFO_POPUP, {"state": False}),
             image=MenuButtons.button_assets["Back"]["img"],
             position_type="topleft",
-            posiiton=(185.60),
+            position=(581, 526),
         )
 
     def render(self, card_id: str):
         self.card_img = CardAssets.card_sprites[card_id]["img"][1]
-        self.main_surface.blit(self.card_img, (51, 23))
+        self.screen.blit(Sprites.box_assets["card_info_popup"]["img"], self.position)
+        self.screen.blit(self.card_img, (548, 111))
         self.back_btn.answer()
         self.back_btn.render()
-        self.screen.blit(self.main_surface, self.main_surface_rect)
 
 
 class DeckCardHolder:
@@ -607,6 +602,7 @@ class DeckManager:
             position=(545, 587),
         )
         self.show_info = False
+        self.info_popup = CardInfoPopup(self.screen, (469, 88))
 
     def render(self, events):
         self.screen.blit(self.deck_bg, (209, 38))
@@ -627,32 +623,15 @@ class DeckManager:
             self.back_btn.answer()
             self.back_btn.render()
 
-    def generate_info(self, card_id):
-        self.info_main_screen = Sprites.box_assets["card_info_popup"]["img"]
-        self.info_back_btn = ImageButton(
-            self.screen,
-            pygame.event.Event(CustomEvents.INFO_POPUP, {"state": False}),
-            image=MenuButtons.button_assets["Back"]["img"],
-            position_type="topleft",
-            position=(545, 587),
-        )
-        self.info_card_img = CardAssets.card_sprites[card_id]["img"][1]
-
-    def render_info(self):
-        self.screen.blit(self.info_main_screen, (468, 143))
-        self.info_back_btn.answer()
-        self.info_back_btn.render()
-        self.screen.blit(self.info_card_img, (519, 166))
-
     def handle_info(self, events):
         for event in events:
             if event.type == CustomEvents.INFO_POPUP:
                 self.show_info = event.state
                 if self.show_info:
-                    self.generate_info(event.card_id)
+                    self.card_info = event.card_id
 
         if self.show_info:
-            self.render_info()
+            self.info_popup.render(self.card_info)
 
 
 class HandManager:
@@ -671,16 +650,30 @@ class HandManager:
         )
         self.hand = []
         self.hand_holders = [HandGroup(self.screen, index) for index in range(6)]
+        self.info_pop = CardInfoPopup(self.screen, (469, 88))
+        self.info_card = None
+        self.show_info = False
 
     def render(self, hand: list, events):
         self.screen.blit(self.bg_img, (241, 163))
         if self.hand != hand:
             self.update_hand(hand)
+        for event in events:
+            if event.type == CustomEvents.INFO_POPUP:
+                if event.state:
+                    self.info_card = event.card_id
+                    self.show_info = True
+                elif event.state is False:
+                    self.show_info = False
+
         self.render_hand(
             [pygame.mouse.get_pos(), search_event(events, [pygame.MOUSEBUTTONDOWN])]
         )
         self.back_btn.render()
-        self.back_btn.answer()
+        self.back_btn.answer(not self.show_info)
+
+        if self.show_info:
+            self.info_pop.render(self.info_card)
 
     def update_hand(self, hand):
         self.hand = hand
