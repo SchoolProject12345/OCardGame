@@ -56,3 +56,5 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
                 # why it say nono error here ^
                 print("tried to unmute")
                 get_settings()["volume"] = int(sfxchannel.get_volume()*100)
+
+    # PAS TOUCHER AUX FONCTIONNEMENTS DES CHANNELS POUR LINSTANT CYKA
