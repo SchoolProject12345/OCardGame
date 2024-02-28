@@ -552,7 +552,10 @@ class CardInfoPopup:
         )
 
     def render(self, card_id: str):
-        self.card_img = CardAssets.card_sprites[card_id]["img"][1]
+        if card_id in CardAssets.card_sprites.keys():
+            self.card_img = CardAssets.card_sprites[card_id]["img"][1]
+        else:
+            self.card_img = CardAssets.card_sprites["card_not_found"]["img"][1]
         self.screen.blit(Sprites.box_assets["card_info_popup"]["img"], self.position)
         self.screen.blit(self.card_img, (548, 111))
         self.back_btn.answer()
@@ -719,7 +722,10 @@ class HandGroup:
 
     def update(self, card_id):
         self.card_id = card_id
-        self.card_img = CardAssets.card_sprites[card_id]["img"][0]
+        if card_id in CardAssets.card_sprites.keys():
+            self.card_img = CardAssets.card_sprites[card_id]["img"][0]
+        else:
+            self.card_img = CardAssets.card_sprites["card_not_found"]["img"][0]
 
     def render(self, mouse_pos, mousebuttondown):
         self.mouse_pos = mouse_pos
