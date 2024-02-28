@@ -14,103 +14,15 @@ from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_conver
 from Assets.menu_assets import CardAssets
 
 
+def slottuple2index(slot: tuple) -> str:
+    if len(slot) < 3: # commander
+        return slot[0] + '@'
+    return slot[0] + str(slot[2])
+
+
 class GameMenu(State):
     def __init__(self, screen):
-        self.game_state = {
-            "arena": 2,
-            "isactive": True,
-            "remote": {
-                "name": "Omy",
-                "deck_length": 10,
-                "hand": [
-                    "ert_energy_cat",
-                    "air_the_silver_crow",
-                    "fire_kratos_of_fire",
-                    "cha_void_ultraray",
-                    "misc_empty",
-                    "crossed_slot",
-                ],
-                "commander": {
-                    "name": "wtr_krakithrek",
-                    "hp": 600,
-                    "max_hp": 600,
-                    "element": 1,
-                    "state": "default",
-                    "charges": 0,
-                    "ult_cost": 65535,
-                },
-                "board": [
-                    {
-                        "element": 2,
-                        "hp": 10,
-                        "max_hp": 40,
-                        "name": "fire_hand_of_ashes",
-                        "state": "blocked",
-                    },
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    {"name": "crossed_slot", "hp": 0, "max_hp": 0, "state": "blocked"},
-                ],
-                "discard": [],
-                "energy": 3,
-                "max_energy": 4,
-                "energy_per_turn": 3,
-            },
-            "local": {
-                "name": "Dev",
-                "deck_length": 10,
-                "hand": [
-                    "fire_kratos_of_fire",
-                    "fire_kratos_of_fire",
-                    "cha_tenebrous_mage",
-                    "fire_kratos_of_fire",
-                    "misc_empty",
-                    "crossed_slot",
-                ],
-                "commander": {
-                    "name": "air_skyvisindi",
-                    "hp": 600,
-                    "max_hp": 600,
-                    "element": 3,
-                    "state": "default",
-                    "charges": 300,
-                    "ult_cost": 275,
-                },
-                "board": [
-                    {
-                        "element": 2,
-                        "hp": 113,
-                        "max_hp": 143,
-                        "name": "air_whisperwind_sprite",
-                        "state": "default",
-                    },
-                    None,
-                    None,
-                    None,
-                    {
-                        "element": 2,
-                        "hp": 4,
-                        "max_hp": 10,
-                        "name": "air_rio_o_colorido",
-                        "state": "default",
-                    },
-                    None,
-                    {"name": "crossed_slot", "hp": 0, "max_hp": 0, "state": "blocked"},
-                ],
-                "discard": [],
-                "energy": 4,
-                "max_energy": 4,
-                "energy_per_turn": 3,
-            },
-            "turn": 0,
-            "isactive": False,
-            "arena": 1,
-            "roomname": "Loading...",
-        }
-
+        self.game_state = handle.get_state() # return placeholder before initialization
         self.screen = screen
         self.is_anchor = False
         self.local_options = ["GameMenu"]
@@ -371,6 +283,7 @@ class GameMenu(State):
                 self.is_handed_toggle()
             if event.type == CustomEvents.DISCARD_CARD:
                 print(f"Discarded card at {event.hand_index}")
+                handle.run_action(f"discard|{event.hand_index}")
 
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
                 if self.pending_actions[0].type == CustomEvents.PLACE_CARD and event.empty and "local" in event.slot:
@@ -388,10 +301,20 @@ class GameMenu(State):
             print(
                 f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+            # leaving print for now, remove after testing
+            user_slot = self.pending_actions[0].slot
+            target_slot = self.pending_actions[1].slot
+            if user_slot[1] == "board":
+                handle.run_action(f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}")
+            else:
+                handle.run_action(f"attack|ally@|0|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+            user_slot = self.pending_actions[0].slot
+            target_slot = self.pending_actions[1].slot
+            handle.run_action(f"attack|ally{user_slot[2]}|1|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
@@ -404,6 +327,8 @@ class GameMenu(State):
                 print(
                     f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
+            target_slot = self.pending_actions[1].slot
+            handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and self.pending_actions[1].empty
@@ -411,6 +336,7 @@ class GameMenu(State):
             print(
                 f"Placed card {self.pending_actions[0].hand_index} to slot {self.pending_actions[1].slot}"
             )
+            handle.run_action(f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]}")
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and not self.pending_actions[1].empty
@@ -459,22 +385,11 @@ class GameMenu(State):
 
     def game_menu(self):
         # Update game state
-        # game_state = handle.get_state()
-        # if len(self.game_state["local"]["board"]) != len(game_state["local"]["board"]):
-        #    self.card_manager = CardManager(
-        #        self.screen,
-        #        max(
-        #            len(game_state["local"]["board"]),
-        #            len(game_state["remote"]["board"])
-        #        )
-        #    )
-        # self.game_state = game_state
-        # (Commented it out in case you need to make test, this is just a "blueprint" to implement it fully)
-        # (tested it out it works fine)
+        self.game_state = handle.get_state()
 
         # Check for Arena changes.
-        if self.current_arena != handle.state["arena"].value:
-            self.current_arena = handle.state["arena"].value
+        if self.current_arena != self.game_state["arena"]:
+            self.current_arena = self.game_state["arena"]
             self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[
                 min(self.current_arena, 4)
             ].convert_alpha()
