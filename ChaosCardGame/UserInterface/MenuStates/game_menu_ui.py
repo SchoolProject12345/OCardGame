@@ -17,7 +17,13 @@ from Assets.menu_assets import CardAssets
 def slottuple2index(slot: tuple) -> str:
     if len(slot) < 3: # commander
         return slot[0] + '@'
-    return slot[0] + str(slot[2])
+    board = handle.get_state()[slot[0]]["board"]
+    delta: int = 0
+    l = len(board)
+    while delta < l and board[delta] is not None and board[delta]["name"] == "crossed_slot":
+        delta += 1
+    print(f"{board=}, {delta=}")
+    return slot[0] + str(slot[2] - delta)
 
 
 class GameMenu(State):
@@ -336,7 +342,12 @@ class GameMenu(State):
             print(
                 f"Placed card {self.pending_actions[0].hand_index} to slot {self.pending_actions[1].slot}"
             )
-            handle.run_action(f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]}")
+            delta = 0
+            board = self.game_state[self.pending_actions[1].slot[0]]["board"]
+            l = len(board)
+            while delta < l and board[delta] is not None and board[delta]["name"] == "crossed_slot":
+                delta += 1
+            handle.run_action(f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]-delta}")
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and not self.pending_actions[1].empty
