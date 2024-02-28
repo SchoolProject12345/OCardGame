@@ -66,9 +66,9 @@ class CardCollection:
         self.screen = screen
         self.card_ids: list[str] = []
         self.total = [
-            self.generate_toggle_list(dirpath, filenames)
+            self.generate_toggle_list(dirpath, [filename for filename in filenames if filename[0] != '.'])
             for (dirpath, _, filenames) in os.walk(os.path.join(utility.cwd_path, f"Assets/Graphics/Cards/{element.strip().title()}"))
-            if len(filenames) > 1
+            if len([filename for filename in filenames if filename[0] != '.']) > 1
         ] # simply read all card assets & display them, no hardcoding
         # 4 + 4 = 8
         if len(self.total) < 8:
@@ -93,7 +93,7 @@ class CardCollection:
         self.left_side.render()
         self.right_side.render()
 
-    def generate_toggle_list(self, dirpath: str, filenames: tuple[str, str]) -> list[pygame.Surface]:
+    def generate_toggle_list(self, dirpath: str, filenames: list[str]) -> list[pygame.Surface]:
         self.card_ids.append(filenames[0][2:-4]) # remove leading "s_"/"b_" & trailing ".png"
         return create_image_triplet(
                 pygame.image.load(
