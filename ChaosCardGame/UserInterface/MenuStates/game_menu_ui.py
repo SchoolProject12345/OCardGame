@@ -320,6 +320,9 @@ class GameMenu(State):
                 f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
             # leaving print for now, remove after testing
+
+            sound_handle("fire", "play", channel=8)
+
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
             if user_slot[1] == "board":
@@ -332,6 +335,9 @@ class GameMenu(State):
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+
+            sound_handle("fire", "play", channel=8)
+
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
             handle.run_action(
@@ -349,6 +355,7 @@ class GameMenu(State):
                 print(
                     f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
+            sound_handle("ultimateattack", "play", channel=8)
             target_slot = self.pending_actions[1].slot
             handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
         elif (

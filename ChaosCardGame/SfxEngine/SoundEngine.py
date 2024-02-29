@@ -47,7 +47,7 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
                     get_settings()["volume"] = int(sfxchannel.get_volume()*100)
 
         music_channels = [2]
-        sfx_channels = [3]
+        sfx_channels = [3,8]
         speech_channels = [7]
         # ajouter par la suite tous les channels avec le so et les vruits, pour regrouper les truks a mute.
         # faut test
