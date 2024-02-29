@@ -183,8 +183,8 @@ class GameMenu(State):
         self.enemy_username_text = TextBox(
             self.screen,
             position=(112, 6),
-            width=96,
-            height=52,
+            width=76,
+            height=35,
             font=Fonts.ger_font(30),
             color=(255,255,255),
             position_type="topleft",
