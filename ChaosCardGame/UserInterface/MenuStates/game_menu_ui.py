@@ -15,12 +15,16 @@ from Assets.menu_assets import CardAssets
 
 
 def slottuple2index(slot: tuple) -> str:
-    if len(slot) < 3: # commander
-        return slot[0] + '@'
+    if len(slot) < 3:  # commander
+        return slot[0] + "@"
     board = handle.get_state()[slot[0]]["board"]
     delta: int = 0
     l = len(board)
-    while delta < l and board[delta] is not None and board[delta]["name"] == "crossed_slot":
+    while (
+        delta < l
+        and board[delta] is not None
+        and board[delta]["name"] == "crossed_slot"
+    ):
         delta += 1
     print(f"{board=}\n{delta=}\n{slot[2]-delta=}")
     return slot[0] + str(slot[2] - delta)
@@ -28,7 +32,7 @@ def slottuple2index(slot: tuple) -> str:
 
 class GameMenu(State):
     def __init__(self, screen):
-        self.game_state = handle.get_state() # return placeholder before initialization
+        self.game_state = handle.get_state()  # return placeholder before initialization
         self.screen = screen
         self.is_anchor = False
         self.local_options = ["GameMenu"]
@@ -68,9 +72,7 @@ class GameMenu(State):
             position=(824, 706),
         )
 
-        self.deck_manager = DeckManager(
-            self.screen, []
-        )  # wip
+        self.deck_manager = DeckManager(self.screen, [])  # wip
 
         # Bars
         self.player_health_bar = DualBar(
@@ -158,12 +160,12 @@ class GameMenu(State):
 
         self.enemy_energy_bar_text = TextBox(
             self.screen,
-            position=(683, 0),
+            position=(721, 26),
             width=76,
-            height=35,
+            height=52,
             font=Fonts.ger_font(30),
             color=(101, 101, 101),
-            position_type="topleft",
+            position_type="center",
             text_center="center",
             text="",
         )
@@ -242,31 +244,22 @@ class GameMenu(State):
         ].convert_alpha()
         self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(center=SCREEN_CENTER)
 
-        # Buttons
-        self.deckback_button = ImageButton(
-            self.screen,
-            True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["img"]),
-            position_type="center",
-            position=(SCREEN_CENTER[0], 555),
-        )
-
         # Hand Menu
         self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"][
             "img"
         ].convert_alpha()
         self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(center=SCREEN_CENTER)
 
-        # Buttons
-        self.handback_button = ImageButton(
-            self.screen,
-            True,
-            image=alpha_converter(MenuButtons.button_assets["Back"]["img"]),
-            position_type="center",
-            position=(SCREEN_CENTER[0], 555),
-        )
         self.card_manager = BoardManager(
             self.screen, len(self.game_state["local"]["board"])
+        )
+
+        self.end_turn_btn = ImageButton(
+            self.screen,
+            pygame.event.Event(CustomEvents.END_TURN),
+            image=MenuButtons.button_assets["Endturn"]["img"],
+            position_type="topleft",
+            position=(1100, 600),
         )
 
     def handle_events(self, events):
@@ -302,12 +295,19 @@ class GameMenu(State):
             if event.type == CustomEvents.DISCARD_CARD:
                 print(f"Discarded card at {event.hand_index}")
                 handle.run_action(f"discard|{event.hand_index}")
+            if event.type == CustomEvents.END_TURN:
+                handle.run_action("endturn")
+                print("Ended turn")
 
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
-                if self.pending_actions[0].type == CustomEvents.PLACE_CARD and event.empty and "local" in event.slot:
+                if (
+                    self.pending_actions[0].type == CustomEvents.PLACE_CARD
+                    and event.empty
+                    and "local" in event.slot
+                ):
                     self.pending_actions.append(event)
                 elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK,CustomEvents.ULTIMATE] and not event.empty:
-                    self.pending_actions.append(event)
+                     self.pending_actions.append(event)
                 else:
                     logging.warn("Unsuported event")
 
@@ -323,7 +323,9 @@ class GameMenu(State):
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
             if user_slot[1] == "board":
-                handle.run_action(f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}")
+                handle.run_action(
+                    f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}"
+                )
             else:
                 handle.run_action(f"attack|ally@|0|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
@@ -332,7 +334,9 @@ class GameMenu(State):
             )
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
-            handle.run_action(f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}")
+            handle.run_action(
+                f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}"
+            )
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
@@ -357,9 +361,15 @@ class GameMenu(State):
             delta = 0
             board = self.game_state[self.pending_actions[1].slot[0]]["board"]
             l = len(board)
-            while delta < l and board[delta] is not None and board[delta]["name"] == "crossed_slot":
+            while (
+                delta < l
+                and board[delta] is not None
+                and board[delta]["name"] == "crossed_slot"
+            ):
                 delta += 1
-            handle.run_action(f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]-delta}")
+            handle.run_action(
+                f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]-delta}"
+            )
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and not self.pending_actions[1].empty
@@ -465,6 +475,8 @@ class GameMenu(State):
 
         self.handle_events(super().events)
         self.handle_action()
+        self.end_turn_btn.render()
+        self.end_turn_btn.answer()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
