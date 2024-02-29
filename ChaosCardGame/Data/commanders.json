@@ -147,7 +147,7 @@
  "commander":true,
  "cost":0,
  "attacks":[{
-  "name":"a(t) = -w? A cos(wt + (p)"
+  "name":"a(t) = -ω² A cos(ωt + φ)",
   "cost":0,
   "target_mode":"commander",
   "power":6000000,
