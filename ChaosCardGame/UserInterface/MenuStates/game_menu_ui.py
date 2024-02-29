@@ -12,7 +12,7 @@ from UserInterface.event_library import CustomEvents
 from UserInterface.card_handler import BoardManager, DeckManager, HandManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
-
+from SfxEngine.SoundEngine import sound_handle
 
 def slottuple2index(slot: tuple) -> str:
     if len(slot) < 3:  # commander
