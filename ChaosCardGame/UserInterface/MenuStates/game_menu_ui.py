@@ -259,7 +259,7 @@ class GameMenu(State):
             pygame.event.Event(CustomEvents.END_TURN),
             image=MenuButtons.button_assets["Endturn"]["img"],
             position_type="topleft",
-            position=(1100, 600),
+            position=(44, 645),
         )
 
     def handle_events(self, events):
