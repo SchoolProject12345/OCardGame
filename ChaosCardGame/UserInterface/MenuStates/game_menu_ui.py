@@ -485,6 +485,7 @@ class GameMenu(State):
         if handle.get_state()["isactive"]:
             self.end_turn_btn.render()
             self.end_turn_btn.answer()
+            #self.screen.blit(self.turn_badge_image,) 
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
