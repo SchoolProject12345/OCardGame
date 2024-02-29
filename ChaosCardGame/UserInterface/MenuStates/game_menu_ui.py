@@ -254,10 +254,10 @@ class GameMenu(State):
             self.screen, len(self.game_state["local"]["board"])
         )
 
-        self.ready_btn = ImageButton(
+        self.end_turn_btn = ImageButton(
             self.screen,
             pygame.event.Event(CustomEvents.END_TURN),
-            image=MenuButtons.button_assets["Ready"]["img"],
+            image=MenuButtons.button_assets["Endturn"]["img"],
             position_type="topleft",
             position=(1100, 600),
         )
@@ -475,8 +475,8 @@ class GameMenu(State):
 
         self.handle_events(super().events)
         self.handle_action()
-        self.ready_btn.render()
-        self.ready_btn.answer()
+        self.end_turn_btn.render()
+        self.end_turn_btn.answer()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
