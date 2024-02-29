@@ -307,7 +307,7 @@ class GameMenu(State):
                 ):
                     self.pending_actions.append(event)
                 elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK,CustomEvents.ULTIMATE] and not event.empty:
-                     self.pending_actions.append(event)
+                    self.pending_actions.append(event)
                 else:
                     logging.warn("Unsuported event")
 
@@ -482,8 +482,9 @@ class GameMenu(State):
 
         self.handle_events(super().events)
         self.handle_action()
-        self.end_turn_btn.render()
-        self.end_turn_btn.answer()
+        if handle.get_state()["isactive"]:
+            self.end_turn_btn.render()
+            self.end_turn_btn.answer()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
