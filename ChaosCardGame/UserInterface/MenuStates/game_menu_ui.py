@@ -160,12 +160,12 @@ class GameMenu(State):
 
         self.enemy_energy_bar_text = TextBox(
             self.screen,
-            position=(683, 0),
+            position=(721, 26),
             width=76,
-            height=35,
+            height=52,
             font=Fonts.ger_font(30),
             color=(101, 101, 101),
-            position_type="topleft",
+            position_type="center",
             text_center="center",
             text="",
         )
