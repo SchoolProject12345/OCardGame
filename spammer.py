@@ -7,5 +7,5 @@ while True:
     os.system("git push")
     os.system("rm -r spamdir")
     os.system("git add .")
-    os.system("git commit -m 'asdf'")
+    os.system("git commit -m 'fdsa'")
     os.system("git push")
