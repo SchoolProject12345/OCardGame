@@ -545,6 +545,7 @@ class AbstractEffect:
             case "withprobability": return WithProbability.from_json(json)
             case "gainenergy": return EnergyEffect.from_json(json)
             case "addenergy": return EnergyEffect.from_json(json)
+            case "chargecommander": return
             case "energygain": return EnergyEffect.from_json(json)
             case "dot": return DOTEffect.from_json(json)
             case "damageovertime": return DOTEffect.from_json(json)
@@ -1069,6 +1070,25 @@ class EnergyEffect(AbstractEffect):
     def __str__(self):
         # TODO: find prettier way to write this.
         return f"an increase of {self.energy} energy, {self.max_energy} maximum energy & {self.energy_per_turn} per turn"
+
+@dataclass
+class CommanderChargeEffect(AbstractEffect):
+    amount: Numeric
+    player: str
+    def execute(self, **kwargs) -> bool:
+        match self.player:
+            case "foe": player = kwargs["user"].owner.opponent
+            case "ally": player = kwargs["user"].owner
+        amount = self.amount.eval(**kwargs)
+        player.add_charges(amount)
+        return amount != 0
+    def from_json(json: dict):
+        return CommanderChargeEffect(
+            Numeric.from_json(json["amount"]),
+            json.get("player", "ally")
+        )
+    def __str__(self):
+        return f"add {self.amount} charges to {self.player}"
 
 @dataclass
 class SummonEffect(AbstractEffect):
