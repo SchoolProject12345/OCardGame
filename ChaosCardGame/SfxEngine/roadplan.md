@@ -44,3 +44,12 @@ music:
 - [ ]  play music
 - [ ]  lore music(?)
 - [ ]  tutorial music(?)
+- [ ]  
+
+@aurelienlejacot jai besoin:
+le moment precis ou:
+le commander recoit les degats
+le tour commence et une carte est piochee
+une carte meurt
+le commander meurt
+x carte rentre en jeu (specifique, genre si telle carte exacte vient alors faire ca)
