@@ -344,8 +344,7 @@ class GameMenu(State):
             handle.run_action(
                 f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}"
             )
-            sound_handle("hehe", "play", channel=10, loop=False)
-            
+
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
