@@ -5,7 +5,7 @@ feel free to add things, but dont remove or change any.
 basic navigation sounds:
 - [x]   click and release - channel Default (change this)
 - [x]   key presses(space and esc)
-        hand and deck buttons:
+hand and deck buttons:
 - [ ]   draw
 - [ ]   place
 - [ ]   discard
