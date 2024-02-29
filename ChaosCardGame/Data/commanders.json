@@ -138,5 +138,20 @@
    }
   }
  ]
+},
+{
+ "name":"Kevin",
+ "type":"creature",
+ "hp":600,
+ "element":"chaos",
+ "commander":true,
+ "cost":0,
+ "attacks":[{
+  "name":"a(t) = -w? A cos(wt + (p)"
+  "cost":0,
+  "target_mode":"commander",
+  "power":6000000,
+  "tag":"ultimate",
+ }]
 }
 ]
