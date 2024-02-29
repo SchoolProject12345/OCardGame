@@ -17,8 +17,7 @@ class HostMenu(State):
         super().__init__(self.screen, self.is_anchor, self.local_options)
         self.escp_rel = KeyRel(pygame.K_ESCAPE)
 
-        self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["img"].convert_alpha(
-        )
+        self.bg_host_menu_image = MenuBackgrounds.bg_assets["host_menu_empty"]["img"].convert_alpha()
         self.bg_host_menu_rect = self.bg_host_menu_image.get_rect()
 
         # Select Text Boxes

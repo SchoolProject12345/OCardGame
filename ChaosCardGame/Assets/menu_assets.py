@@ -114,6 +114,7 @@ class MenuBackgrounds:
         "cha_lobby_empty",
         "ert_lobby_empty",
         "fire_lobby_empty",
+        "wtr_lobby_empty",
     ]
     bg_lobby_images: list = [
         bg_assets["air_lobby_empty"]["img"],
