@@ -23,6 +23,16 @@ class LobbyMenu(State):
         ].convert_alpha()
         self.bg_lobby_rect = self.bg_lobby_image.get_rect()
 
+        self.player_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
+        self.player_ready_rect = self.player_ready_image.get_rect(topleft=(749,311))
+        self.player_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
+        self.player_unready_rect = self.player_unready_image.get_rect(topleft=(749,311))
+
+        self.enemy_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
+        self.enemy_ready_rect = self.enemy_ready_image.get_rect(topleft=(749,365))
+        self.enemy_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
+        self.enemy_unready_rect = self.enemy_unready_image.get_rect(topleft=(749,365))
+
         self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, Fonts.ger_font(
             40), (255, 255, 255), position_type="topleft", text_center="center", text="")
         self.username_text = TextBox(self.screen, (611, 356), 123, 41, Fonts.ger_font(
@@ -72,12 +82,24 @@ class LobbyMenu(State):
         if self.ready_button.answer() and not handle.ready:
             handle.run_action("ready")
 
+        if handle.ready == True:
+            self.screen.blit(self.player_ready_image, self.player_ready_rect)
+        elif handle.ready == False:
+            self.screen.blit(self.player_unready_image, self.player_unready_rect)
+        
+        if handle.remote_ready == True:
+            self.screen.blit(self.enemy_ready_image, self.enemy_ready_rect)
+        elif handle.remote_ready == False:
+            self.screen.blit(self.enemy_unready_image, self.enemy_unready_rect)
+
         if handle.ready == True and handle.remote_ready == True:
             self.change_state("GameMenu")
+            
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
             if State.state_tree[4] == self.local_options[1]:
+                pygame.time.wait(250)
                 app.menu_instances["game_menu"].state_manager(app)
         elif State.state_tree[3] == self.local_options[0]:
             self.lobby_menu()

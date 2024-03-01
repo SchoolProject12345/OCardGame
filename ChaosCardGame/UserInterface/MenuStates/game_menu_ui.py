@@ -49,12 +49,13 @@ class GameMenu(State):
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
+        self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[min(self.current_arena, 4)].convert_alpha()
+        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
+        
         self.turnbadge_down_image = MenuBackgrounds.bg_assets["turnbadge_down"]["img"].convert_alpha()
         self.turnbadge_down_rect = self.turnbadge_down_image.get_rect(topleft=(17, 0))
         self.turnbadge_up_image = MenuBackgrounds.bg_assets["turnbadge_up"]["img"].convert_alpha()
         self.turnbadge_up_rect = self.turnbadge_up_image.get_rect(topleft=(20, 704))
-        self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[min(self.current_arena, 4)].convert_alpha()
-        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
 
         # Hand
         self.hand_button = ImageButton(
