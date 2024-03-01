@@ -2142,7 +2142,7 @@ class Player:
         return amount # used by effect survey
     @static
     def add_charges(self, amount: int, source: ActiveCard | None = None):
-        if "divine" in source.card.tags:
+        if source is not None and "divine" in source.card.tags:
             return 0  # kortgudomlighet is neutral
         if source is not None and not source.iscommander() and source.element is self.commander.element and amount > 0:
             # I have no idea why I'm using strong_increase and not creating a new setting
