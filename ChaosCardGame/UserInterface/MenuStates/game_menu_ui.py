@@ -339,13 +339,13 @@ class GameMenu(State):
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
 
-            #sound_handle("fire", "play", channel=8)
 
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
             handle.run_action(
                 f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}"
             )
+
         elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
             if (
                 self.game_state[self.pending_actions[0].slot[0]][
