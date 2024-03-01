@@ -86,7 +86,6 @@ class JoinMenu(State):
         self.username_text = self.joinmenu_tb_username.render(keys)
 
         if self.joinmenu_join_button.answer():
-            # IMPLEMENT INVALID USERNAME
             get_settings()["username"] = self.joinmenu_tb_username.text
             get_settings()["is_hosting"] = False
 
@@ -98,6 +97,7 @@ class JoinMenu(State):
             
             self.change_state("LobbyMenu")
         if self.joinmenu_exit_button.answer() or self.escp_key.update(search_event(super().events, pygame.KEYUP)):
+            get_settings()["username"] = self.joinmenu_tb_username.text
             self.revert_state(1)
 
     def state_manager_hook(self, app):

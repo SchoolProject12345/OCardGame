@@ -50,7 +50,7 @@ class HostMenu(State):
             text_center="center",
             default_text="Username"
         )
-        self.hostmenu_tb_username.text = get_setting("username", "")
+        self.hostmenu_tb_username.text = get_setting("username", "User")
 
         # Buttons
         self.hostmenu_host_button = ImageButton(
@@ -88,6 +88,7 @@ class HostMenu(State):
                 host_server, self.hostmenu_tb_username.text, handle.ip_address)
             self.change_state("LobbyMenu")
         if self.hostmenu_exit_button.answer() or self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
+            get_settings()["username"] = self.hostmenu_tb_username.text
             self.revert_state()
 
     def state_manager_hook(self, app):

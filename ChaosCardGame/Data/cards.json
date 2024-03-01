@@ -1615,7 +1615,7 @@
   "attacks": [
    {
     "name": "Serpent Strangle",
-    "cost": 1,
+    "cost": 2,
     "target_mode": "target",
     "power": 0,
     "effect": {
