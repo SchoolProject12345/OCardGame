@@ -64,6 +64,7 @@ def get_settings(settings: dict = {}) -> dict:
         "max_board_size": 6,
         # % decrease of commander damage per minion on its side.
         "per_minion_reduction": 8,
+        "enable_arena_effects":False,
         "username": "",
         "default_power": 3,
         "power_increase": 7,
