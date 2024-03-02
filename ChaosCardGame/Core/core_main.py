@@ -13,6 +13,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     path: str = cwd_path
     progressbar_style: int = clamp(get_setting("progressbar_style", 1), 0, 3)
     # Server settings
+    arena_effects: bool = get_setting("enable_arena_effect", False)
     default_max_energy: int = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn: int = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size: int = max(1, get_setting("hand_size", 5))
@@ -1862,6 +1863,8 @@ class Arena(IntEnum):
     def has_effect(self, other):
         "Return whether self has the same effect Arena effect as other."
         # hardcoded so that chaos always has the effects of all other arenas.
+        if not Constants.arena_effects:
+            return False
         return (self is other) or (self is Arena.chaos)
         # it means if we add Arenas, then chaos has more effects :3
     @property
