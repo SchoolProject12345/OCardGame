@@ -13,7 +13,7 @@ class Constants:  # to change variables quickly, easily and buglessly.
     path: str = cwd_path
     progressbar_style: int = clamp(get_setting("progressbar_style", 1), 0, 3)
     # Server settings
-    arena_effects: bool = get_setting("enable_arena_effect", False)
+    arena_effects: bool = get_setting("enable_arena_effects", False)
     default_max_energy: int = max(1, get_setting("default_max_energy", 4))
     default_energy_per_turn: int = max(1, get_setting("default_energy_per_turn", 3))
     default_hand_size: int = max(1, get_setting("hand_size", 5))
