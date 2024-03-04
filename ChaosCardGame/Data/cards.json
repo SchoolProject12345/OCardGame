@@ -748,7 +748,7 @@
   ]
  },
  {
-  "name": "Magic Scrolls of Himinnsøkva",
+  "name": "Magic Scrolls",
   "element": "air",
   "on_use": {
    "name": "Read",
