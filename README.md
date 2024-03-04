@@ -1,88 +1,34 @@
 # Omy's Card Game
 
-OCardGame is a little chaotic card game coded exhaustively in Python. Inspired by the popular game *Magic The Gathering*, fight powerful monsters through special abilities and level up your card companions!
+OCardGame is a simple but chaotic card game coded exhaustively in Python. Inspired by the popular game _Magic The Gathering_, the game revolves around fighting with powerful fantasy creatures through unique abilities!
 
-## Rules
+## Basic Rules
 
-- Each player start with one commander and a deck of 15 cards, drawing 5 cards from it.
-- During their turn a player may place (costing energy) or discard a card from their hand, attack with their creatures (once per turn per creature costing energy) and use spells (costing energy)
-- At the end of their turn, the player gain energy and draw cards until they have 5 in hand.
-- The backend is extremely modular (see `options.txt`).
+- Each player has a deck of 15 cards, draws 5 to hand on game start.
+- Place cards on the arena to use them, this costs energy
+- Use free default attacks or energy-costing abilities to attack, once per card per turn.
+- You gain energy on each turn end, depending on the nrg/turn and max-nrg values, which can be altered by cards, passives and abilities.
+- Deal damage to charge your commander's ultimate attack
+- Defeat the enemy commander to win the game
 
-## Coding Conventions & Rules
+### For a more detailled explaination, discover our in game tutorial in the main menu.
 
-- All variables, field and function should be in lowercase or snake_case *(e.g. `from_json`, `getordef`)*
-- All constants (variables that are indented not to change, as constants does not exist in Python) should be in UPPERCASE or UPPER_SNAKE_CASE *(e.g. `CARDS`)*
-  - You may want to define some constants using functions to avoid too much performance loss when used at local scope. In this case, name it similarly to how you would name the constant *(e.g. `getCARDS()`, `DEV()`)*
-- All type/class should be in UpperCamelCase *(e.g. `AbstractCard`)*
-- All commit message must be a an exhaustive descirption of the new feature.
-- All commits must incude at least one **finished** new feature.
+## Running the Game
 
-### Libraries
+Before running, make sure requirements are installed, and that you are on the same network as your chosen opponnent.
 
-- Must be specified in the `requirements.txt` file.
-- Must be only used if **truly** necessary.
+Run `main.py` to run the game. Connect to your opponent by hosting a room, and making him join it.
 
-## Play
+You can modify your game experience extensively using `options.txt`
 
-Launch `launcher_dev.py` and follow the instructions to connect with a peer.
-Once connected with another peer (or in localhost), write "help" to get a list of actions.
+## Future Additions
 
-## Initialization (`DEV()`-mode)
-
-The `os.chdir("")` at line 7 must have its argument replaced by the directory in which the file is stored.
-After running the code, two players objects must be initialized, and a board must be initialized from them:
-
-```py
-player1 = Player("Player1's name", getCOMMANDERS()["commandername1"], Player.get_deck()) # third argument can be replaced by any list of 30 AbstractCard objects (from the `getCARDS()` list)
-player1 = Player("Player2's name", getCOMMANDERS()["commandername2"], Player.get_deck()) # an `AIPlayer`, which plays automatically, can be initialized instead.
-board = Board(player1, player2)
-```
-
-## Actions (`DEV()`-mode)
-
-Actions usually do not check whether the player is able to perform the action. The user must do its own error/cheat-handling.
-
-### Drawing
-
-Is automatically done when ending the turn with `board.endturn()`
-
-### Placing
-
-`board.active_player.place(i, j)` where `i` is the index of the card in hand and `j` is the index to place the card on, on the board. Returns `True` if sucessful, `False` otherwise.
-
-### Discarding
-
-`board.active_player.handdiscard(i)` return the `i`th card of the active player's hand after discarding it. There is no error handling, the user must hence ensure to chose a valid index.
-`board.active_player.iddiscard(id)` discard the card with id `id`, which can be acessed through `card.id`. Return `None` if the card doesn't exist in the player's hand.
-
-### Attacks
-
-```py
-board.active_player.active[j1].attack(
-  board.active_player.active[j1].attacks[k]
-  board.unactive_player.active[j2]
-)
-```
-
-With
-
-- `j1`: the index on board of the attacker
-- `k` : the index of the attacker's attack
-- `j2`: the index on board of the target (`unactive_player` can be changed with `active_player` in order to target a card from the same side as the attacker)
-This is really ugly and will probably be changed soon.
-
-### Spells
-
-`board.active_player.hand[i].use(board.unactive_player.active[j])` where `i` is the index in hand of the spell to use and `j` the index on board of its target. The spell is automatically discarded if sucessful.
-
-### Targets
-
-Attacks and spell can use the following targets:
-`board.active_player.active[j]` targets a card owned by the player, at the `j`th index on board.
-`board.active_player.commander` targets the player's commander.
-`board.unactive_player.active[j]` targets a card owned by the player's opponent, at the `j`th index on board.
-`board.unactive_player.commander` targets the player's opponent's commander.
+- Chat
+- AI Opponnents
+- More Cards
+- Better Balancing
+- Commander Equipments
+- In-UI Card Selection
 
 ## Contributors
 
