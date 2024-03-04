@@ -23,15 +23,15 @@ class LobbyMenu(State):
         ].convert_alpha()
         self.bg_lobby_rect = self.bg_lobby_image.get_rect()
 
-        self.player_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
-        self.player_ready_rect = self.player_ready_image.get_rect(topleft=(749,311))
-        self.player_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
-        self.player_unready_rect = self.player_unready_image.get_rect(topleft=(749,311))
+        self.host_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
+        self.host_ready_rect = self.host_ready_image.get_rect(topleft=(749,311))
+        self.host_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
+        self.host_unready_rect = self.host_unready_image.get_rect(topleft=(749,311))
 
-        self.enemy_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
-        self.enemy_ready_rect = self.enemy_ready_image.get_rect(topleft=(749,365))
-        self.enemy_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
-        self.enemy_unready_rect = self.enemy_unready_image.get_rect(topleft=(749,365))
+        self.user_ready_image = MenuBackgrounds.bg_assets["ready"]["img"]
+        self.user_ready_rect = self.user_ready_image.get_rect(topleft=(749,365))
+        self.user_unready_image = MenuBackgrounds.bg_assets["unready"]["img"]
+        self.user_unready_rect = self.user_unready_image.get_rect(topleft=(749,365))
 
         self.hostusername_text = TextBox(self.screen, (611, 301), 123, 41, Fonts.ger_font(
             40), (255, 255, 255), position_type="topleft", text_center="center", text="")
@@ -61,11 +61,11 @@ class LobbyMenu(State):
         self.screen.blit(self.bg_lobby_image, self.bg_lobby_rect)
 
         if self.local_is_hosting == True:
-            self.hostusername_text_content = get_setting("username", "Bro.u.forgot.name")
+            self.hostusername_text_content = get_setting("username", "User")
             self.username_text_content = handle.get_state()["remote"]["name"]
         else:
             self.hostusername_text_content = handle.get_state()["remote"]["name"]
-            self.username_text_content = get_setting("username", "Bro.u.forgot.name")
+            self.username_text_content = get_setting("username", "User")
 
         if self.local_is_hosting:
             self.hostusername_text.render(self.hostusername_text_content)
@@ -82,24 +82,24 @@ class LobbyMenu(State):
         if self.ready_button.answer() and not handle.ready:
             handle.run_action("ready")
 
-        if handle.ready == True:
-            self.screen.blit(self.player_ready_image, self.player_ready_rect)
-        elif handle.ready == False:
-            self.screen.blit(self.player_unready_image, self.player_unready_rect)
-        
-        if handle.remote_ready == True:
-            self.screen.blit(self.enemy_ready_image, self.enemy_ready_rect)
-        elif handle.remote_ready == False:
-            self.screen.blit(self.enemy_unready_image, self.enemy_unready_rect)
-
+        if self.local_is_hosting:
+            if handle.ready:
+                self.screen.blit(self.host_ready_image, self.host_ready_rect)
+            else:
+                self.screen.blit(self.host_unready_image, self.host_unready_rect)
+        else:
+            if handle.remote_ready:
+                self.screen.blit(self.user_ready_image, self.user_ready_rect)
+            else:
+                self.screen.blit(self.user_unready_image, self.user_unready_rect)
+            
         if handle.ready == True and handle.remote_ready == True:
-            self.change_state("GameMenu")
+                self.change_state("GameMenu")
             
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
             if State.state_tree[4] == self.local_options[1]:
-                pygame.time.wait(250)
                 app.menu_instances["game_menu"].state_manager(app)
         elif State.state_tree[3] == self.local_options[0]:
             self.lobby_menu()
