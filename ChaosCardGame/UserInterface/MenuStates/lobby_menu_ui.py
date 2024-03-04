@@ -83,26 +83,26 @@ class LobbyMenu(State):
             handle.run_action("ready")
 
         if self.local_is_hosting == True:
-            print(f"Local : {handle.ready}")
-            print(f"Remote : {handle.remote_ready}")
             if handle.ready == True:
-                print("blitted host unready")
                 self.screen.blit(self.host_ready_image, self.host_ready_rect)
             elif handle.ready == False:
-                print("blitted host ready")
                 self.screen.blit(self.host_unready_image, self.host_unready_rect)
-        elif self.local_is_hosting == False:
             if handle.remote_ready == True:
-                print("blitted user ready")
                 self.screen.blit(self.user_ready_image, self.user_ready_rect)
             elif handle.remote_ready == False:
-                print("blitted user unready")
+                self.screen.blit(self.user_unready_image, self.user_unready_rect)
+        elif self.local_is_hosting == False:
+            if handle.remote_ready == True:
+                self.screen.blit(self.host_ready_image, self.host_ready_rect)
+            elif handle.remote_ready == False:
+                self.screen.blit(self.host_unready_image, self.host_unready_rect)
+            if handle.ready == True:
+                self.screen.blit(self.user_ready_image, self.user_ready_rect)
+            elif handle.ready == False:
                 self.screen.blit(self.user_unready_image, self.user_unready_rect)
             
         if handle.ready == True and handle.remote_ready == True:
                 self.change_state("GameMenu")
-        
-        print("\n")
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 5:
