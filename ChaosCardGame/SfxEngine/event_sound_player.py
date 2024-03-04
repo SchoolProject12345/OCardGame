@@ -6,6 +6,7 @@ from SfxEngine.SoundEngine import sound_handle
 def log_dash_formechange(head, _, forme:str, *args, **kwargs):
     if cleanstr(forme) == "bobthegoldfish":
         sound_handle("spelluse", "play", channel=10)
+    
 handle.add_log_player(log_dash_formechange)
 
 
