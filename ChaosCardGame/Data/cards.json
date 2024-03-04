@@ -646,6 +646,24 @@
   "type": "creature"
  },
  {
+  "name": "Terry Davis",
+  "element": "chaos",
+  "cost": 3,
+  "hp": 200,
+  "tags": [
+   "secret"
+  ],
+  "type": "creature",
+  "attacks": [
+   {
+    "name": "Temple OS' Choice",
+    "cost": 1,
+    "target_mode": 0,
+    "power": 65535
+   }
+  ]
+ },
+ {
   "name": "Explosive Fireball",
   "element": "fire",
   "on_use": {
