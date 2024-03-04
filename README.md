@@ -17,7 +17,7 @@ OCardGame is a simple but chaotic card game coded exhaustively in Python. Inspir
 
 Before running, make sure requirements are installed, and that you are on the same network as your chosen opponnent.
 
-Run `main.py` to run the game. Connect to your opponent by hosting a room, and making him join it.
+Run `launcher.py` to run the game. Connect to your opponent by hosting a room, and making him join it.
 
 You can modify your game experience extensively using `options.txt`
 
