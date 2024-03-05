@@ -516,10 +516,12 @@ def player_index(index: str):
 
 def stringclr(string: str):
     "Used for username color in chat."
-    t = sum([ord(c) for c in string])
-    r = t % 255
-    g = 2*t % 255
-    b = 7*t % 255
+    # 0xffffff and 56747 are coprime, so all 0x100000 different are possible
+    t = sum(ord(c) for c in string) * 56747
+    t =  t & 0xffffff
+    r = (t & 0xff0000) >> 16
+    g = (t & 0x00ff00) >> 8
+    b =  t & 0x0000ff
     return f"\033[38;2;{r};{g};{b}m"
 
 @static
