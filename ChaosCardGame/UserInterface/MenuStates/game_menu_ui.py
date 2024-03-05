@@ -375,15 +375,18 @@ class GameMenu(State):
             ):
                 delta += 1
             handle.run_action(
-                f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2]-delta}"
+                f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2] - delta}"
             )
         elif (
             self.pending_actions[0].type == CustomEvents.PLACE_CARD
             and not self.pending_actions[1].empty
         ):
-            logging.warn(
-                f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
+            handle.run_action(
+                f"spell|{self.pending_actions[0].hand_index}|{slottuple2index(self.pending_actions[1].slot)}"
             )
+            #logging.warn(
+            #    f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
+            #)
 
         pygame.event.post(
             pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
