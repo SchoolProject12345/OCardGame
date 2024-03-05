@@ -475,6 +475,7 @@ class GameMenu(State):
             ):
                 self.is_paused_toggle()
             elif self.surrender_button.answer():
+                handle.run_action("forfeit")
                 self.is_paused_toggle()
                 self.revert_state(2)
         if self.ui_state["selecting"]:
