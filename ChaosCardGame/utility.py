@@ -55,7 +55,7 @@ def get_settings(settings: dict = {}) -> dict:
         "progressbar_style": 1,
         "strong_percent_increase": 20,  # can be negative to revert type matchup
         "passive_heal": 10,
-        "passive_commander_heal": 20,
+        "passive_commander_heal": 0,
         "dev_mode": True,
         "mute": False,
         "mute_sfx": False,
