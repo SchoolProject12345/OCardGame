@@ -5,11 +5,13 @@ OCardGame is a simple but chaotic card game coded exhaustively in Python. Inspir
 ## Basic Rules
 
 - Each player has a deck of 15 cards, draws 5 to hand on game start.
-- Place cards on the arena to use them, this costs energy
+- Place cards on the arena to use them, this costs energy.
 - Use free default attacks or energy-costing abilities to attack, once per card per turn.
-- You gain energy on each turn end, depending on the nrg/turn and max-nrg values, which can be altered by cards, passives and abilities.
-- Deal damage to charge your commander's ultimate attack
-- Defeat the enemy commander to win the game
+- You gain energy on each turn end, depending on the energy/turn and maximum energy values, which can be altered by cards, passives and abilities.
+- You also draw until you have 5 cards in hand on each turn end.
+- Deal damage to charge your commander's ultimate attack.
+- Defeat the enemy commander to win the game.
+- You can modify your game experience extensively using `options.txt`.
 
 ### For a more detailled explaination, discover our in game tutorial in the main menu.
 
@@ -17,9 +19,7 @@ OCardGame is a simple but chaotic card game coded exhaustively in Python. Inspir
 
 Before running, make sure requirements are installed, and that you are on the same network as your chosen opponnent.
 
-Run `launcher.py` to run the game. Connect to your opponent by hosting a room, and making him join it.
-
-You can modify your game experience extensively using `options.txt`
+Run `launcher.py` to run the game. Connect to your opponent by hosting a room, and making them join it after giving them your IP-address.
 
 ## Future Additions
 
