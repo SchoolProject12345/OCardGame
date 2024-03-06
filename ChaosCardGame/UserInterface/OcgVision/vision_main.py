@@ -46,8 +46,9 @@ class State:
         Checks state ownership and runs the state_manager_hook.
 
     """
-    # state_tree = ["MainMenu","PlayMenu","HostMenu","LobbyMenu","GameMenu"]
-    state_tree = ["MainMenu"]
+
+    state_tree = ["MainMenu", "PlayMenu", "HostMenu", "LobbyMenu", "GameMenu"]
+    # state_tree = ["MainMenu"]
     events = []
 
     def __init__(
@@ -159,11 +160,17 @@ class ImageButton:
         elif self.state == self.all_states[2]:
             self.screen.blit(self.button_image[2], self.button_rect)
 
-        if self.state == self.all_states[2] and self.previous_state == self.all_states[1]:
+        if (
+            self.state == self.all_states[2]
+            and self.previous_state == self.all_states[1]
+        ):
             # On click sound handler
             sound_handle("ClickSound1-2", "play", 40, channel=3)
 
-        if self.state == self.all_states[1] and self.previous_state == self.all_states[2]:
+        if (
+            self.state == self.all_states[1]
+            and self.previous_state == self.all_states[2]
+        ):
             # On click sound handler
             sound_handle("ClickSound2-1", "play", 40, channel=3)
 
@@ -182,7 +189,7 @@ class ImageButton:
         else:
             self.state = self.all_states[0]
 
-    def answer(self,active=True) -> any:
+    def answer(self, active=True) -> any:
         """
         Checks if the mouse is clicked on the button i.e button is in click state
         and if so execute the callback function or return the callback object.
@@ -259,8 +266,7 @@ class ImageToggle:
 
         # Core Attributes for toggled state
         self.toggle_image_T = kwargs.get("toggle_image_T", self.all_image[3:6])
-        self.position_type_T = kwargs.get(
-            "position_type_T", self.position_type)
+        self.position_type_T = kwargs.get("position_type_T", self.position_type)
         self.position_T = kwargs.get("position_T", self.position)
 
         # Image processing
@@ -372,21 +378,23 @@ class ToggleGridFour:
         initial_pos: tuple[int, int],
         factor: float = 1.0,
         factor_T: float = 1.0,
-        start: int = 0
+        start: int = 0,
     ):
         self.mother_surface = mother_surface
         self.width = grid_width
         self.height = grid_height
         self.all_images = [
-            (smoothscale_converter(image[0:3], factor) +
-             smoothscale_converter(image[3:], factor_T))
-             for image in images[start:start+4]
+            (
+                smoothscale_converter(image[0:3], factor)
+                + smoothscale_converter(image[3:], factor_T)
+            )
+            for image in images[start : start + 4]
         ]
-        #self.all_images = [
+        # self.all_images = [
         #    ([pygame.transform.smoothscale_by(image1, factor)] * 3 +
         #     [pygame.transform.smoothscale_by(image2, factor_T)] * 3)
         #    for image1, image2 in images
-        #][start:start+4]
+        # ][start:start+4]
         self.toggles = []
 
         self.card_width = self.all_images[0][0].get_width()
@@ -413,9 +421,9 @@ class ToggleGridFour:
         ]
         self.positions_T = [
             self.initial_pos,
-            (self.top_right[0]+33, self.top_right[1]),
+            (self.top_right[0] + 33, self.top_right[1]),
             self.bottom_left,
-            (self.bottom_right[0]+33, self.bottom_left[1])
+            (self.bottom_right[0] + 33, self.bottom_left[1]),
         ]
         for index, image in enumerate(self.all_images):
             self.toggles.append(
@@ -425,7 +433,7 @@ class ToggleGridFour:
                     image=image,
                     position_type=self.positions[index][0],
                     position=self.positions[index][1],
-                    position_T=self.positions_T[index]
+                    position_T=self.positions_T[index],
                 )
             )
         self.priority: list[ImageToggle] = []
@@ -480,7 +488,7 @@ class DualBar:
         color_fg: pygame.Color | tuple,
         max_value: int,
         rotation: int = 0,
-        ** kwargs,
+        **kwargs,
     ) -> None:
         self.screen = screen
         self.position = position
@@ -494,22 +502,24 @@ class DualBar:
         self.health = self.max_value
         self.rotation = rotation
 
-    def update(self, health: int) -> None:
+    def update(self, health: int, max_value: int = None) -> None:
+
+        if max_value:
+            self.max_value = max_value
         self.health = health
         self.health_percent = self.health / self.max_value
         self.health_height = int(self.health_percent * self.height)
 
-    def render(self, health: int, rotate: bool = False):
+    def render(self, health: int, max_value: int = None):
         """Renders and maintains the bar, optionally rotated by 180 degrees.
 
         Args:
             health (int): The current health of the bar.
             rotate (bool, optional): Whether to rotate the bar by 180 degrees. Defaults to False.
         """
-        self.update(health)
+        self.update(health, max_value)
 
-        temp_surface = pygame.Surface(
-            (self.width, self.height), pygame.SRCALPHA)
+        temp_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
         pygame.draw.rect(
             temp_surface,
@@ -521,7 +531,7 @@ class DualBar:
         pygame.draw.rect(
             temp_surface,
             self.color_fg,
-            (0, self.height-self.health_height, self.width, self.health_height),
+            (0, self.height - self.health_height, self.width, self.health_height),
             border_radius=self.border_radius,
         )
 
@@ -530,16 +540,20 @@ class DualBar:
 
 
 class SelectTextBox:
-    def __init__(self, screen: pygame.Surface,
-                 position: tuple,
-                 width: int, height: int,
-                 font: pygame.font.Font,
-                 default_color: tuple,
-                 color: tuple,
-                 position_type: str = "topleft",
-                 text_center="left",
-                 border_width=-1,
-                 default_text=""):
+    def __init__(
+        self,
+        screen: pygame.Surface,
+        position: tuple,
+        width: int,
+        height: int,
+        font: pygame.font.Font,
+        default_color: tuple,
+        color: tuple,
+        position_type: str = "topleft",
+        text_center="left",
+        border_width=-1,
+        default_text="",
+    ):
         self.screen = screen
         self.position = position
         self.width = width
@@ -554,27 +568,42 @@ class SelectTextBox:
 
         self.text = self.default_text
         self.active = False
-        self.input_rect = pygame.Rect(coord_converter(
-            self.position_type, self.position, self.width, self.height), (self.width, self.height))
+        self.input_rect = pygame.Rect(
+            coord_converter(self.position_type, self.position, self.width, self.height),
+            (self.width, self.height),
+        )
 
     def calc_left(self):
         self.text_rect = self.text_surf.get_rect(
-            midleft=(self.input_rect.x, self.input_rect.y+(self.height//2)))
+            midleft=(self.input_rect.x, self.input_rect.y + (self.height // 2))
+        )
 
     def calc_center(self):
         self.text_rect = self.text_surf.get_rect(
-            center=(self.input_rect.x+(self.width//2), self.input_rect.y+(self.height//2)))
+            center=(
+                self.input_rect.x + (self.width // 2),
+                self.input_rect.y + (self.height // 2),
+            )
+        )
 
     def calc_right(self):
         self.text_rect = self.text_surf.get_rect(
-            midright=(self.input_rect.x+self.width,
-                      self.input_rect.y+(self.height//2))
+            midright=(
+                self.input_rect.x + self.width,
+                self.input_rect.y + (self.height // 2),
+            )
         )
 
     def update(self, key_events):
-        if self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+        if (
+            self.input_rect.collidepoint(pygame.mouse.get_pos())
+            and pygame.mouse.get_pressed()[0]
+        ):
             self.active = True
-        elif not self.input_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+        elif (
+            not self.input_rect.collidepoint(pygame.mouse.get_pos())
+            and pygame.mouse.get_pressed()[0]
+        ):
             self.active = False
         if self.active:
             for event in key_events:
@@ -601,28 +630,36 @@ class SelectTextBox:
         self.update(key_events)
 
         # Rendering
-        pygame.draw.rect(self.screen, (255, 255, 255),
-                         self.input_rect, width=self.border_width)
+        pygame.draw.rect(
+            self.screen, (255, 255, 255), self.input_rect, width=self.border_width
+        )
         self.text_surf = self.font.render(self.text, True, self.active_color)
         match self.text_center:
-            case "left": self.calc_left()
-            case "center": self.calc_center()
-            case "right": self.calc_right()
-            case _: raise ValueError(f"Wrong argument {self.text_center}")
-        self.screen.blit(
-            self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
+            case "left":
+                self.calc_left()
+            case "center":
+                self.calc_center()
+            case "right":
+                self.calc_right()
+            case _:
+                raise ValueError(f"Wrong argument {self.text_center}")
+        self.screen.blit(self.text_surf, (self.text_rect.x + 4, self.text_rect.y))
         return self.text
 
 
 class TextBox:
-    def __init__(self, screen: pygame.surface.Surface,
-                 position: tuple,
-                 width: int, height: int,
-                 font: pygame.font.Font,
-                 color: tuple,
-                 position_type: str = "topleft",
-                 text_center: str = "left",
-                 text: str = ""):
+    def __init__(
+        self,
+        screen: pygame.surface.Surface,
+        position: tuple,
+        width: int,
+        height: int,
+        font: pygame.font.Font,
+        color: tuple,
+        position_type: str = "topleft",
+        text_center: str = "left",
+        text: str = "",
+    ):
         self.screen = screen
         self.position = position
         self.width = width
@@ -633,21 +670,30 @@ class TextBox:
         self.text_center = text_center
         self.text = text
 
-        self.input_rect = pygame.Rect(coord_converter(
-            self.position_type, self.position, self.width, self.height), (self.width, self.height))
+        self.input_rect = pygame.Rect(
+            coord_converter(self.position_type, self.position, self.width, self.height),
+            (self.width, self.height),
+        )
 
     def calc_left(self):
         self.text_rect = self.text_surface.get_rect(
-            midleft=(self.input_rect.x, self.input_rect.y+(self.height//2)))
+            midleft=(self.input_rect.x, self.input_rect.y + (self.height // 2))
+        )
 
     def calc_center(self):
         self.text_rect = self.text_surface.get_rect(
-            center=(self.input_rect.x+(self.width//2), self.input_rect.y+(self.height//2)))
+            center=(
+                self.input_rect.x + (self.width // 2),
+                self.input_rect.y + (self.height // 2),
+            )
+        )
 
     def calc_right(self):
         self.text_rect = self.text_surface.get_rect(
-            midright=(self.input_rect.x+self.width,
-                      self.input_rect.y+(self.height//2))
+            midright=(
+                self.input_rect.x + self.width,
+                self.input_rect.y + (self.height // 2),
+            )
         )
 
     def render(self, new_text: str = None):
@@ -655,10 +701,15 @@ class TextBox:
             self.text = new_text
         self.text_surface = self.font.render(self.text, True, self.color)
         self.text_rect = self.text_surface.get_rect(
-            **{self.position_type: self.position})
+            **{self.position_type: self.position}
+        )
         match self.text_center:
-            case "left": self.calc_left()
-            case "center": self.calc_center()
-            case "right": self.calc_right()
-            case _: raise ValueError(f"Wrong argument {self.text_center}")
+            case "left":
+                self.calc_left()
+            case "center":
+                self.calc_center()
+            case "right":
+                self.calc_right()
+            case _:
+                raise ValueError(f"Wrong argument {self.text_center}")
         self.screen.blit(self.text_surface, self.text_rect)
