@@ -323,6 +323,9 @@ class GameMenu(State):
                 handle.run_action(f"discard|{event.hand_index}")
             if event.type == CustomEvents.END_TURN:
                 handle.run_action("endturn")
+                if core.thereisawinner:
+                    self.screen.blit(self.bg_win_menu_image,
+                                     self.bg_win_menu_rect)
                 print("Ended turn")
 
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
@@ -535,8 +538,6 @@ class GameMenu(State):
         else:
             self.screen.blit(self.turnbadge_down_image,
                              self.turnbadge_down_rect)
-        if core.thereisawinner:
-            self.screen.blit(self.bg_win_menu_image, self.bg_win_menu_rect)
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
