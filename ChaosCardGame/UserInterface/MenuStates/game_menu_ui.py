@@ -416,6 +416,12 @@ class GameMenu(State):
         except Exception:
             return False
 
+    def exit_when_over(self, player: str, player_name: str, **kwargs):
+        # has_won = player == "p1" if handle.isp1() else player == "p2"
+        # You might want to implement a win menu or something.
+        self.ui_state["paused"] = False
+        self.revert_state(2)
+
     # Toggle State
     def is_paused_toggle(self):
         self.ui_state["paused"] = not self.ui_state["paused"]
