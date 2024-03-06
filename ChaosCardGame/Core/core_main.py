@@ -2731,6 +2731,7 @@ class Board:
         self.turn += 1
         self.log(f"turn|{self.turn}")
         if ret[4] is not None:
+            thereisawinner = True
             self.log(f"win|{ret[4].namecode()}|{ret[4].name}")
         # Check for softlock to avoid it.
         if self.player1.is_softlock() or self.player2.is_softlock():
