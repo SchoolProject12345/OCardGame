@@ -28,7 +28,6 @@ class ReplayHandler:
         self.ongoing = True
         self.state["pov"] = ("p1" if self.isp1() else "p2")  # for inheritance
     @classmethod
-    @static
     def add_log_player(self, player: core.Callable[[str, tuple[str, ...], dict[str, str]], None], /, head: str | list[str] = ""):
         """
         Add log player to *all* handlers. A log player mustn't mutate the game state, this is automatically done.
