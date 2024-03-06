@@ -448,10 +448,12 @@ class GameMenu(State):
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
         self.player_username_text.render(self.game_state["local"]["name"])
         self.enemy_username_text.render(self.game_state["remote"]["name"])
-        self.player_health_bar.render(self.game_state["local"]["commander"]["hp"])
-        self.player_energy_bar.render(self.game_state["local"]["energy"])
-        self.enemy_health_bar.render(self.game_state["remote"]["commander"]["hp"])
-        self.enemy_energy_bar.render(self.game_state["remote"]["energy"])
+        
+        self.player_health_bar.render(self.game_state["local"]["commander"]["hp"],self.game_state["local"]["commander"]["max_hp"])
+        self.player_energy_bar.render(self.game_state["local"]["energy"],self.game_state["local"]["max_energy"])
+        self.enemy_health_bar.render(self.game_state["remote"]["commander"]["hp"],self.game_state["remote"]["commander"]["max_hp"])
+        self.enemy_energy_bar.render(self.game_state["remote"]["energy"],self.game_state["remote"]["max_energy"])
+        
         self.player_energy_bar_text.render(str(self.game_state["local"]["energy"]))
         self.enemy_energy_bar_text.render(str(self.game_state["remote"]["energy"]))
         self.player_health_bar_text.render(str(self.game_state["local"]["commander"]["hp"]))
