@@ -4,6 +4,7 @@ import sys
 import logging
 import pygame
 import os
+from Core.replay import ReplayHandler # implement log players
 from UserInterface.ui_settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from UserInterface.OcgVision.vision_main import State
 from UserInterface.MenuStates.play_menu_ui import PlayMenu
@@ -59,6 +60,11 @@ class OcgGame:
             'lobby_menu': LobbyMenu(self.screen),
             'game_menu': GameMenu(self.screen)
         }
+        # needs the Menu to bound the methods
+        ReplayHandler.add_log_player(
+            self.menu_instances["game_menu"].exit_when_over,
+            head = "win"
+        )
 
     def start(self):
         """
