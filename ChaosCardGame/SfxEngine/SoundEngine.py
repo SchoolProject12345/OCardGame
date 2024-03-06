@@ -3,9 +3,13 @@ from operator import is_
 from pygame import mixer
 import os
 from utility import cwd_path, get_setting, get_settings, static
+from bleach import clean
+from Core.core_main import cleanstr
+from Network.server import HandlerHandler as handle
+from Core.replay import ReplayHandler
 
+mixer.init()
 
-@static
 def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume: int = 100, channel: int = 5, loop: bool = False, is_muted: bool = False):
     # à terminer
     """Erda's basic pygame sound engine, lets you handle sounds, music, effects etc...
@@ -46,7 +50,7 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
                     get_settings()["volume"] = int(sfxchannel.get_volume()*100)
 
         music_channels = [2]
-        sfx_channels = [3,8]
+        sfx_channels = [3,8,11]
         speech_channels = [7]
         # ajouter par la suite tous les channels avec le so et les vruits, pour regrouper les truks a mute.
         # faut test
@@ -56,17 +60,3 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
     # PAS TOUCHER AUX FONCTIONNEMENTS DES CHANNELS POUR LINSTANT CYKA
 
 
-# from bleach import clean
-# from Core.core_main import cleanstr
-# from Network.server import HandlerHandler as handle
-# from SfxEngine.SoundEngine import sound_handle
-
-
-# def log_dash_formechange(head, _, forme:str, *args, **kwargs):
-#     if cleanstr(forme) == "bobthegoldfish":
-#         sound_handle("spelluse", "play", channel=10)
-    
-# handle.add_log_player(log_dash_formechange)
-
-
-# # idk how this work or if it does work
