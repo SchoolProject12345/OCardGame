@@ -2212,7 +2212,7 @@ class Player:
             return False
         if self.active[j] is not None:
             return False
-        if isinstance(self.hand[i], SpellCard):
+        if not isinstance(self.hand[i], CreatureCard):
             return False
         if self.energy < self.hand[i].cost:
             return False
