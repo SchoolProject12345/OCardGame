@@ -2710,9 +2710,11 @@ class Board:
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
             thereisawinner = True
+            print("WINNER WINNER WINNER?")
             return self.active_player
         if self.active_player.haslost():
             thereisawinner = True
+            print("WINNER WINNER WINNER?")
             return self.unactive_player
         thereisawinner = False
         return None
@@ -2731,6 +2733,7 @@ class Board:
         self.turn += 1
         self.log(f"turn|{self.turn}")
         if ret[4] is not None:
+            print("WINNER WINNER WINNER?")
             thereisawinner = True
             self.log(f"win|{ret[4].namecode()}|{ret[4].name}")
         # Check for softlock to avoid it.
