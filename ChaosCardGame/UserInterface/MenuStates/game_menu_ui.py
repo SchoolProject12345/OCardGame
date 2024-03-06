@@ -13,6 +13,7 @@ from UserInterface.card_handler import BoardManager, DeckManager, HandManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
 from SfxEngine.SoundEngine import sound_handle
+from Core.replay import ReplayHandler
 
 def slottuple2index(slot: tuple) -> str:
     if len(slot) < 3:  # commander
@@ -46,6 +47,8 @@ class GameMenu(State):
             "selecting": False,
         }
         self.pending_actions = []
+        
+
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
@@ -264,6 +267,8 @@ class GameMenu(State):
             position_type="topleft",
             position=(44, 645),
         )
+        
+
 
     def handle_events(self, events):
         for event in events:
@@ -506,3 +511,4 @@ class GameMenu(State):
             raise ValueError("Bro what?")
         elif State.state_tree[4] == self.local_options[0]:
             self.game_menu()
+        
