@@ -170,6 +170,8 @@ class ServerHandler(ReplayHandler):
     def isp1(self) -> bool: return True
     @static
     def run_action(self, action: str) -> bool:
+        if self.closed:
+            return False
         args = action.split('|')
         head = args[0]
         if head == "ready":
@@ -335,6 +337,8 @@ class ClientHandler(ReplayHandler):
     @static
     def run_action(self, action: str):
         "Request server to run action, returning `True` if sucessfully sent and `False` if clientside check failed."
+        if self.closed:
+            return False
         args = action.split('|')
         head = args[0]
         if head == "ready":
