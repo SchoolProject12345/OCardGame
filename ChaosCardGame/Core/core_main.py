@@ -2708,6 +2708,7 @@ class Board:
             self.active_player.auto_play(self)
 
     def getwinner(self) -> Player | None:
+        global thereisawinner
         if self.unactive_player.haslost():
             thereisawinner = True
             print("WINNER WINNER WINNER?")

@@ -324,6 +324,7 @@ class GameMenu(State):
             if event.type == CustomEvents.END_TURN:
                 handle.run_action("endturn")
                 if core.thereisawinner:
+
                     self.screen.blit(self.bg_win_menu_image,
                                      self.bg_win_menu_rect)
                 print("Ended turn")
@@ -544,3 +545,4 @@ class GameMenu(State):
             raise ValueError("Bro what?")
         elif State.state_tree[4] == self.local_options[0]:
             self.game_menu()
+            
