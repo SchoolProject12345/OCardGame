@@ -536,7 +536,7 @@ class GameMenu(State):
             self.screen.blit(self.turnbadge_down_image,
                              self.turnbadge_down_rect)
         if core.thereisawinner:
-            self.bg_win_menu_rect.render()
+            self.screen.blit(self.bg_win_menu_image, self.bg_win_menu_rect)
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
