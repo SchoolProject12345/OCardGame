@@ -13,6 +13,8 @@ from UserInterface.card_handler import BoardManager, DeckManager, HandManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
 from SfxEngine.SoundEngine import sound_handle
+import Core.core_main as core
+
 
 def slottuple2index(slot: tuple) -> str:
     if len(slot) < 3:  # commander
@@ -49,13 +51,19 @@ class GameMenu(State):
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
-        self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[min(self.current_arena, 4)].convert_alpha()
-        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
-        
-        self.turnbadge_down_image = MenuBackgrounds.bg_assets["turnbadge_down"]["img"].convert_alpha()
-        self.turnbadge_down_rect = self.turnbadge_down_image.get_rect(topleft=(17, 0))
-        self.turnbadge_up_image = MenuBackgrounds.bg_assets["turnbadge_up"]["img"].convert_alpha()
-        self.turnbadge_up_rect = self.turnbadge_up_image.get_rect(topleft=(20, 704))
+        self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[min(
+            self.current_arena, 4)].convert_alpha()
+        self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
+            topleft=(0, 0))
+
+        self.turnbadge_down_image = MenuBackgrounds.bg_assets["turnbadge_down"]["img"].convert_alpha(
+        )
+        self.turnbadge_down_rect = self.turnbadge_down_image.get_rect(
+            topleft=(17, 0))
+        self.turnbadge_up_image = MenuBackgrounds.bg_assets["turnbadge_up"]["img"].convert_alpha(
+        )
+        self.turnbadge_up_rect = self.turnbadge_up_image.get_rect(
+            topleft=(20, 704))
 
         # Hand
         self.hand_button = ImageButton(
@@ -191,7 +199,7 @@ class GameMenu(State):
             width=76,
             height=35,
             font=Fonts.ger_font(30),
-            color=(255,255,255),
+            color=(255, 255, 255),
             position_type="topleft",
             text_center="center",
             text="",
@@ -228,7 +236,8 @@ class GameMenu(State):
         self.settings_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Settings"]["img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["Settings"]["img"]),
             position_type="center",
             position=(SCREEN_CENTER[0], 392),
         )
@@ -236,7 +245,8 @@ class GameMenu(State):
         self.surrender_button = ImageButton(
             self.screen,
             True,
-            image=alpha_converter(MenuButtons.button_assets["Surrender"]["img"]),
+            image=alpha_converter(
+                MenuButtons.button_assets["Surrender"]["img"]),
             postion_type="center",
             position=(SCREEN_CENTER[0], 490),
         )
@@ -245,13 +255,22 @@ class GameMenu(State):
         self.bg_deck_menu_image = MenuBackgrounds.bg_assets["deck_menu_empty"][
             "img"
         ].convert_alpha()
-        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(center=SCREEN_CENTER)
+        self.bg_deck_menu_rect = self.bg_deck_menu_image.get_rect(
+            center=SCREEN_CENTER)
+
+        # added really shitty win popup
+        self.bg_win_menu_image = MenuBackgrounds.bg_assets["win_popup_empty"][
+            "img"
+        ].convert_alpha()
+        self.bg_win_menu_rect = self.bg_win_menu_image.get_rect(
+            center=SCREEN_CENTER)
 
         # Hand Menu
         self.bg_hand_menu_image = MenuBackgrounds.bg_assets["hand_menu_empty"][
             "img"
         ].convert_alpha()
-        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(center=SCREEN_CENTER)
+        self.bg_hand_menu_rect = self.bg_hand_menu_image.get_rect(
+            center=SCREEN_CENTER)
 
         self.card_manager = BoardManager(
             self.screen, len(self.game_state["local"]["board"])
@@ -274,25 +293,29 @@ class GameMenu(State):
             if event.type == CustomEvents.CARD_ATTACK:
                 self.pending_actions.extend([event])
                 pygame.event.post(
-                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                    pygame.event.Event(CustomEvents.UI_STATE, {
+                                       "selecting": True})
                 )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.DEF_ATTACK:
                 self.pending_actions.extend([event])
                 pygame.event.post(
-                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                    pygame.event.Event(CustomEvents.UI_STATE, {
+                                       "selecting": True})
                 )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.ULTIMATE:
                 self.pending_actions.extend([event])
                 pygame.event.post(
-                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                    pygame.event.Event(CustomEvents.UI_STATE, {
+                                       "selecting": True})
                 )
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.PLACE_CARD:
                 self.pending_actions.extend([event])
                 pygame.event.post(
-                    pygame.event.Event(CustomEvents.UI_STATE, {"selecting": True})
+                    pygame.event.Event(CustomEvents.UI_STATE, {
+                                       "selecting": True})
                 )
                 self.is_handed_toggle()
             if event.type == CustomEvents.DISCARD_CARD:
@@ -309,7 +332,7 @@ class GameMenu(State):
                     and "local" in event.slot
                 ):
                     self.pending_actions.append(event)
-                elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK,CustomEvents.ULTIMATE] and not event.empty:
+                elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK, CustomEvents.ULTIMATE] and not event.empty:
                     self.pending_actions.append(event)
                 else:
                     logging.warn("Unsuported event")
@@ -331,12 +354,12 @@ class GameMenu(State):
                     f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}"
                 )
             else:
-                handle.run_action(f"attack|ally@|0|{slottuple2index(target_slot)}")
+                handle.run_action(
+                    f"attack|ally@|0|{slottuple2index(target_slot)}")
         elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
-
 
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
@@ -384,9 +407,9 @@ class GameMenu(State):
             handle.run_action(
                 f"spell|{self.pending_actions[0].hand_index}|{slottuple2index(self.pending_actions[1].slot)}"
             )
-            #logging.warn(
+            # logging.warn(
             #    f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
-            #)
+            # )
 
         pygame.event.post(
             pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
@@ -442,23 +465,33 @@ class GameMenu(State):
             self.bg_game_menu_image = MenuBackgrounds.bg_menu_images[
                 min(self.current_arena, 4)
             ].convert_alpha()
-            self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(topleft=(0, 0))
+            self.bg_game_menu_rect = self.bg_game_menu_image.get_rect(
+                topleft=(0, 0))
 
         # Background elements
         self.screen.blit(self.bg_game_menu_image, self.bg_game_menu_rect)
         self.player_username_text.render(self.game_state["local"]["name"])
         self.enemy_username_text.render(self.game_state["remote"]["name"])
-        
-        self.player_health_bar.render(self.game_state["local"]["commander"]["hp"],self.game_state["local"]["commander"]["max_hp"])
-        self.player_energy_bar.render(self.game_state["local"]["energy"],self.game_state["local"]["max_energy"])
-        self.enemy_health_bar.render(self.game_state["remote"]["commander"]["hp"],self.game_state["remote"]["commander"]["max_hp"])
-        self.enemy_energy_bar.render(self.game_state["remote"]["energy"],self.game_state["remote"]["max_energy"])
-        
-        self.player_energy_bar_text.render(str(self.game_state["local"]["energy"]))
-        self.enemy_energy_bar_text.render(str(self.game_state["remote"]["energy"]))
-        self.player_health_bar_text.render(str(self.game_state["local"]["commander"]["hp"]))
-        self.enemy_health_bar_text.render(str(self.game_state["remote"]["commander"]["hp"]))
-        self.card_manager.render(super().events, self.ui_state, self.game_state)
+
+        self.player_health_bar.render(
+            self.game_state["local"]["commander"]["hp"], self.game_state["local"]["commander"]["max_hp"])
+        self.player_energy_bar.render(
+            self.game_state["local"]["energy"], self.game_state["local"]["max_energy"])
+        self.enemy_health_bar.render(
+            self.game_state["remote"]["commander"]["hp"], self.game_state["remote"]["commander"]["max_hp"])
+        self.enemy_energy_bar.render(
+            self.game_state["remote"]["energy"], self.game_state["remote"]["max_energy"])
+
+        self.player_energy_bar_text.render(
+            str(self.game_state["local"]["energy"]))
+        self.enemy_energy_bar_text.render(
+            str(self.game_state["remote"]["energy"]))
+        self.player_health_bar_text.render(
+            str(self.game_state["local"]["commander"]["hp"]))
+        self.enemy_health_bar_text.render(
+            str(self.game_state["remote"]["commander"]["hp"]))
+        self.card_manager.render(
+            super().events, self.ui_state, self.game_state)
 
         # User buttons
         self.deck_button.render()
@@ -471,7 +504,8 @@ class GameMenu(State):
         if self.hand_button.answer():
             self.is_handed_toggle()
         if self.ui_state["handed"]:
-            self.hand_manager.render(self.game_state["local"]["hand"], super().events)
+            self.hand_manager.render(
+                self.game_state["local"]["hand"], super().events)
 
         # Toggles
         if self.escp_rel.update(search_event(super().events, pygame.KEYUP)):
@@ -499,7 +533,10 @@ class GameMenu(State):
             self.end_turn_btn.answer()
             self.screen.blit(self.turnbadge_up_image, self.turnbadge_up_rect)
         else:
-            self.screen.blit(self.turnbadge_down_image, self.turnbadge_down_rect)
+            self.screen.blit(self.turnbadge_down_image,
+                             self.turnbadge_down_rect)
+        if core.thereisawinner:
+            self.bg_win_menu_rect.render()
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:

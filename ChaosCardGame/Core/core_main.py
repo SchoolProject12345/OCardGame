@@ -8,6 +8,7 @@ from Core.target import TargetMode # moved for clarity
 import random as rng               # for shuffle function/rng effects
 import re
 
+thereisawinner = True
 class Constants:  # to change variables quickly, easily and buglessly.
     # Client settings (DEV() is through function)
     path: str = cwd_path
@@ -2330,9 +2331,12 @@ class Board:
             self.active_player.auto_play(self)
     def getwinner(self) -> Player | None:
         if self.unactive_player.haslost():
+            thereisawinner = True
             return self.active_player
         if self.active_player.haslost():
+            thereisawinner = True
             return self.unactive_player
+        thereisawinner = False
         return None
     def endturn(self) -> tuple[Player, int, list[AbstractCard], int, None | Player]:
         "End the turn returning (player_who_ends_turn: Player, energy_gained: int, card_drawn: list, current_turn: int, winner: None | Player)"
