@@ -1,1 +1,7 @@
-{}
+{
+"aevilogi":{"deck":["handofashes","soulfiredemon","fyyronyrthedragon","eternalsunseeker","handofashes","everstonesymbiote","chaosemperor","fierylion","thesilvercrow","felixfyris","magmagolem","magmagolem","everstonesymbiote","wizardofeverburn","hydraoftheseas"],"commander":"aevilogi","name":"Ævilogi"},
+"skyvisindi":{"deck":["tormentedwarrior", "mermaidofterror", "monkeyoftheskies", "eternalsunseeker", "whisperwindsprite", "blossomsylph", "themythicalpegasus", "mysticalowl", "crystalbat", "tenebrousmage", "theskyboundserpent", "rioocolorido", "wisemysticalgolem", "kratosoffire", "voidultraray"],"commander":"skyvisindi","name":"Skývísindi"},
+"krakithrek":{"deck":["shiaomasterofseas", "captainoctopus", "shiaomasterofseas", "thethousandtoothed", "bulkcherry", "mermaidofterror", "bobtheblobfish", "crystalbat", "energycat", "crystalbat", "shokobutsu", "hydraoftheseas", "freezespell", "voidultraray", "vineserpent"],"commander":"krakithrek","name":"Krakiþrek"},
+"valkjord":{"deck":["bulkcherry", "wisemysticalgolem", "vineserpent", "captainoctopus", "themysticalpegasus", "vineserpent", "kratosoffire", "fierylion", "everstonesymbiote", "chaosbrigade", "ferngoat", "blossomsylph", "eternalsunseeker", "monkeyoftheskies", "consumedwerewolf"],"commander":"valkjord","name":"Valkjörd"},
+"vafisorg":{"deck":["voidultraray", "crystalbat", "chaosemperor", "chaosbrigade", "hydraoftheseas", "bobtheblobfish", "kratosoffire", "gargoyleofthevoid", "tormentedwarrior", "handofashes", "thethousandtoothed", "tenebrousmage", "consumedwerewolf", "soulfiredemon", "fierylion"],"commander":"vafisorg","name":"Vafisorg"}
+}
