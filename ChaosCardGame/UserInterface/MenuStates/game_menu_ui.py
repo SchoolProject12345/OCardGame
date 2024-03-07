@@ -318,6 +318,7 @@ class GameMenu(State):
                 pygame.event.post(pygame.event.Event(CustomEvents.CLOSE_POPUP))
             if event.type == CustomEvents.PLACE_CARD:
                 self.pending_actions.extend([event])
+
                 pygame.event.post(
                     pygame.event.Event(CustomEvents.UI_STATE, {
                                        "selecting": True})
@@ -326,7 +327,9 @@ class GameMenu(State):
             if event.type == CustomEvents.DISCARD_CARD:
                 print(f"Discarded card at {event.hand_index}")
                 handle.run_action(f"discard|{event.hand_index}")
+                sound_handle("cardinteracts", channel=14)
             if event.type == CustomEvents.END_TURN:
+                sound_handle("cardshuffle", channel=14)
                 handle.run_action("endturn")
                 if core.thereisawinner:
 
@@ -340,6 +343,8 @@ class GameMenu(State):
                     and event.empty
                     and "local" in event.slot
                 ):
+                    sound_handle("cardinteracts", channel=14)
+
                     self.pending_actions.append(event)
                 elif self.pending_actions[0].type in [CustomEvents.DEF_ATTACK, CustomEvents.CARD_ATTACK, CustomEvents.ULTIMATE] and not event.empty:
                     self.pending_actions.append(event)
@@ -354,6 +359,9 @@ class GameMenu(State):
             print(
                 f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+
+            ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
+
             # leaving print for now, remove after testing
 
             user_slot = self.pending_actions[0].slot
@@ -369,6 +377,8 @@ class GameMenu(State):
             print(
                 f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
             )
+
+            ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
 
             user_slot = self.pending_actions[0].slot
             target_slot = self.pending_actions[1].slot
@@ -388,6 +398,9 @@ class GameMenu(State):
                 print(
                     f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
+
+                ReplayHandler.add_log_player(sound_handle("ultimateattack", "play", channel=13), head="attack")
+
             target_slot = self.pending_actions[1].slot
             handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
         elif (
