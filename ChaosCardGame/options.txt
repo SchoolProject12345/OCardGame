@@ -10,7 +10,7 @@ passive_commander_heal:0
 dev_mode:true
 mute:false
 mute_sfx:false
-volume:100
+volume:50
 min_board_size:2
 max_board_size:6
 per_minion_reduction:8
