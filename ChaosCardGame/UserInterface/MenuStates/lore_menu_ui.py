@@ -40,8 +40,6 @@ class LoreMenu(State):
         )
         self.bg_lore11_menu_image = MenuBackgrounds.bg_assets["lore_11_empty"]["img"].convert_alpha(
         )
-        self.bg_lore12_menu_image = MenuBackgrounds.bg_assets["lore_12_empty"]["img"].convert_alpha(
-        )
         self.bg_lore_menu_rect = self.bg_lore1_menu_image.get_rect()
 
         self.bg_lore_images = []
@@ -56,7 +54,6 @@ class LoreMenu(State):
         self.bg_lore_images.append(self.bg_lore9_menu_image)
         self.bg_lore_images.append(self.bg_lore10_menu_image)
         self.bg_lore_images.append(self.bg_lore11_menu_image)
-        self.bg_lore_images.append(self.bg_lore12_menu_image)
 
         # Buttons
         self.skiplore_button = ImageButton(
@@ -85,15 +82,15 @@ class LoreMenu(State):
         events = search_event(super().events, pygame.KEYDOWN)
 
 
-        if self.lore_index < 6:
+        if self.lore_index <= 10:
             self.skiplore_button.render()
             self.nextlore_button.render()
             if self.nextlore_button.answer():
-                if self.lore_index == 11:
+                if self.lore_index == 10:
                     self.lore_index = 0
                     self.revert_state()
                     sound_handle(action_type="stop", channel=7)
-                elif self.lore_index < 11:
+                elif self.lore_index < 10:
                     self.lore_index += 1
                     sound_handle(f"LoreSpeech{self.lore_index + 1}", channel= 7)
 
