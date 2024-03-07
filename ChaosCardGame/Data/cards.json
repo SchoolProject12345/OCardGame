@@ -498,116 +498,6 @@
   ]
  },
  {
-  "name": "Tornado Spell",
-  "element": "air",
-  "on_use": {
-   "name": "Unleash",
-   "cost": 1,
-   "target_mode": "target",
-   "power": 0,
-   "effect": {
-    "effect": {
-     "delay": {
-      "attr": "",
-      "type": "property",
-      "path": "repeat_depth"
-     },
-     "tags": [
-      "-"
-     ],
-     "effect": {
-      "amount": {
-       "den": 1,
-       "num": 8,
-       "times": {
-        "attr": "",
-        "type": "property",
-        "path": "repeat_depth"
-       },
-       "type": "mul"
-      },
-      "type": "damage"
-     },
-     "type": "delay"
-    },
-    "type": "repeat",
-    "n": 5
-   }
-  },
-  "type": "spell"
- },
- {
-  "name": "Potion of Regeneration",
-  "element": "earth",
-  "on_use": {
-   "name": "Drink",
-   "cost": 2,
-   "target_mode": ["target", "nocommander"],
-   "power": 0,
-   "effect": {
-    "effect1": {
-     "amount": 50,
-     "type": "heal"
-    },
-    "type": "union",
-    "effect2": {
-     "effect1": {
-      "delay": 1,
-      "tags": [
-       "+"
-      ],
-      "effect": {
-       "amount": 40,
-       "type": "heal"
-      },
-      "type": "delay"
-     },
-     "type": "union",
-     "effect2": {
-      "effect1": {
-       "delay": 2,
-       "tags": [
-        "+"
-       ],
-       "effect": {
-        "amount": 30,
-        "type": "heal"
-       },
-       "type": "delay"
-      },
-      "type": "union",
-      "effect2": {
-       "effect1": {
-        "delay": 3,
-        "tags": [
-         "+"
-        ],
-        "effect": {
-         "amount": 20,
-         "type": "heal"
-        },
-        "type": "delay"
-       },
-       "type": "union",
-       "effect2": {
-        "delay": 4,
-        "tags": [
-         "+"
-        ],
-        "effect": {
-         "amount": 10,
-         "type": "heal"
-        },
-        "type": "delay"
-       }
-      }
-     }
-    }
-   }
-  },
-  "type": "spell"
- },
- {
   "name": "Energy Cat",
   "element": "Earth",
   "cost": 1,
@@ -662,26 +552,6 @@
     "power": 65535
    }
   ]
- },
- {
-  "name": "Explosive Fireball",
-  "element": "fire",
-  "on_use": {
-   "name": "Throw",
-   "cost": 2,
-   "target_mode": "target",
-   "power": 60,
-   "effect":{
-    "type":"change_target",
-    "new_target":"adjacent",
-    "effect":{
-     "type":"damage",
-     "damage_mode":"direct",
-     "amount":20
-    }
-   }
-  },
-  "type": "spell"
  },
  {
   "name": "Captain Octopus",
@@ -748,23 +618,6 @@
   ]
  },
  {
-  "name": "Magic Scrolls",
-  "element": "air",
-  "on_use": {
-   "name": "Read",
-   "cost": 4,
-   "target_mode": "user",
-   "power": 0,
-   "effect": {
-    "max": 2,
-    "per_turn": 1,
-    "type": "add_energy",
-    "gain": 1
-   }
-  },
-  "type": "spell"
- },
- {
   "name": "Magma Golem",
   "element": "fire",
   "cost": 2,
@@ -797,22 +650,6 @@
     }
    }
   ]
- },
- {
-  "name": "Deep Sea Potion",
-  "element": "water",
-  "on_use": {
-   "name": "Apply",
-   "cost": 1,
-   "target_mode": "allies",
-   "power": 0,
-   "effect": {
-    "type": "change_stats",
-    "defense": 1.4,
-    "duration": 0
-   }
-  },
-  "type": "spell"
  },
  {
   "name": "Vine serpent",
@@ -1107,38 +944,6 @@
   ]
  },
  {
-  "name": "Smokeball",
-  "element": "fire",
-  "on_use": {
-   "name": "Fog",
-   "cost": 2,
-   "target_mode": "foes",
-   "power": 0,
-   "effect": {
-    "new_state": "cloudy",
-    "type": "state_change",
-    "for": 0
-   }
-  },
-  "type": "spell"
- },
- {
-  "name": "Healing Potion",
-  "element": "earth",
-  "on_use": {
-   "name": "Drink",
-   "cost": 2,
-   "tag": "heal",
-   "target_mode": "target",
-   "power": 0,
-   "effect": {
-    "amount": 90,
-    "type": "heal"
-   }
-  },
-  "type": "spell"
- },
- {
   "name": "Blossom Sylph",
   "element": "earth",
   "cost": 2,
@@ -1341,22 +1146,6 @@
     }
    }
   ]
- },
- {
-  "name": "Empowering Medicine",
-  "element": "earth",
-  "on_use": {
-   "name": "Apply",
-   "cost": 1,
-   "target_mode": "allies",
-   "power": 0,
-   "effect": {
-    "type": "change_stats",
-    "attack": 1.4,
-    "duration": 0
-   }
-  },
-  "type": "spell"
  },
  {
   "name": "Crystal Bat",
@@ -1729,28 +1518,6 @@
   ]
  },
  {
-  "name": "Corruption Spell",
-  "element": "chaos",
-  "on_use": {
-   "name": "Corrupt",
-   "cost": 2,
-   "target_mode": "target",
-   "power": 0,
-   "effect": {
-    "amount": {
-     "den": 1,
-     "num": 10,
-     "times": {
-      "type": "turn"
-     },
-     "type": "mul"
-    },
-    "type": "damage"
-   }
-  },
-  "type": "spell"
- },
- {
   "name": "Tormented Warrior",
   "element": "chaos",
   "cost": 1,
@@ -1794,23 +1561,6 @@
   ]
  },
  {
-  "name": "Black Hole spell",
-  "element": "chaos",
-  "on_use": {
-   "name": "Absorb",
-   "cost": 1,
-   "target_mode": ["foes", "commander"],
-   "power": 20,
-   "effect": {
-    "by_tags": [
-     "+"
-    ],
-    "type": "cleanse"
-   }
-  },
-  "type": "spell"
- },
- {
   "name": "Mermaid of Terror",
   "element": "Water",
   "cost": 2,
@@ -1849,22 +1599,6 @@
     }
    }
   ]
- },
- {
-  "name": "Freeze Spell",
-  "element": "water",
-  "on_use": {
-   "name": "Freeze",
-   "cost": 2,
-   "target_mode": "target",
-   "power": 30,
-   "effect": {
-    "new_state": "block",
-    "type": "state_change",
-    "for": 3
-   }
-  },
-  "type": "spell"
  },
  {
   "name":"Battleship",
