@@ -515,6 +515,18 @@ class GameMenu(State):
         self.card_manager.render(
             super().events, self.ui_state, self.game_state)
 
+        if handle.get_state()["isactive"]:
+            if self.ui_state["selecting"]:
+                #self.unselect_btn.render()
+                pass
+            else:
+                self.end_turn_btn.render()
+                self.end_turn_btn.answer()
+
+            self.screen.blit(self.turnbadge_up_image, self.turnbadge_up_rect)
+        else:
+            self.screen.blit(self.turnbadge_down_image,self.turnbadge_down_rect)
+
         # User buttons
         self.deck_button.render()
         if self.deck_button.answer():
@@ -550,17 +562,10 @@ class GameMenu(State):
 
         self.handle_events(super().events)
         self.handle_action()
-        if handle.get_state()["isactive"]:
-            self.end_turn_btn.render()
-            self.end_turn_btn.answer()
-            self.screen.blit(self.turnbadge_up_image, self.turnbadge_up_rect)
-        else:
-            self.screen.blit(self.turnbadge_down_image,
-                             self.turnbadge_down_rect)
+        
         if core.thereisawinner:
 
-            self.screen.blit(self.bg_win_menu_image,
-                             self.bg_win_menu_rect)
+            self.screen.blit(self.bg_win_menu_image,self.bg_win_menu_rect)
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
