@@ -5,8 +5,8 @@ hand_size:5
 deck_size:15
 progressbar_style:1
 strong_percent_increase:20
-passive_heal:0
-passive_commander_heal:20
+passive_heal:10
+passive_commander_heal:0
 dev_mode:true
 mute:false
 mute_sfx:false
