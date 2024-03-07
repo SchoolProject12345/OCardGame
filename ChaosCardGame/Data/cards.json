@@ -175,9 +175,12 @@
    {
     "name": "smokescreen",
     "effect": {
-     "new_state": "invisible",
-     "type": "state_change",
-     "for": 2
+     "type":"change_target",
+     "effect":{
+      "new_state": "invisible",
+      "type": "state_change",
+      "for": 2
+     }
     },
     "trigger": "whenattack"
    }
