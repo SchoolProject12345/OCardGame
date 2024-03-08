@@ -352,91 +352,95 @@ class GameMenu(State):
                     logging.warn("Unsuported event")
 
     def handle_action(self):
-        if len(self.pending_actions) < 2:
-            return
-        approved = self.check_attack()
-        if self.pending_actions[0].type == CustomEvents.DEF_ATTACK and approved:
-            print(
-                f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
-            )
-
-            ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
-
-            # leaving print for now, remove after testing
-
-            user_slot = self.pending_actions[0].slot
-            target_slot = self.pending_actions[1].slot
-            if user_slot[1] == "board":
-                handle.run_action(
-                    f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}"
+        try:
+            if len(self.pending_actions) < 2:
+                return
+            approved = self.check_attack()
+            if self.pending_actions[0].type == CustomEvents.DEF_ATTACK and approved:
+                print(
+                    f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
-            else:
+
+                ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
+
+                # leaving print for now, remove after testing
+
+                user_slot = self.pending_actions[0].slot
+                target_slot = self.pending_actions[1].slot
+                if user_slot[1] == "board":
+                    handle.run_action(
+                        f"attack|{slottuple2index(user_slot)}|0|{slottuple2index(target_slot)}"
+                    )
+                else:
+                    handle.run_action(
+                        f"attack|ally@|0|{slottuple2index(target_slot)}")
+            elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
+                print(
+                    f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+                )
+
+                ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
+
+                user_slot = self.pending_actions[0].slot
+                target_slot = self.pending_actions[1].slot
                 handle.run_action(
-                    f"attack|ally@|0|{slottuple2index(target_slot)}")
-        elif self.pending_actions[0].type == CustomEvents.CARD_ATTACK and approved:
-            print(
-                f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
-            )
+                    f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}"
+                )
 
-            ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
+            elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
+                if (
+                    self.game_state[self.pending_actions[0].slot[0]][
+                        self.pending_actions[0].slot[1]
+                    ]["ult_cost"]
+                    < self.game_state[self.pending_actions[0].slot[0]][
+                        self.pending_actions[0].slot[1]
+                    ]["charges"]
+                ):
+                    print(
+                        f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+                    )
 
-            user_slot = self.pending_actions[0].slot
-            target_slot = self.pending_actions[1].slot
-            handle.run_action(
-                f"attack|{slottuple2index(user_slot)}|1|{slottuple2index(target_slot)}"
-            )
+                    ReplayHandler.add_log_player(sound_handle("ultimateattack", "play", channel=13), head="attack")
 
-        elif self.pending_actions[0].type == CustomEvents.ULTIMATE and approved:
-            if (
-                self.game_state[self.pending_actions[0].slot[0]][
-                    self.pending_actions[0].slot[1]
-                ]["ult_cost"]
-                < self.game_state[self.pending_actions[0].slot[0]][
-                    self.pending_actions[0].slot[1]
-                ]["charges"]
+                target_slot = self.pending_actions[1].slot
+                handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
+            elif (
+                self.pending_actions[0].type == CustomEvents.PLACE_CARD
+                and self.pending_actions[1].empty
             ):
                 print(
-                    f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
+                    f"Placed card {self.pending_actions[0].hand_index} to slot {self.pending_actions[1].slot}"
                 )
-
-                ReplayHandler.add_log_player(sound_handle("ultimateattack", "play", channel=13), head="attack")
-
-            target_slot = self.pending_actions[1].slot
-            handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
-        elif (
-            self.pending_actions[0].type == CustomEvents.PLACE_CARD
-            and self.pending_actions[1].empty
-        ):
-            print(
-                f"Placed card {self.pending_actions[0].hand_index} to slot {self.pending_actions[1].slot}"
-            )
-            delta = 0
-            board = self.game_state[self.pending_actions[1].slot[0]]["board"]
-            l = len(board)
-            while (
-                delta < l
-                and board[delta] is not None
-                and board[delta]["name"] == "crossed_slot"
+                delta = 0
+                board = self.game_state[self.pending_actions[1].slot[0]]["board"]
+                l = len(board)
+                while (
+                    delta < l
+                    and board[delta] is not None
+                    and board[delta]["name"] == "crossed_slot"
+                ):
+                    delta += 1
+                handle.run_action(
+                    f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2] - delta}"
+                )
+            elif (
+                self.pending_actions[0].type == CustomEvents.PLACE_CARD
+                and not self.pending_actions[1].empty
             ):
-                delta += 1
-            handle.run_action(
-                f"place|{self.pending_actions[0].hand_index}|{self.pending_actions[1].slot[2] - delta}"
-            )
-        elif (
-            self.pending_actions[0].type == CustomEvents.PLACE_CARD
-            and not self.pending_actions[1].empty
-        ):
-            handle.run_action(
-                f"spell|{self.pending_actions[0].hand_index}|{slottuple2index(self.pending_actions[1].slot)}"
-            )
-            # logging.warn(
-            #    f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
-            # )
+                handle.run_action(
+                    f"spell|{self.pending_actions[0].hand_index}|{slottuple2index(self.pending_actions[1].slot)}"
+                )
+                # logging.warn(
+                #    f"Trying to inflict illegal operation: Placing card on already occupied slot. ({self.pending_actions[0].hand_index} -> {self.pending_actions[1].slot})"
+                # )
 
-        pygame.event.post(
-            pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
-        )
-        self.pending_actions.clear()
+            pygame.event.post(
+                pygame.event.Event(CustomEvents.UI_STATE, {"selecting": False})
+            )
+            self.pending_actions.clear()
+        except Exception as e:
+            self.pending_actions.clear()
+            logging.warn(f"{e}: Clearing pending events.")
 
     def check_attack(self):
         try:
