@@ -53,7 +53,3 @@ def sound_handle(track: str = "ClickSound12" , action_type: str = "play", volume
         # NE PAS UTILSER LA FONC AVEC VOLUME 0 POUR MUTE, UTILISER JUSTE ARGUMENT MUTE ET LE BON CHANNEL.
 
     # PAS TOUCHER AUX FONCTIONNEMENTS DES CHANNELS POUR LINSTANT CYKA
-
-music_channels = [2]
-sfx_channels = [3,8,2]
-speech_channels = [7]
