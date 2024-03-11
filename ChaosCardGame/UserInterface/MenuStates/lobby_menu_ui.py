@@ -9,6 +9,7 @@ from UserInterface.OcgVision.vision_main import ImageButton, State, TextBox, Sel
 from UserInterface.ui_settings import SCREEN_CENTER
 from utility import cwd_path, get_setting, search_event
 import random
+import re
 
 
 class LobbyMenu(State):
@@ -86,9 +87,10 @@ class LobbyMenu(State):
             return self.tips[second_random]
 
     def log_chat(self, _, username: str, message: str, text: str):
-        print(f"Username: {username}")
-        print(f"Message: {message}")
-        print(f"Text: {text}")
+        print(f"Original: {text}")
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        newtext = ansi_escape.sub('', text)
+        print(f"New: {newtext}")
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
@@ -128,7 +130,6 @@ class LobbyMenu(State):
         if self.ready_button.answer() and not handle.ready:
             handle.run_action("ready")
         if self.send_button.answer():
-            print("Message: " + self.tb_chat.text)
             handle.run_action(f"chat|{self.tb_chat.text}")
             self.tb_chat.text = ""
 
