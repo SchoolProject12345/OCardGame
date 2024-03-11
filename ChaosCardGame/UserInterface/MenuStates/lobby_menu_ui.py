@@ -8,6 +8,7 @@ from UserInterface.OcgVision.vision_io import KeyRel
 from UserInterface.OcgVision.vision_main import ImageButton, State, TextBox, SelectTextBox
 from UserInterface.ui_settings import SCREEN_CENTER
 from utility import cwd_path, get_setting, search_event
+import random
 
 
 class LobbyMenu(State):
@@ -19,6 +20,14 @@ class LobbyMenu(State):
 
         self.tb_image = TextBoxes.textbox_2_image.convert_alpha()
         self.chat_tb_rect = self.tb_image.get_rect(topleft=(777, 629))
+
+        self.tips = ["Some cards have passives that help you get more energy per turn. Use those to increase your energy generation!",
+                     "Use cards who attack all foes to get the advantage on your opponant, on arenas with many slots.",
+                     "An enemy card is too strong? Use an ability to block it, either temporarily or forever!",
+                     "Don't forget to use your Ultimate! Commander Ultimates charge with damage dealt by your cards, and can turn a game around!",
+                     "Block an opponent slot forever with special abilities, to hinder your opponent's capacity to place cards!",
+                     "Not dealing enough damage? Use a spell or an ability to boost your ally's attack power!",
+                     "Ayo you found a secret! Don't tell anyone, but this tip has a 1/100 chance to appear. You're lucky!"]
 
         self.tb_chat = SelectTextBox(
             self.screen,
@@ -67,6 +76,14 @@ class LobbyMenu(State):
 
         self.send_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Send"]["img"]), position_type="topleft", position=(1191, 629))
+
+    def pick_tip(self):
+        first_random = random.randint(1, 100)
+        if first_random == 1:
+            return self.tips[6]
+        else:
+            second_random = random.randint(0, 5)
+            return self.tips[second_random]
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
