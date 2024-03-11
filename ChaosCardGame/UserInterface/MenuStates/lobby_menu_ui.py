@@ -107,6 +107,7 @@ class LobbyMenu(State):
             handle.run_action("ready")
         if self.send_button.answer():
             print("Message: " + self.tb_chat.text)
+            handle.run_action(f"chat|{self.tb_chat.text}")
             self.tb_chat.text = ""
 
         if self.local_is_hosting == True:
