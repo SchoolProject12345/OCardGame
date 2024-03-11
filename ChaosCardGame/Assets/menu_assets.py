@@ -93,7 +93,8 @@ def handle_assets(path: str, per_file=False, prefixes: list = []):
                     asset_queue.append(os.path.join(dirpath, file))
             else:
                 asset_queue.append(dirpath)
-    asset_queue = [asset for asset in asset_queue if os.path.basename(asset)[0] != "."]
+    asset_queue = [asset for asset in asset_queue if os.path.basename(asset)[
+        0] != "."]
     return dict_packager(asset_queue, prefixes)
 
 
@@ -167,7 +168,10 @@ class TextBoxes:
     textbox_dir = os.path.join(graphics_path, "TextBoxes", "")
     # TextBox 1
     textbox_1_path = textbox_dir + "textbox_1.png"
+    textbox_2_path = textbox_dir + "textbox_2.png"
     textbox_1_image = pygame.image.load(textbox_1_path)
+    textbox_2_image = pygame.image.load(textbox_2_path)
+
     logging.info("Successfully loaded textboxes")
 
 
@@ -216,4 +220,5 @@ class Sprites:
     states_assets = handle_assets(
         os.path.join(graphics_path, "Sprites", "States"), True
     )
-    box_assets = handle_assets(os.path.join(graphics_path, "Sprites", "Boxes"), True)
+    box_assets = handle_assets(os.path.join(
+        graphics_path, "Sprites", "Boxes"), True)
