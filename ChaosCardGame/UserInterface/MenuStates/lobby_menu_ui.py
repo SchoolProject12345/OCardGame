@@ -130,6 +130,7 @@ class LobbyMenu(State):
 
         self.ipaddress_text.render(handle.ip_address)
         self.roomname_text.render(self.roomname_text_content)
+        self.roomname_text.render(self.text)
 
         self.ready_button.render()
         self.send_button.render()
