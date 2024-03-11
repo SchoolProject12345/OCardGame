@@ -90,7 +90,7 @@ class LobbyMenu(State):
         print(f"Original: {text}")
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         newtext = ansi_escape.sub('', text)
-        print(f"New: {newtext}")
+        print(f"New text: {newtext}")
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
