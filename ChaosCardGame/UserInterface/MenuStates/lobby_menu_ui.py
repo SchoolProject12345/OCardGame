@@ -21,6 +21,8 @@ class LobbyMenu(State):
 
         self.tb_image = TextBoxes.textbox_2_image.convert_alpha()
         self.chat_tb_rect = self.tb_image.get_rect(topleft=(777, 629))
+        self.messages = []
+        self.text = ""
 
         self.tips = ["Some cards have passives that help you get more energy per turn. Use those to increase your energy generation!",
                      "Use cards who attack all foes to get the advantage on your opponant, on arenas with many slots.",
@@ -72,6 +74,9 @@ class LobbyMenu(State):
         self.roomname_text = TextBox(self.screen, (257, 548), 204, 30, Fonts.ger_font(
             30), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
+        self.chats_text = TextBox(self.screen, (778, 105), 472, 496, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="center", text=self.text)
+
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(154, 616))
 
@@ -87,10 +92,12 @@ class LobbyMenu(State):
             return self.tips[second_random]
 
     def log_chat(self, _, username: str, message: str, text: str):
-        print(f"Original: {text}")
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         newtext = ansi_escape.sub('', text)
-        print(f"New text: {newtext}")
+        print(f"Logging message: {newtext}")
+        self.messages.append(newtext)
+        self.text = self.messages[-1:-10:-1]
+        self.chats_text.text = self.text
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
