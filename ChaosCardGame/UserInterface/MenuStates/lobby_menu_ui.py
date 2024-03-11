@@ -21,8 +21,8 @@ class LobbyMenu(State):
 
         self.tb_image = TextBoxes.textbox_2_image.convert_alpha()
         self.chat_tb_rect = self.tb_image.get_rect(topleft=(777, 629))
-        self.messages = ["Test: Hello World", "Test: baw baw baw"]
-        self.text = "hello world\n"
+        self.messages = []
+        self.text = ""
 
         self.tips = ["Some cards have passives that help you get more energy per turn. Use those to increase your energy generation!",
                      "Use cards who attack all foes to get the advantage on your opponant, on arenas with many slots.",
