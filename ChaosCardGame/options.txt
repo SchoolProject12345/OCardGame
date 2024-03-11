@@ -14,12 +14,12 @@ volume:100
 min_board_size:2
 max_board_size:6
 per_minion_reduction:8
-username:AxaTheBoss
+username:test
 default_power:3
 power_increase:7
 commanders_default_power:65
 automatically_save_replay:true
 automatically_ask_for_replay:false
-roomname:Roomname
+roomname:room
 is_hosting:true
 enable_arena_effects:false
