@@ -96,9 +96,9 @@ class LobbyMenu(State):
         newtext = ansi_escape.sub('', text)
         print(f"Logging message: {newtext}")
         self.messages.append(newtext)
+        self.text = ""
         for message in self.messages[-1:-10:-1]:
-            self.text = self.text + message + "\n"
-        print("HELLO" + self.text)
+            self.text = self.text + "\n" + message + "\n"
         self.chats_text.text = self.text
 
     def lobby_menu(self):
