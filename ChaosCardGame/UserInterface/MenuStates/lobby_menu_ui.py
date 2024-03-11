@@ -85,6 +85,9 @@ class LobbyMenu(State):
             second_random = random.randint(0, 5)
             return self.tips[second_random]
 
+    def log_chat(self, _, username: str, message: str):
+        print(f"Logged following message: {username}: {message}")
+
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
         self.local_is_hosting = get_setting("is_hosting", False)
@@ -151,6 +154,8 @@ class LobbyMenu(State):
                                  self.user_unready_rect)
 
         self.screen.blit(self.tb_image, self.chat_tb_rect)
+
+        handle.add_log_player(self.log_chat, head="chat")
 
         keys = search_event(super().events, pygame.KEYDOWN)
         self.room_text = self.tb_chat.render(keys)
