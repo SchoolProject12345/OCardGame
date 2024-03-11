@@ -21,8 +21,8 @@ class LobbyMenu(State):
 
         self.tb_image = TextBoxes.textbox_2_image.convert_alpha()
         self.chat_tb_rect = self.tb_image.get_rect(topleft=(777, 629))
-        self.messages = []
-        self.text = ""
+        self.messages = ["Test: Hello World", "Test: baw baw baw"]
+        self.text = "hello world\n"
 
         self.tips = ["Some cards have passives that help you get more energy per turn. Use those to increase your energy generation!",
                      "Use cards who attack all foes to get the advantage on your opponant, on arenas with many slots.",
@@ -75,7 +75,7 @@ class LobbyMenu(State):
             30), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
         self.chats_text = TextBox(self.screen, (778, 105), 472, 496, Fonts.ger_font(
-            20), (255, 255, 255), position_type="topleft", text_center="center", text=self.text)
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.text)
 
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(154, 616))
@@ -96,7 +96,9 @@ class LobbyMenu(State):
         newtext = ansi_escape.sub('', text)
         print(f"Logging message: {newtext}")
         self.messages.append(newtext)
-        self.text = self.messages[-1:-10:-1]
+        for message in self.messages[-1:-10:-1]:
+            self.text = self.text + message + "\n"
+        print("HELLO" + self.text)
         self.chats_text.text = self.text
 
     def lobby_menu(self):
@@ -130,7 +132,8 @@ class LobbyMenu(State):
 
         self.ipaddress_text.render(handle.ip_address)
         self.roomname_text.render(self.roomname_text_content)
-        self.roomname_text.render(self.text)
+        print(self.text)
+        self.chats_text.render(self.text)
 
         self.ready_button.render()
         self.send_button.render()
