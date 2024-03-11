@@ -85,8 +85,10 @@ class LobbyMenu(State):
             second_random = random.randint(0, 5)
             return self.tips[second_random]
 
-    def log_chat(self, _, username: str, message: str):
-        print(f"Logged following message: {username}: {message}")
+    def log_chat(self, _, username: str, message: str, text: str):
+        print(f"Username: {username}")
+        print(f"Message: {message}")
+        print(f"Text: {text}")
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
