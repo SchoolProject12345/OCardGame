@@ -21,8 +21,8 @@ class LobbyMenu(State):
 
         self.tb_image = TextBoxes.textbox_2_image.convert_alpha()
         self.chat_tb_rect = self.tb_image.get_rect(topleft=(777, 629))
-        self.messages = []
-        self.text = ""
+        self.messages = ["Message", "Message", "Message", "Message",
+                         "Message", "Message", "Message", "Message", "Message", "Message"]
 
         self.tips = ["Some cards have passives that help you get more energy per turn. Use those to increase your energy generation!",
                      "Use cards who attack all foes to get the advantage on your opponant, on arenas with many slots.",
@@ -74,8 +74,26 @@ class LobbyMenu(State):
         self.roomname_text = TextBox(self.screen, (257, 548), 204, 30, Fonts.ger_font(
             30), (255, 255, 255), position_type="topleft", text_center="center", text="")
 
-        self.chats_text = TextBox(self.screen, (778, 105), 472, 496, Fonts.ger_font(
-            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.text)
+        self.chat0_text = TextBox(self.screen, (777, 121), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[0])
+        self.chat1_text = TextBox(self.screen, (777, 163), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[1])
+        self.chat2_text = TextBox(self.screen, (777, 205), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[2])
+        self.chat3_text = TextBox(self.screen, (777, 247), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[3])
+        self.chat4_text = TextBox(self.screen, (777, 289), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[4])
+        self.chat5_text = TextBox(self.screen, (777, 331), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[5])
+        self.chat6_text = TextBox(self.screen, (777, 373), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[6])
+        self.chat7_text = TextBox(self.screen, (777, 415), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[7])
+        self.chat8_text = TextBox(self.screen, (777, 457), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[8])
+        self.chat9_text = TextBox(self.screen, (777, 499), 485, 35, Fonts.ger_font(
+            20), (255, 255, 255), position_type="topleft", text_center="left", text=self.messages[9])
 
         self.ready_button = ImageButton(self.screen, True, image=alpha_converter(
             MenuButtons.button_assets["Ready"]["img"]), position_type="topleft", position=(154, 616))
@@ -95,11 +113,21 @@ class LobbyMenu(State):
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         newtext = ansi_escape.sub('', text)
         print(f"Logging message: {newtext}")
-        self.messages.append(newtext)
-        self.text = ""
-        for message in self.messages[-1:-10:-1]:
-            self.text = self.text + "\n" + message + "\n"
-        self.chats_text.text = self.text
+        if len(self.messages) < 10:
+            self.messages.append(newtext)
+        else:
+            self.messages.pop(0)
+            self.messages.append(newtext)
+        self.chat0_text.text = self.messages[0]
+        self.chat1_text.text = self.messages[1]
+        self.chat2_text.text = self.messages[2]
+        self.chat3_text.text = self.messages[3]
+        self.chat4_text.text = self.messages[4]
+        self.chat5_text.text = self.messages[5]
+        self.chat6_text.text = self.messages[6]
+        self.chat7_text.text = self.messages[7]
+        self.chat8_text.text = self.messages[8]
+        self.chat9_text.text = self.messages[9]
 
     def lobby_menu(self):
         self.roomname_text_content = get_setting("roomname", "Room")
@@ -132,8 +160,16 @@ class LobbyMenu(State):
 
         self.ipaddress_text.render(handle.ip_address)
         self.roomname_text.render(self.roomname_text_content)
-        print(self.text)
-        self.chats_text.render(self.text)
+        self.chat0_text.render(self.messages[0])
+        self.chat1_text.render(self.messages[1])
+        self.chat2_text.render(self.messages[2])
+        self.chat3_text.render(self.messages[3])
+        self.chat4_text.render(self.messages[4])
+        self.chat5_text.render(self.messages[5])
+        self.chat6_text.render(self.messages[6])
+        self.chat7_text.render(self.messages[7])
+        self.chat8_text.render(self.messages[8])
+        self.chat9_text.render(self.messages[9])
 
         self.ready_button.render()
         self.send_button.render()
