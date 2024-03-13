@@ -82,6 +82,14 @@ class GameMenu(State):
             position_type="topleft",
             position=(824, 706),
         )
+        self.livechat_button = ImageButton(
+            self.screen,
+            True,
+            image=alpha_converter(
+                MenuButtons.button_assets["LiveChat"]["img"]),
+            position_type="topleft",
+            position=(824, 51),
+        )
 
         self.deck_manager = DeckManager(self.screen, [])  # wip
 
@@ -543,6 +551,11 @@ class GameMenu(State):
             self.is_decked_toggle()
         if self.ui_state["decked"]:
             self.deck_manager.render(super().events)
+
+        self.livechat_button.render()
+        if self.livechat_button.answer():
+            print("chat opens print statement")
+        # Chat button here
 
         self.hand_button.render()
         if self.hand_button.answer():
