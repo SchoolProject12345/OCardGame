@@ -88,7 +88,7 @@ class GameMenu(State):
             image=alpha_converter(
                 MenuButtons.button_assets["LiveChat"]["img"]),
             position_type="topleft",
-            position=(824, 51),
+            position=(824, 0),
         )
 
         self.deck_manager = DeckManager(self.screen, [])  # wip
