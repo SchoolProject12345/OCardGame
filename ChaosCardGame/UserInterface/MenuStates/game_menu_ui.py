@@ -13,8 +13,6 @@ from UserInterface.card_handler import BoardManager, DeckManager, HandManager
 from Assets.menu_assets import MenuBackgrounds, MenuButtons, Fonts, alpha_converter
 from Assets.menu_assets import CardAssets
 from SfxEngine.SoundEngine import sound_handle
-from Core.replay import ReplayHandler
-import Core.core_main as core
 
 
 def slottuple2index(slot: tuple) -> str:
@@ -365,9 +363,7 @@ class GameMenu(State):
                     f"DEF_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
 
-                ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
-
-                # leaving print for now, remove after testing
+                sound_handle("basicattack", "play", channel=2)
 
                 user_slot = self.pending_actions[0].slot
                 target_slot = self.pending_actions[1].slot
@@ -383,7 +379,7 @@ class GameMenu(State):
                     f"CARD_ATTACK, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                 )
 
-                ReplayHandler.add_log_player(sound_handle("basicattack", "play", channel=2), head="attack")
+                sound_handle("basicattack", "play", channel=2)
 
                 user_slot = self.pending_actions[0].slot
                 target_slot = self.pending_actions[1].slot
@@ -404,7 +400,7 @@ class GameMenu(State):
                         f"ULTIMATE, From: {self.pending_actions[0].slot} to {self.pending_actions[1].slot} with attack: {self.pending_actions[0].attack}"
                     )
 
-                    ReplayHandler.add_log_player(sound_handle("ultimateattack", "play", channel=13), head="attack")
+                    sound_handle("ultimateattack", "play", channel=13)
 
                 target_slot = self.pending_actions[1].slot
                 handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
