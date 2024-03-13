@@ -36,6 +36,7 @@ def slottuple2index(slot: tuple) -> str:
 class GameMenu(State):
     def __init__(self, screen):
         self.game_state = handle.get_state()  # return placeholder before initialization
+        self.has_won: None | Bool = None # too lazy to define a Monad
         self.screen = screen
         self.is_anchor = False
         self.local_options = ["GameMenu"]
@@ -331,8 +332,11 @@ class GameMenu(State):
             if event.type == CustomEvents.END_TURN:
                 sound_handle("cardshuffle", channel=14)
                 handle.run_action("endturn")
-                if core.thereisawinner:
-
+                if self.has_won is not None:
+                    if self.has_won:
+                        pass # TODO: dispatch menu based on win
+                    else:
+                        pass
                     self.screen.blit(self.bg_win_menu_image,
                                      self.bg_win_menu_rect)
                 print("Ended turn")
@@ -466,10 +470,11 @@ class GameMenu(State):
             return False
 
     def exit_when_over(self, player: str, player_name: str, **kwargs):
-        # has_won = player == "p1" if handle.isp1() else player == "p2"
+        self.has_won = player == "p1" if handle.isp1() else player == "p2"
         # You might want to implement a win menu or something.
         self.ui_state["paused"] = False
         self.revert_state(2)
+        self.has_won
 
     # Toggle State
     def is_paused_toggle(self):
@@ -567,8 +572,7 @@ class GameMenu(State):
         self.handle_events(super().events)
         self.handle_action()
         
-        if core.thereisawinner:
-
+        if self.has_won is not None:
             self.screen.blit(self.bg_win_menu_image,self.bg_win_menu_rect)
 
     def state_manager_hook(self, app):
