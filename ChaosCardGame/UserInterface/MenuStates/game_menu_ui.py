@@ -34,7 +34,7 @@ def slottuple2index(slot: tuple) -> str:
 class GameMenu(State):
     def __init__(self, screen):
         self.game_state = handle.get_state()  # return placeholder before initialization
-        self.has_won: None | Bool = None # too lazy to define a Monad
+        self.has_won: None | Bool = None  # too lazy to define a Monad
         self.screen = screen
         self.is_anchor = False
         self.local_options = ["GameMenu"]
@@ -48,8 +48,6 @@ class GameMenu(State):
             "selecting": False,
         }
         self.pending_actions = []
-        
-
 
         # Game Menu
         self.current_arena = self.game_state["arena"]
@@ -261,10 +259,16 @@ class GameMenu(State):
             center=SCREEN_CENTER)
 
         # added really shitty win popup
-        self.bg_win_menu_image = MenuBackgrounds.bg_assets["win_popup_empty"][
+        self.bg_youwon_image = MenuBackgrounds.bg_assets["youwon_empty"][
             "img"
         ].convert_alpha()
-        self.bg_win_menu_rect = self.bg_win_menu_image.get_rect(
+        self.bg_youwon_rect = self.bg_youwon_image.get_rect(
+            center=SCREEN_CENTER)
+
+        self.bg_youlost_image = MenuBackgrounds.bg_assets["youlost_empty"][
+            "img"
+        ].convert_alpha()
+        self.bg_youlost_rect = self.bg_youlost_image.get_rect(
             center=SCREEN_CENTER)
 
         # Hand Menu
@@ -285,8 +289,6 @@ class GameMenu(State):
             position_type="topleft",
             position=(44, 645),
         )
-        
-
 
     def handle_events(self, events):
         for event in events:
@@ -332,11 +334,12 @@ class GameMenu(State):
                 handle.run_action("endturn")
                 if self.has_won is not None:
                     if self.has_won:
-                        pass # TODO: dispatch menu based on win
+                        self.screen.blit(self.bg_youwon_image,
+                                         self.bg_youwon_rect)
                     else:
-                        pass
-                    self.screen.blit(self.bg_win_menu_image,
-                                     self.bg_win_menu_rect)
+                        self.screen.blit(self.bg_youlost_image,
+                                         self.bg_youlost_rect)
+
                 print("Ended turn")
 
             if self.ui_state["selecting"] and event.type == CustomEvents.SLOT_CLICKED:
@@ -403,7 +406,8 @@ class GameMenu(State):
                     sound_handle("ultimateattack", "play", channel=13)
 
                 target_slot = self.pending_actions[1].slot
-                handle.run_action(f"attack|ally@|1|{slottuple2index(target_slot)}")
+                handle.run_action(
+                    f"attack|ally@|1|{slottuple2index(target_slot)}")
             elif (
                 self.pending_actions[0].type == CustomEvents.PLACE_CARD
                 and self.pending_actions[1].empty
@@ -522,7 +526,7 @@ class GameMenu(State):
 
         if handle.get_state()["isactive"]:
             if self.ui_state["selecting"]:
-                #self.unselect_btn.render()
+                # self.unselect_btn.render()
                 pass
             else:
                 self.end_turn_btn.render()
@@ -530,7 +534,8 @@ class GameMenu(State):
 
             self.screen.blit(self.turnbadge_up_image, self.turnbadge_up_rect)
         else:
-            self.screen.blit(self.turnbadge_down_image,self.turnbadge_down_rect)
+            self.screen.blit(self.turnbadge_down_image,
+                             self.turnbadge_down_rect)
 
         # User buttons
         self.deck_button.render()
@@ -567,13 +572,12 @@ class GameMenu(State):
 
         self.handle_events(super().events)
         self.handle_action()
-        
+
         if self.has_won is not None:
-            self.screen.blit(self.bg_win_menu_image,self.bg_win_menu_rect)
+            self.screen.blit(self.bg_win_menu_image, self.bg_win_menu_rect)
 
     def state_manager_hook(self, app):
         if len(State.state_tree) >= 6:
             raise ValueError("Bro what?")
         elif State.state_tree[4] == self.local_options[0]:
             self.game_menu()
-        
