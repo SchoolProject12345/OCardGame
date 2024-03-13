@@ -47,7 +47,7 @@ def get_settings(settings: dict = {}) -> dict:
         return settings  # settings shouldn't be changed from file at runtime
     # feel free to add new default options if needed
     default: dict[str, str | int | float | bool | None] = {
-        "version": "0.0.3",
+        "version": "0.0.4",
         "default_max_energy": 4,
         "default_energy_per_turn": 3,
         "hand_size": 5,
@@ -56,7 +56,7 @@ def get_settings(settings: dict = {}) -> dict:
         "strong_percent_increase": 20,  # can be negative to revert type matchup
         "passive_heal": 10,
         "passive_commander_heal": 0,
-        "dev_mode": True,
+        "dev_mode": False,
         "mute": False,
         "mute_sfx": False,
         "volume": 100,
@@ -93,6 +93,7 @@ def get_settings(settings: dict = {}) -> dict:
         print("Detected outdated options, updating settings.")
         version = default["version"]
         default.update(settings)
+        default["dev_mode"] = False
         default["version"] = version
         settings.update(default)  # it works
         write_settings(default)
