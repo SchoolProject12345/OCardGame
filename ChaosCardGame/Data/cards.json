@@ -174,7 +174,6 @@
   "passives": [
    {
     "name": "smokescreen",
-    "trigger": "whenplaced",
     "effect": {
      "type":"change_target",
      "effect":{
